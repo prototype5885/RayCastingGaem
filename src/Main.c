@@ -6,11 +6,13 @@
 #include <SDL_events.h>
 #include <SDL_keycode.h>
 #include <SDL_stdinc.h>
+#include <bits/stdint-intn.h>
 #include <bits/stdint-uintn.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -52,26 +54,15 @@ long getMicrotime() {
   return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
 }
 
-bool CheckIfOutside(int x, int y, int width, int height) {
-  if (x < 0 || x > width || y < 0 || y > height) {
-    // printf("bad\n");
-    return false;
-  } else {
-    return true;
-  }
-}
-void AddPixelToBuffer(int x, int y, int width, int height,
-                      uint32_t *pixelBuffer) {
+void AddPixelToBuffer(int x, int y, int width, int height, int *pixelBuffer) {
   if (x <= 0 || x >= width || y <= 0 || y >= height) {
   } else {
-    int elementToAccess = y * width + x;
-    // printf("Trying to access number: %d\n", elementToAccess);
     pixelBuffer[y * width + x] = WHITE_COLOR;
   }
 }
 
 void addCircle(float radius, struct Vector2i circlePos, int width, int height,
-               uint32_t *pixelBuffer) {
+               int *pixelBuffer) {
   // struct Vector2i points[360];
 
   for (int i = 0; i < 360; i++) {
@@ -83,8 +74,8 @@ void addCircle(float radius, struct Vector2i circlePos, int width, int height,
     int x;
     int y;
 
-    int prevX = -1;
-    int prevY = -1;
+    // int prevX = -1;
+    // int prevY = -1;
 
     if (angle >= 0.0f && angle < 90.0f) {
       x = circlePos.x + roundToInt(xf);
@@ -107,12 +98,12 @@ void addCircle(float radius, struct Vector2i circlePos, int width, int height,
     AddPixelToBuffer(x, y, width, height, pixelBuffer);
     AddPixelToBuffer(circlePos.x, circlePos.y, width, height, pixelBuffer);
 
-    prevX = x;
-    prevY = y;
+    // prevX = x;
+    // prevY = y;
   }
 }
 
-void fillWithNoise(int width, int height, uint32_t *pixelBuffer) {
+void fillWithNoise(int width, int height, int *pixelBuffer) {
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
       int random_value = rand();
@@ -127,13 +118,12 @@ void fillWithNoise(int width, int height, uint32_t *pixelBuffer) {
       // Uint8 b = rand() % 256;
       uint32_t color = (r << 16) | (g << 8) | b;
 
-      pixelBuffer[y * width + x] = random_value;
+      pixelBuffer[y * width + x] = color;
     }
   }
 }
 
-void renderSW(SDL_Renderer *renderer, int width, int height,
-              uint32_t *pixelBuffer) {
+void renderSW(SDL_Renderer *renderer, int width, int height, int *pixelBuffer) {
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
   for (int x = 0; x < width; ++x) {
@@ -154,10 +144,10 @@ void renderSW(SDL_Renderer *renderer, int width, int height,
 
 int renderHW(SDL_Renderer *renderer, SDL_Window *window,
              SDL_Texture *texture_buffer, int width, int height,
-             uint32_t *pixelBuffer) {
-  // Assuming 32-bit pixel format (ARGB8888)
+             int *pixelBuffer) {
   void *pixels;
   int pitch;
+
   // lock texture
   if (SDL_LockTexture(texture_buffer, NULL, &pixels, &pitch) != 0) {
     SDL_DestroyTexture(texture_buffer);
@@ -168,11 +158,11 @@ int renderHW(SDL_Renderer *renderer, SDL_Window *window,
     return 1;
   }
 
-  // render pixel buffer
   uint32_t *pixPtr = (uint32_t *)pixels;
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      pixPtr[y * (pitch / 4) + x] = pixelBuffer[y * width + x];
+  for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+      int i = y * width + x;
+      pixPtr[i] = pixelBuffer[i];
     }
   }
   SDL_UnlockTexture(texture_buffer);
@@ -182,7 +172,7 @@ int renderHW(SDL_Renderer *renderer, SDL_Window *window,
   return 0;
 }
 
-void resetPixelBuffer(int width, int height, uint32_t *pixelBuffer) {
+void resetPixelBuffer(int width, int height, int *pixelBuffer) {
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
       pixelBuffer[y * width + x] = 0;
@@ -190,12 +180,8 @@ void resetPixelBuffer(int width, int height, uint32_t *pixelBuffer) {
   }
 }
 
-float calculateDelta(long startTime) {
-  return (getMicrotime() - startTime) * 60.0 / 1000000.0;
-}
-
 void addPlayer(struct Vector2i playerPosMap, int width, int height,
-               uint32_t *pixelBuffer) {
+               int *pixelBuffer) {
   float radius = 128.0f;
   addCircle(radius, playerPosMap, width, height, pixelBuffer);
 }
@@ -204,10 +190,10 @@ int main() {
   int windowWidth = 1920;
   int windowHeight = 1080;
 
-  int resolutionScale = 3;
+  int resScale = 1;
 
-  int width = windowWidth / resolutionScale;
-  int height = windowHeight / resolutionScale;
+  int width = windowWidth / resScale;
+  int height = windowHeight / resScale;
 
   // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -235,12 +221,14 @@ int main() {
     return 1;
   }
 
+  // Set resolution inside the window
   SDL_RenderSetLogicalSize(renderer, width, height);
 
-  SDL_Texture *texture_buffer =
+  // Create the texture that will display content in the window
+  SDL_Texture *texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888,
                         SDL_TEXTUREACCESS_STREAMING, width, height);
-  if (texture_buffer == NULL) {
+  if (texture == NULL) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     printf("SDL_CreateTexture Error: %s\n", SDL_GetError());
@@ -248,12 +236,9 @@ int main() {
     return 1;
   }
 
-  // uint32_t pixelBuffer[width][height];
-
-  // Allocate memory for the 2D array as a single block
-  int size = width * height;
-  printf("Array size to allocate: %d\n", size);
-  uint32_t *pixelBuffer = malloc(size * sizeof(uint32_t));
+  // Create a 2D array that will store colors of each pixel
+  printf("Array size to allocate: %d\n", width * height);
+  int *pixelBuffer = malloc(width * height * sizeof(int));
   if (pixelBuffer == NULL) {
     perror("Failed to allocate memory");
     return EXIT_FAILURE;
@@ -266,23 +251,15 @@ int main() {
   //   }
   // }
 
-  // Seed random number generator
+  // RNG
   srand(time(0));
 
-  int quit = 0;
-  SDL_Event event;
-
-  float deltaTime;
-  long currentTime = getMicrotime();
-
-  // struct Vector2i origin = {width / 2, height / 2};
-
+  // Player values
   struct Vector2 playerPos = {0.0, 0.0};
-
   struct Vector2i playerPosMap = {playerPos.x, playerPos.y};
-
   float playerSpeed = 512.0f;
 
+  // Key pressed values
   bool upKeyPressed = false;
   bool downKeyPressed = false;
   bool leftKeyPressed = false;
@@ -291,23 +268,32 @@ int main() {
   bool nKeyPressed = false;
   bool hKeyPressed = false;
 
+  // Extra debug stuff
   bool limitSpeed = false;
   bool checkerBoardRendering = false;
   bool hardwareAcceleration = true;
   bool noiseEnabled = false;
 
-  while (!quit) {
+  // needed for calculations inside the loop
+  float deltaTime;
+  long currentTime = getMicrotime();
+
+  SDL_Event event;
+  bool running = true;
+  while (running) {
+    // start time is used to calculate delta time
     long startTime = getMicrotime();
 
+    // handle events
     while (SDL_PollEvent(&event)) {
       switch (event.type) {
       case SDL_QUIT:
-        quit = true;
+        running = false;
         break;
       // look for a keypress
       case SDL_KEYDOWN:
         if (event.key.keysym.sym == SDLK_ESCAPE) {
-          quit = true;
+          running = false;
         }
         if (event.key.keysym.sym == SDLK_UP) {
           upKeyPressed = true;
@@ -323,11 +309,9 @@ int main() {
         }
         if (event.key.keysym.sym == SDLK_n) {
           noiseEnabled = !noiseEnabled;
-          nKeyPressed = false;
         }
         if (event.key.keysym.sym == SDLK_h) {
           hardwareAcceleration = !hardwareAcceleration;
-          hKeyPressed = false;
         }
         break;
       case SDL_KEYUP:
@@ -343,9 +327,6 @@ int main() {
         if (event.key.keysym.sym == SDLK_RIGHT) {
           rightKeyPressed = false;
         }
-        // if (event.key.keysym.sym == SDLK_n) {
-        //   nKeypressed = true;
-        // }
         break;
       }
     }
@@ -354,7 +335,7 @@ int main() {
     inputDirection.x = rightKeyPressed - leftKeyPressed;
     inputDirection.y = upKeyPressed - downKeyPressed;
 
-    float value = 0.0166f * playerSpeed * deltaTime;
+    const float value = 0.0166f * playerSpeed * deltaTime;
     playerPos.x = playerPos.x + value * inputDirection.x;
     playerPos.y = playerPos.y + value * inputDirection.y;
 
@@ -389,8 +370,7 @@ int main() {
     addPlayer(playerPosMap, width, height, pixelBuffer);
 
     if (hardwareAcceleration) {
-      int r = renderHW(renderer, window, texture_buffer, width, height,
-                       pixelBuffer);
+      int r = renderHW(renderer, window, texture, width, height, pixelBuffer);
       if (r != 0) {
         return 1;
       }
@@ -410,15 +390,16 @@ int main() {
     long elapsedTime = getMicrotime() - currentTime;
     // printf("%.6ld\n", elapsedTime);
 
-    deltaTime = calculateDelta(startTime);
+    deltaTime = (getMicrotime() - startTime) * 60.0 / 1000000.0;
     // printf("%.6f\n", deltaTime);
     long frameTime = getMicrotime() - startTime;
     float gameSpeed = ((1.0f / frameTime / 60.0f) * 1000000.0) * deltaTime;
 
     // Break the loop after 1 second (1,000,000 microseconds)
-    if (elapsedTime >= 250000) {
+    if (elapsedTime >= 100000) {
       int duration = getMicrotime() - startTime;
       int fps = 1000000 / duration;
+
       char buffer[20]; // Adjust the size as needed
       sprintf(buffer, "%d", fps);
 

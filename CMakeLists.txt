@@ -11,6 +11,8 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+
 # add_subdirectory(external/SDL2)
 # include_directories(external/SDL2/include)
 

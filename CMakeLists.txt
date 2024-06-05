@@ -18,8 +18,8 @@ find_package(SDL2 REQUIRED)
 
 set(EXECUTABLE_NAME RayCastingGaem)
 
-add_executable(${EXECUTABLE_NAME} src/main.c
-        src/protoMath.c
-        src/protoMath.h)
+add_executable(${EXECUTABLE_NAME} src/Main.c
+        src/ProToMath.c
+        src/ProToMath.h)
 
 target_link_libraries(${EXECUTABLE_NAME} ${SDL2_LIBRARIES})

@@ -14,7 +14,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "protoMath.h"
+#include "ProToMath.h"
 
 #define WHITE_COLOR 0XFFFFFF
 #define BLACK_COLOR 0X000000
@@ -52,9 +52,26 @@ long getMicrotime() {
   return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
 }
 
+bool CheckIfOutside(int x, int y, int width, int height) {
+  if (x < 0 || x > width || y < 0 || y > height) {
+    // printf("bad\n");
+    return false;
+  } else {
+    return true;
+  }
+}
+void AddPixelToBuffer(int x, int y, int width, int height,
+                      uint32_t *pixelBuffer) {
+  if (x <= 0 || x >= width || y <= 0 || y >= height) {
+  } else {
+    int elementToAccess = y * width + x;
+    // printf("Trying to access number: %d\n", elementToAccess);
+    pixelBuffer[y * width + x] = WHITE_COLOR;
+  }
+}
+
 void addCircle(float radius, struct Vector2i circlePos, int width, int height,
                uint32_t *pixelBuffer) {
-
   // struct Vector2i points[360];
 
   for (int i = 0; i < 360; i++) {
@@ -87,16 +104,11 @@ void addCircle(float radius, struct Vector2i circlePos, int width, int height,
     }
     // printf("X: %d, Y: %d\n", circlePos.x, circlePos.y);
 
-    if (prevX == x && prevY == y || x < 0 || x > width || y < 0 || y > height) {
-      // printf("bad\n");
-    } else {
-      pixelBuffer[x * width + y] = WHITE_COLOR;
-    }
+    AddPixelToBuffer(x, y, width, height, pixelBuffer);
+    AddPixelToBuffer(circlePos.x, circlePos.y, width, height, pixelBuffer);
+
     prevX = x;
     prevY = y;
-  }
-  for (int i = 0; i < radius; i++) {
-    pixelBuffer[circlePos.x * width + circlePos.y + i] = WHITE_COLOR;
   }
 }
 
@@ -115,7 +127,7 @@ void fillWithNoise(int width, int height, uint32_t *pixelBuffer) {
       // Uint8 b = rand() % 256;
       uint32_t color = (r << 16) | (g << 8) | b;
 
-      pixelBuffer[x * width + y] = random_value;
+      pixelBuffer[y * width + x] = random_value;
     }
   }
 }
@@ -126,10 +138,10 @@ void renderSW(SDL_Renderer *renderer, int width, int height,
   SDL_RenderClear(renderer);
   for (int x = 0; x < width; ++x) {
     for (int y = 0; y < height; ++y) {
-      if (pixelBuffer[x * width + y] == 0) {
+      if (pixelBuffer[y * width + x] == 0) {
         continue;
       }
-      uint32_t color = pixelBuffer[x * width + y];
+      uint32_t color = pixelBuffer[y * width + x];
       Uint8 r = color >> 16;
       Uint8 g = (color >> 8) & 0xFF;
       Uint8 b = color & 0xFF;
@@ -139,6 +151,7 @@ void renderSW(SDL_Renderer *renderer, int width, int height,
   }
   SDL_RenderPresent(renderer);
 }
+
 int renderHW(SDL_Renderer *renderer, SDL_Window *window,
              SDL_Texture *texture_buffer, int width, int height,
              uint32_t *pixelBuffer) {
@@ -159,7 +172,7 @@ int renderHW(SDL_Renderer *renderer, SDL_Window *window,
   uint32_t *pixPtr = (uint32_t *)pixels;
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      pixPtr[y * (pitch / 4) + x] = pixelBuffer[x * width + y];
+      pixPtr[y * (pitch / 4) + x] = pixelBuffer[y * width + x];
     }
   }
   SDL_UnlockTexture(texture_buffer);
@@ -172,7 +185,7 @@ int renderHW(SDL_Renderer *renderer, SDL_Window *window,
 void resetPixelBuffer(int width, int height, uint32_t *pixelBuffer) {
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
-      pixelBuffer[x * width + y] = 0;
+      pixelBuffer[y * width + x] = 0;
     }
   }
 }
@@ -191,10 +204,10 @@ int main() {
   int windowWidth = 1920;
   int windowHeight = 1080;
 
-  int resolutionScale = 2;
+  int resolutionScale = 3;
 
-  const int width = windowWidth / resolutionScale;
-  const int height = windowHeight / resolutionScale;
+  int width = windowWidth / resolutionScale;
+  int height = windowHeight / resolutionScale;
 
   // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -238,7 +251,9 @@ int main() {
   // uint32_t pixelBuffer[width][height];
 
   // Allocate memory for the 2D array as a single block
-  uint32_t *pixelBuffer = malloc(width * height * sizeof(uint32_t));
+  int size = width * height;
+  printf("Array size to allocate: %d\n", size);
+  uint32_t *pixelBuffer = malloc(size * sizeof(uint32_t));
   if (pixelBuffer == NULL) {
     perror("Failed to allocate memory");
     return EXIT_FAILURE;

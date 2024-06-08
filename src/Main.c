@@ -8,6 +8,8 @@
 #include <SDL_stdinc.h>
 #include <bits/stdint-intn.h>
 #include <bits/stdint-uintn.h>
+#include <immintrin.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,58 +20,89 @@
 
 #include "ProToMath.h"
 
-#define WHITE_COLOR 0XFFFFFF
-#define BLACK_COLOR 0X000000
-#define RED_COLOR 0XFF0000
-#define GREEN_COLOR 0X00FF00
-#define BLUE_COLOR 0X0000FF
+#define WHITE_COLOR (0 << 24) | (255 << 16) | (255 << 8) | 255
+#define BLACK_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 255
+#define RED_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 0
+#define GREEN_COLOR (0 << 24) | (0 << 16) | (255 << 8) | 0
+#define BLUE_COLOR (0 << 24) | (0 << 16) | (255 << 8) | 255
+
+#define COLOR_CHANNELS 3
 
 #define macro()
 
-struct Vector2 {
+struct Vector2
+{
   float x;
   float y;
 };
 
-struct Vector2i {
+struct Vector2i
+{
   int x;
   int y;
 };
 
-// int randomColor() {
-//   // Seed the random number generator (important)
-//   srand(time(NULL));
+typedef struct
+{
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+} RGB;
 
-//   int random_value = rand();
+int map[8][8] = {{1, 1, 1, 1, 1, 1, 1, 1},
+                 {1, 0, 0, 0, 0, 0, 0, 1},
+                 {1, 0, 0, 0, 0, 1, 0, 1},
+                 {1, 0, 0, 0, 0, 0, 0, 1},
+                 {1, 0, 0, 0, 0, 0, 0, 1},
+                 {1, 0, 0, 0, 0, 0, 0, 1},
+                 {1, 1, 0, 0, 0, 0, 0, 1},
+                 {1, 1, 1, 1, 1, 1, 1, 1}};
 
-//   int color1 = random_value & 0xFF;
-//   int color2 = (random_value >> 8) & 0xFF;
-//   int mask = 0x3F;
-//   int color3 = (random_value ^ mask) & 0xFF;
-// }
-
-long getMicrotime() {
+long GetMicroTime()
+{
   struct timeval currentTime;
   gettimeofday(&currentTime, NULL);
   return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
 }
 
-void AddPixelToBuffer(int x, int y, int width, int height, int *pixelBuffer) {
-  if (x <= 0 || x >= width || y <= 0 || y >= height) {
-  } else {
+uint32_t PackRGB(uint8_t r, uint8_t g, uint8_t b)
+{
+  uint32_t rgba = 0;
+  rgba |= 0 << 24;
+  rgba |= r << 16;
+  rgba |= g << 8;
+  rgba |= b;
+
+  return rgba;
+}
+
+RGB UnpackRGB(uint32_t packedRgb)
+{
+  RGB rgb;
+  rgb.r = (packedRgb >> 16) & 0xFF;
+  rgb.g = (packedRgb >> 8) & 0xFF;
+  rgb.b = (packedRgb) & 0xFF;
+  return rgb;
+}
+
+void AddPixelToBuffer(int x, int y, int width, int height, uint32_t *pixelBuffer)
+{
+  if (x > 0 && x < width && y > 0 && y < height)
+  {
     pixelBuffer[y * width + x] = WHITE_COLOR;
   }
 }
 
-void addCircle(float radius, struct Vector2i circlePos, int width, int height,
-               int *pixelBuffer) {
+void addCircle(float radius, struct Vector2i circlePos, int width, int height, uint32_t *pixelBuffer)
+{
   // struct Vector2i points[360];
 
-  for (int i = 0; i < 360; i++) {
-    float angle = (float)i;
+  for (float i = 0; i < 360; i++)
+  {
+    const float angle = (float)i;
 
-    float yf = radius * sinus(deg2rad(angle));
-    float xf = sqroot(sqr(radius) - sqr(yf));
+    const float yf = radius * sinf(deg2rad(i));
+    const float xf = sqrtf(sqr(radius) - sqr(yf));
 
     int x;
     int y;
@@ -77,19 +110,28 @@ void addCircle(float radius, struct Vector2i circlePos, int width, int height,
     // int prevX = -1;
     // int prevY = -1;
 
-    if (angle >= 0.0f && angle < 90.0f) {
-      x = circlePos.x + roundToInt(xf);
-      y = circlePos.y + roundToInt(yf);
-    } else if (angle >= 90.0f && angle < 180.0f) {
-      x = circlePos.x + roundToInt(xf);
-      y = circlePos.y - roundToInt(yf);
-    } else if (angle >= 180.0f && angle < 270.f) {
-      x = circlePos.x - roundToInt(xf);
-      y = circlePos.y - roundToInt(yf);
-    } else if (angle >= 270.0f && angle <= 360.0f) {
-      x = circlePos.x - roundToInt(xf);
-      y = circlePos.y + roundToInt(yf);
-    } else {
+    if (angle >= 0.0f && angle < 90.0f)
+    {
+      x = circlePos.x + round(xf);
+      y = circlePos.y + roundf(yf);
+    }
+    else if (angle >= 90.0f && angle < 180.0f)
+    {
+      x = circlePos.x + roundf(xf);
+      y = circlePos.y - roundf(yf);
+    }
+    else if (angle >= 180.0f && angle < 270.f)
+    {
+      x = circlePos.x - roundf(xf);
+      y = circlePos.y - roundf(yf);
+    }
+    else if (angle >= 270.0f && angle <= 360.0f)
+    {
+      x = circlePos.x - roundf(xf);
+      y = circlePos.y + roundf(yf);
+    }
+    else
+    {
       printf("wrong angle\n");
       continue;
     }
@@ -103,53 +145,49 @@ void addCircle(float radius, struct Vector2i circlePos, int width, int height,
   }
 }
 
-void fillWithNoise(int width, int height, int *pixelBuffer) {
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      int random_value = rand();
+void FillWithNoise(int width, int height, uint32_t *pixelBuffer)
+{
+  for (int y = 0; y < height; y++)
+  {
 
-      int r = random_value & 0xFF;
-      int g = (random_value >> 8) & 0xFF;
-      int mask = 0x00FFFFFF;
-      int b = (random_value ^ mask) & 0xFF;
-
-      // Uint8 r = rand() % 256;
-      // Uint8 g = rand() % 256;
-      // Uint8 b = rand() % 256;
-      uint32_t color = (r << 16) | (g << 8) | b;
-
-      pixelBuffer[y * width + x] = color;
+    for (int x = 0; x < width; x++)
+    {
+      uint32_t randomColor = random();
+      pixelBuffer[y * width + x] = randomColor;
     }
   }
 }
 
-void renderSW(SDL_Renderer *renderer, int width, int height, int *pixelBuffer) {
+void SoftwareRenderer(SDL_Renderer *renderer, int width, int height, uint32_t *pixelBuffer)
+{
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
-  for (int x = 0; x < width; ++x) {
-    for (int y = 0; y < height; ++y) {
-      if (pixelBuffer[y * width + x] == 0) {
+
+  for (int x = 0; x < width; x++)
+  {
+    for (int y = 0; y < height; y++)
+    {
+      int index = y * width + x;
+      if (pixelBuffer[index] == 0)
+      {
         continue;
       }
-      uint32_t color = pixelBuffer[y * width + x];
-      Uint8 r = color >> 16;
-      Uint8 g = (color >> 8) & 0xFF;
-      Uint8 b = color & 0xFF;
-      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+      const RGB rgb = UnpackRGB(pixelBuffer[index]);
+      SDL_SetRenderDrawColor(renderer, rgb.r, rgb.g, rgb.b, 255);
       SDL_RenderDrawPoint(renderer, x, y);
     }
   }
   SDL_RenderPresent(renderer);
 }
 
-int renderHW(SDL_Renderer *renderer, SDL_Window *window,
-             SDL_Texture *texture_buffer, int width, int height,
-             int *pixelBuffer) {
-  void *pixels;
+int HardwareRenderer(SDL_Renderer *renderer, SDL_Window *window, SDL_Texture *texture_buffer, int width, int height, uint32_t *pixelBuffer)
+{
+  uint32_t *pixels;
   int pitch;
 
   // lock texture
-  if (SDL_LockTexture(texture_buffer, NULL, &pixels, &pitch) != 0) {
+  if (SDL_LockTexture(texture_buffer, NULL, (void **)&pixels, &pitch) != 0)
+  {
     SDL_DestroyTexture(texture_buffer);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -159,62 +197,118 @@ int renderHW(SDL_Renderer *renderer, SDL_Window *window,
   }
 
   uint32_t *pixPtr = (uint32_t *)pixels;
-  for (int x = 0; x < width; x++) {
-    for (int y = 0; y < height; y++) {
+  // pixPtr = pixelBuffer;
+
+  for (int x = 0; x < width; x++)
+  {
+    for (int y = 0; y < height; y++)
+    {
       int i = y * width + x;
       pixPtr[i] = pixelBuffer[i];
     }
   }
+
   SDL_UnlockTexture(texture_buffer);
   SDL_RenderCopy(renderer, texture_buffer, NULL, NULL);
   SDL_RenderPresent(renderer);
 
+  // SDL_UpdateTexture(texture_buffer, NULL, pixelBuffer, width * 4);
+  // SDL_RenderCopy(renderer, texture_buffer, NULL, NULL);
+  // SDL_RenderPresent(renderer);
+
   return 0;
 }
 
-void resetPixelBuffer(int width, int height, int *pixelBuffer) {
-  for (int x = 0; x < width; x++) {
-    for (int y = 0; y < height; y++) {
+void ResetPixelBuffer(int width, int height, uint32_t *pixelBuffer)
+{
+  for (int x = 0; x < width; x++)
+  {
+    for (int y = 0; y < height; y++)
+    {
+
       pixelBuffer[y * width + x] = 0;
     }
   }
 }
 
-void addPlayer(struct Vector2i playerPosMap, int width, int height,
-               int *pixelBuffer) {
+void AddPlayer(struct Vector2i playerPosMap, int width, int height, uint32_t *pixelBuffer)
+{
   float radius = 128.0f;
   addCircle(radius, playerPosMap, width, height, pixelBuffer);
 }
 
-int main() {
+void DrawMap(int width, int height, uint32_t *pixelBuffer)
+{
+  int upscaleMultiplier = 32;
+  int mapSize = 8;
+
+  int posX = 0;
+  int posY = 0;
+
+  for (int x = 0; x < upscaleMultiplier; x++)
+  {
+    for (int y = 0; y < upscaleMultiplier; y++)
+    {
+      for (int mapX = 0; mapX < mapSize; mapX++)
+      {
+        for (int mapY = 0; mapY < mapSize; mapY++)
+        {
+          int index = (mapY * upscaleMultiplier + y + posY) * width + (mapX * upscaleMultiplier + x + posX);
+
+          if (map[mapX][mapY] == 1)
+          {
+            pixelBuffer[index] = RED_COLOR;
+          }
+          else
+          {
+            pixelBuffer[index] = GREEN_COLOR;
+          }
+
+          if (x == 0 || x == upscaleMultiplier - 1 || y == 0 || y == upscaleMultiplier - 1)
+          {
+            pixelBuffer[index] = WHITE_COLOR;
+          }
+        }
+      }
+    }
+  }
+}
+
+int main()
+{
   int windowWidth = 1920;
   int windowHeight = 1080;
 
-  int resScale = 1;
+  int resScale = 4;
 
   int width = windowWidth / resScale;
   int height = windowHeight / resScale;
 
   // Initialize SDL
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO) < 0)
+  {
     SDL_Log("SDL could not initialize! SDL_Error: %s", SDL_GetError());
     return 1;
   }
 
   // Create window
   SDL_Window *window =
-      SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+      SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOW_FULLSCREEN,
                        windowWidth, windowHeight, SDL_WINDOW_SHOWN);
-  if (window == NULL) {
+  if (window == NULL)
+  {
     SDL_Log("Window could not be created! SDL_Error: %s", SDL_GetError());
     SDL_Quit();
     return 1;
   }
 
+  // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+
   // Create renderer
   SDL_Renderer *renderer =
       SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  if (renderer == NULL) {
+  if (renderer == NULL)
+  {
     SDL_Log("Renderer could not be created! SDL_Error: %s", SDL_GetError());
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -226,9 +320,9 @@ int main() {
 
   // Create the texture that will display content in the window
   SDL_Texture *texture =
-      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888,
-                        SDL_TEXTUREACCESS_STREAMING, width, height);
-  if (texture == NULL) {
+      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
+  if (texture == NULL)
+  {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     printf("SDL_CreateTexture Error: %s\n", SDL_GetError());
@@ -238,8 +332,9 @@ int main() {
 
   // Create a 2D array that will store colors of each pixel
   printf("Array size to allocate: %d\n", width * height);
-  int *pixelBuffer = malloc(width * height * sizeof(int));
-  if (pixelBuffer == NULL) {
+  uint32_t *pixelBuffer = malloc(width * height * sizeof(uint32_t));
+  if (pixelBuffer == NULL)
+  {
     perror("Failed to allocate memory");
     return EXIT_FAILURE;
   }
@@ -276,55 +371,79 @@ int main() {
 
   // needed for calculations inside the loop
   float deltaTime;
-  long currentTime = getMicrotime();
+  long currentTime = GetMicroTime();
+
+  char hwsw[] = "HW";
 
   SDL_Event event;
   bool running = true;
-  while (running) {
+  while (running)
+  {
     // start time is used to calculate delta time
-    long startTime = getMicrotime();
+    long startTime = GetMicroTime();
 
     // handle events
-    while (SDL_PollEvent(&event)) {
-      switch (event.type) {
+    while (SDL_PollEvent(&event))
+    {
+      switch (event.type)
+      {
       case SDL_QUIT:
         running = false;
         break;
       // look for a keypress
       case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_ESCAPE) {
+        if (event.key.keysym.sym == SDLK_ESCAPE)
+        {
           running = false;
         }
-        if (event.key.keysym.sym == SDLK_UP) {
+        if (event.key.keysym.sym == SDLK_UP)
+        {
           upKeyPressed = true;
         }
-        if (event.key.keysym.sym == SDLK_DOWN) {
+        if (event.key.keysym.sym == SDLK_DOWN)
+        {
           downKeyPressed = true;
         }
-        if (event.key.keysym.sym == SDLK_LEFT) {
+        if (event.key.keysym.sym == SDLK_LEFT)
+        {
           leftKeyPressed = true;
         }
-        if (event.key.keysym.sym == SDLK_RIGHT) {
+        if (event.key.keysym.sym == SDLK_RIGHT)
+        {
           rightKeyPressed = true;
         }
-        if (event.key.keysym.sym == SDLK_n) {
+        if (event.key.keysym.sym == SDLK_n)
+        {
           noiseEnabled = !noiseEnabled;
         }
-        if (event.key.keysym.sym == SDLK_h) {
+        if (event.key.keysym.sym == SDLK_h)
+        {
           hardwareAcceleration = !hardwareAcceleration;
+          if (hardwareAcceleration)
+          {
+            strcpy(hwsw, "HW");
+          }
+          else
+          {
+            strcpy(hwsw, "SW");
+          }
         }
         break;
       case SDL_KEYUP:
-        if (event.key.keysym.sym == SDLK_UP) {
+        if (event.key.keysym.sym == SDLK_UP)
+        {
           upKeyPressed = false;
         }
-        if (event.key.keysym.sym == SDLK_DOWN) {
+        if (event.key.keysym.sym == SDLK_DOWN)
+        {
           downKeyPressed = false;
         }
-        if (event.key.keysym.sym == SDLK_LEFT) {
+        if (event.key.keysym.sym == SDLK_LEFT)
+        {
           leftKeyPressed = false;
         }
-        if (event.key.keysym.sym == SDLK_RIGHT) {
+        if (event.key.keysym.sym == SDLK_RIGHT)
+        {
           rightKeyPressed = false;
         }
         break;
@@ -341,70 +460,80 @@ int main() {
 
     // printf("X: %f, Y:%f\n", playerPos.x, playerPos.y);
 
-    playerPosMap.x = roundToInt(playerPos.x);
-    playerPosMap.y = -roundToInt(playerPos.y);
+    playerPosMap.x = roundf(playerPos.x);
+    playerPosMap.y = -roundf(playerPos.y);
 
-    // printf("XM: %d, YM:%d\n", playerPosMap.x, playerPosMap.y);
-
-    // uint32_t *upixels = (uint32_t*)pixels;
-    // for (int y = 0; y < height; ++y) {
-    //     for (int x = 0; x < width; ++x) {
-    //         Uint8 r = rand() % 256;
-    //         Uint8 g = rand() % 256;
-    //         Uint8 b = rand() % 256;
-    //         Uint8 a = 255; // Full opacity
-    //         uint32_t color = (r << 24) | (g << 16) | (b << 8) | a;
-    //         upixels[y * (pitch / 4) + x] = color;
-    //         // uint32_t color = 0xFF0000FF; // Example: red color with full
-    //         opacity
-    //         // upixels[y * (pitch / 4) + x] = color;
-    //     }
-    // }
+    printf("XM: %d, YM:%d\n", playerPosMap.x, playerPosMap.y);
 
     // reset pixel buffer
-    resetPixelBuffer(width, height, pixelBuffer);
+    ResetPixelBuffer(width, height, pixelBuffer);
 
     if (noiseEnabled)
-      fillWithNoise(width, height, pixelBuffer);
+      FillWithNoise(width, height, pixelBuffer);
 
-    addPlayer(playerPosMap, width, height, pixelBuffer);
+    AddPlayer(playerPosMap, width, height, pixelBuffer);
 
-    if (hardwareAcceleration) {
-      int r = renderHW(renderer, window, texture, width, height, pixelBuffer);
-      if (r != 0) {
+    DrawMap(width, height, pixelBuffer);
+
+    // int size = 64;
+    // for (int s = 0; s < 4; s++)
+    // {
+    //   for (int x = 0; x < size; x++)
+    //   {
+    //     for (int y = 0; y < size; y++)
+    //     {
+    //       int index = y * size + x;
+    //       pixelBuffer[(s * size + y) * width + (s +x)] = WHITE_COLOR;
+    //     }
+    //   }
+    // }
+
+    // pixelBuffer[100 * width + 100] = WHITE_COLOR;
+
+    if (hardwareAcceleration)
+    {
+      int r = HardwareRenderer(renderer, window, texture, width, height,
+                               pixelBuffer);
+      if (r != 0)
+      {
         return 1;
       }
-    } else {
-      renderSW(renderer, width, height, pixelBuffer);
+    }
+    else
+    {
+      SoftwareRenderer(renderer, width, height, pixelBuffer);
     }
 
-    if (limitSpeed) {
-      long executionTime = getMicrotime() - startTime;
+    if (limitSpeed)
+    {
+      long executionTime = GetMicroTime() - startTime;
       int timeToSleep = 16666 - executionTime;
 
-      if (timeToSleep > 0) {
+      if (timeToSleep > 0)
+      {
         usleep(timeToSleep);
       }
     }
 
-    long elapsedTime = getMicrotime() - currentTime;
+    long elapsedTime = GetMicroTime() - currentTime;
     // printf("%.6ld\n", elapsedTime);
 
-    deltaTime = (getMicrotime() - startTime) * 60.0 / 1000000.0;
+    deltaTime = (GetMicroTime() - startTime) * 60.0 / 1000000.0;
     // printf("%.6f\n", deltaTime);
-    long frameTime = getMicrotime() - startTime;
+    long frameTime = GetMicroTime() - startTime;
     float gameSpeed = ((1.0f / frameTime / 60.0f) * 1000000.0) * deltaTime;
 
     // Break the loop after 1 second (1,000,000 microseconds)
-    if (elapsedTime >= 100000) {
-      int duration = getMicrotime() - startTime;
+    if (elapsedTime >= 100000)
+    {
+      int duration = GetMicroTime() - startTime;
       int fps = 1000000 / duration;
 
-      char buffer[20]; // Adjust the size as needed
-      sprintf(buffer, "%d", fps);
+      char buffer[40]; // Adjust the size as needed
+      sprintf(buffer, "%d fps, %s", fps, hwsw);
 
       SDL_SetWindowTitle(window, buffer);
-      currentTime = getMicrotime();
+      currentTime = GetMicroTime();
     }
   }
 

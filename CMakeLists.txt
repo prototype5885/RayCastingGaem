@@ -24,4 +24,4 @@ add_executable(${EXECUTABLE_NAME} src/Main.c
         src/ProToMath.c
         src/ProToMath.h)
 
-target_link_libraries(${EXECUTABLE_NAME} ${SDL2_LIBRARIES})
+target_link_libraries(${EXECUTABLE_NAME} -lm ${SDL2_LIBRARIES})

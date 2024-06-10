@@ -1,7 +1,7 @@
-// #define PI 3.14159265358979323846
+#include <math.h>
 // #define ONE_RAD (3.14159 / 180.0);
 
-float deg2rad(float num) { return num * (3.14159265358979323846 / 180.0); }
+float deg2rad(float num) { return num * (M_PI / 180.0); }
 
 float sqr(float num) { return num * num; }
 

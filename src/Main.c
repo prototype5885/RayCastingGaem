@@ -31,26 +31,27 @@
 
 #define macro()
 
-struct Vector2 {
-  float x;
-  float y;
-};
+typedef struct {
+  float x, y;
+} Vector2;
 
-struct Vector2i {
-  int x;
-  int y;
-};
+typedef struct {
+  int x, y;
+} Vector2i;
 
 struct Player {
-  struct Vector2 pos;
+  Vector2 pos;
   float rotation;
 };
 
 typedef struct {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
+  uint8_t r, g, b;
 } RGB;
+
+typedef struct {
+  int width, height;
+  uint32_t *pixelBuffer;
+} WindowData;
 
 int map[8][8] = {{1, 1, 1, 1, 1, 1, 1, 1}, {1, 0, 0, 0, 0, 0, 0, 1},
                  {1, 0, 0, 0, 0, 1, 0, 1}, {1, 0, 0, 0, 0, 0, 0, 1},
@@ -89,18 +90,14 @@ void AddPixelToBuffer(int width, int height, uint32_t *pixelBuffer, int x,
 }
 
 void addCircle(int width, int height, uint32_t *pixelBuffer, float radius,
-               struct Vector2i circlePos) {
+               Vector2i circlePos) {
   for (float i = 0; i < 360; i++) {
     const float angle = (float)i;
 
     const float yf = radius * sinf(deg2rad(i));
     const float xf = sqrtf(sqr(radius) - sqr(yf));
 
-    int x;
-    int y;
-
-    // int prevX = -1;
-    // int prevY = -1;
+    int x, y;
 
     if (angle >= 0.0f && angle < 90.0f) {
       x = circlePos.x + round(xf);
@@ -118,13 +115,9 @@ void addCircle(int width, int height, uint32_t *pixelBuffer, float radius,
       printf("wrong angle\n");
       continue;
     }
-    // printf("X: %d, Y: %d\n", circlePos.x, circlePos.y);
-    // pixelBuffer[y * width + x] = WHITE_COLOR;
     AddPixelToBuffer(width, height, pixelBuffer, x, y, WHITE_COLOR);
-
-    // prevX = x;
-    // prevY = y;
   }
+  // dot in center
   AddPixelToBuffer(width, height, pixelBuffer, circlePos.x, circlePos.y,
                    WHITE_COLOR);
 }
@@ -203,17 +196,16 @@ void ResetPixelBuffer(int width, int height, uint32_t *pixelBuffer) {
 }
 
 void AddPlayer(int width, int height, uint32_t *pixelBuffer,
-               struct Vector2 playerPos) {
-  struct Vector2i playerPosMap = {roundf(playerPos.x), -roundf(playerPos.y)};
+               Vector2 playerPos) {
+  Vector2i playerPosMap = {roundf(playerPos.x), -roundf(playerPos.y)};
 
   float radius = 128.0f;
   addCircle(width, height, pixelBuffer, radius, playerPosMap);
 }
 
-struct Vector2i StartingPositionForCentering(int width, int height,
-                                             int objectWidth,
-                                             int objectHeight) {
-  struct Vector2i pos;
+Vector2i StartingPositionForCentering(int width, int height, int objectWidth,
+                                      int objectHeight) {
+  Vector2i pos;
   pos.x = width / 2 - objectWidth / 2;
   pos.y = height / 2 - objectHeight / 2;
   return pos;
@@ -233,10 +225,10 @@ void DrawMap(int width, int height, uint32_t *pixelBuffer, struct Player player,
   int upscaleMultiplier = 64 / resScale;
   int mapSize = 8;
 
-  struct Vector2i playerPosMap = {roundf(player.pos.x) / resScale,
-                                  -roundf(player.pos.y) / resScale};
+  Vector2i playerPosMap = {roundf(player.pos.x) / resScale,
+                           -roundf(player.pos.y) / resScale};
 
-  struct Vector2i pos = StartingPositionForCentering(
+  Vector2i pos = StartingPositionForCentering(
       width, height, upscaleMultiplier * mapSize, upscaleMultiplier * mapSize);
   // struct Vector2i pos = {0, 0};
 
@@ -277,7 +269,7 @@ void DrawMap(int width, int height, uint32_t *pixelBuffer, struct Player player,
 
   // draw player in center
   const int playerSize = 8 / resScale;
-  struct Vector2i centerDotPos =
+  Vector2i centerDotPos =
       StartingPositionForCentering(width, height, playerSize, playerSize);
 
   for (int y = 0; y < playerSize; y++) {
@@ -296,6 +288,7 @@ void ToggleHardwareAcceleration(bool *hardwareAcceleration, char *hwsw) {
     strcpy(hwsw, "SW");
   }
 }
+void ToggleMap(bool *mapEnabled) { *mapEnabled = !(*mapEnabled); }
 
 int main() {
   int windowWidth = 1920;
@@ -304,7 +297,7 @@ int main() {
   int centerX = 1920 / 2;
   int centerY = 1080 / 2;
 
-  int resScale = 2;
+  int resScale = 1;
 
   int width = windowWidth / resScale;
   int height = windowHeight / resScale;
@@ -388,7 +381,7 @@ int main() {
   bool hKeyPressed = false;
 
   // map
-  bool mapEnabled = true;
+  bool mapEnabled = false;
 
   // extra debug stuff
   bool limitSpeed = false;
@@ -399,6 +392,14 @@ int main() {
   // needed for calculations inside the loop
   float deltaTime = 1.0f;
   long currentTime = GetMicroTime();
+
+  // stuff for average fps calculation
+  const int fpsHistorySize = 16;
+  int fpsHistory[fpsHistorySize];
+
+  // for (int i = 0; i < fpsHistorySize; i++) {
+  //   fpsHistory[i] = 0;
+  // }
 
   char hwsw[] = "HW";
 
@@ -436,7 +437,7 @@ int main() {
           rightKeyPressed = true;
         }
         if (event.key.keysym.sym == SDLK_TAB) {
-          mapEnabled = !mapEnabled;
+          ToggleMap(&mapEnabled);
         }
         if (event.key.keysym.sym == SDLK_n) {
           noiseEnabled = !noiseEnabled;
@@ -474,7 +475,7 @@ int main() {
       }
     }
 
-    struct Vector2 inputDirection = {0.0f, 0.0f};
+    Vector2 inputDirection = {0.0f, 0.0f};
     inputDirection.x = rightKeyPressed - leftKeyPressed;
     inputDirection.y = upKeyPressed - downKeyPressed;
 
@@ -508,8 +509,11 @@ int main() {
       SoftwareRenderer(width, height, pixelBuffer, renderer);
     }
 
+    int executionTime = GetMicroTime() - startTime;
+    long elapsedTime = GetMicroTime() - currentTime;
+
+    // printf("execution time: %d\n", executionTime);
     if (limitSpeed) {
-      long executionTime = GetMicroTime() - startTime;
       int timeToSleep = 16666 - executionTime;
 
       if (timeToSleep > 0) {
@@ -517,21 +521,37 @@ int main() {
       }
     }
 
-    long elapsedTime = GetMicroTime() - currentTime;
+    // calculate fps
+    int momentFps = 1000000 / executionTime;
+
+    for (int i = fpsHistorySize; i >= 0; i--) {
+      fpsHistory[i + 1] = fpsHistory[i];
+    }
+    fpsHistory[0] = momentFps;
+
+    int sumFps = 0;
+    for (int i = 0; i < fpsHistorySize; i++) {
+      sumFps += fpsHistory[i];
+      // printf("%d: %d\n", i, fpsHistory[i]);
+    }
+
     // printf("%.6ld\n", elapsedTime);
 
     deltaTime = (GetMicroTime() - startTime) * 60.0 / 1000000.0;
+
     // printf("%.6f\n", deltaTime);
     // long frameTime = GetMicroTime() - startTime;
     // float gameSpeed = ((1.0f / frameTime / 60.0f) * 1000000.0) * deltaTime;
 
     // Break the loop after 1 second (1,000,000 microseconds)
-    if (elapsedTime >= 100000) {
-      int duration = GetMicroTime() - startTime;
-      int fps = 1000000 / duration;
+    if (elapsedTime >= 1000000) {
+      // int duration = GetMicroTime() - startTime;
+      // printf("duration: %d\n", duration);
+
+      const int avgFps = sumFps / fpsHistorySize;
 
       char buffer[40]; // Adjust the size as needed
-      sprintf(buffer, "%d fps, %s", fps, hwsw);
+      sprintf(buffer, "%d fps, %s", avgFps, hwsw);
 
       SDL_SetWindowTitle(window, buffer);
       currentTime = GetMicroTime();

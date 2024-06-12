@@ -27,6 +27,8 @@
 #define GREEN_COLOR (0 << 24) | (0 << 16) | (255 << 8) | 0
 #define BLUE_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 255
 
+#define FPS_HISTORY_SIZE 99999
+
 #define COLOR_CHANNELS 3
 
 #define macro()
@@ -280,6 +282,28 @@ void DrawMap(int width, int height, uint32_t *pixelBuffer, struct Player player,
   }
 }
 
+int CalculateAverageFps(int executionTime) {
+
+  // const int fpsHistorySize = 16;
+  static int fpsHistory[FPS_HISTORY_SIZE];
+
+  // calculate fps
+  int momentFps = 1000000 / executionTime;
+
+  for (int i = FPS_HISTORY_SIZE; i >= 0; i--) {
+    fpsHistory[i + 1] = fpsHistory[i];
+  }
+  fpsHistory[0] = momentFps;
+
+  int sumFps = 0;
+  for (int i = 0; i < FPS_HISTORY_SIZE; i++) {
+    sumFps += fpsHistory[i];
+    // printf("%d: %d\n", i, fpsHistory[i]);
+  }
+  const int avgFps = sumFps / FPS_HISTORY_SIZE;
+  return avgFps;
+}
+
 void ToggleHardwareAcceleration(bool *hardwareAcceleration, char *hwsw) {
   *hardwareAcceleration = !(*hardwareAcceleration);
   if (*hardwareAcceleration) {
@@ -297,7 +321,7 @@ int main() {
   int centerX = 1920 / 2;
   int centerY = 1080 / 2;
 
-  int resScale = 1;
+  int resScale = 8;
 
   int width = windowWidth / resScale;
   int height = windowHeight / resScale;
@@ -394,8 +418,6 @@ int main() {
   long currentTime = GetMicroTime();
 
   // stuff for average fps calculation
-  const int fpsHistorySize = 16;
-  int fpsHistory[fpsHistorySize];
 
   // for (int i = 0; i < fpsHistorySize; i++) {
   //   fpsHistory[i] = 0;
@@ -521,19 +543,21 @@ int main() {
       }
     }
 
+    // int sumFps = 0;
+
     // calculate fps
-    int momentFps = 1000000 / executionTime;
+    // int momentFps = 1000000 / executionTime;
 
-    for (int i = fpsHistorySize; i >= 0; i--) {
-      fpsHistory[i + 1] = fpsHistory[i];
-    }
-    fpsHistory[0] = momentFps;
+    // for (int i = fpsHistorySize; i >= 0; i--) {
+    //   fpsHistory[i + 1] = fpsHistory[i];
+    // }
+    // fpsHistory[0] = momentFps;
 
-    int sumFps = 0;
-    for (int i = 0; i < fpsHistorySize; i++) {
-      sumFps += fpsHistory[i];
-      // printf("%d: %d\n", i, fpsHistory[i]);
-    }
+    // for (int i = 0; i < fpsHistorySize; i++) {
+    //   sumFps += fpsHistory[i];
+    //   // printf("%d: %d\n", i, fpsHistory[i]);
+    // }
+    int avgFps = CalculateAverageFps(executionTime);
 
     // printf("%.6ld\n", elapsedTime);
 
@@ -547,8 +571,6 @@ int main() {
     if (elapsedTime >= 1000000) {
       // int duration = GetMicroTime() - startTime;
       // printf("duration: %d\n", duration);
-
-      const int avgFps = sumFps / fpsHistorySize;
 
       char buffer[40]; // Adjust the size as needed
       sprintf(buffer, "%d fps, %s", avgFps, hwsw);

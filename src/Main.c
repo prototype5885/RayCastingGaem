@@ -27,7 +27,7 @@
 #define GREEN_COLOR (0 << 24) | (0 << 16) | (255 << 8) | 0
 #define BLUE_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 255
 
-#define FPS_HISTORY_SIZE 99999
+#define FPS_HISTORY_SIZE 32
 
 #define COLOR_CHANNELS 3
 
@@ -177,6 +177,8 @@ int HardwareRenderer(int width, int height, uint32_t *pixelBuffer,
       pixPtr[i] = pixelBuffer[i];
     }
   }
+  // printf("%d\n", pixelBuffer[0]);
+  // printf("%d\n", pixPtr[0]);
 
   SDL_UnlockTexture(texture);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
@@ -291,7 +293,10 @@ int CalculateAverageFps(int executionTime) {
   int momentFps = 1000000 / executionTime;
 
   for (int i = FPS_HISTORY_SIZE; i >= 0; i--) {
-    fpsHistory[i + 1] = fpsHistory[i];
+    const int nexti = i + 1;
+    if (nexti <= FPS_HISTORY_SIZE) {
+      fpsHistory[nexti] = fpsHistory[i];
+    }
   }
   fpsHistory[0] = momentFps;
 
@@ -321,7 +326,7 @@ int main() {
   int centerX = 1920 / 2;
   int centerY = 1080 / 2;
 
-  int resScale = 8;
+  int resScale = 4;
 
   int width = windowWidth / resScale;
   int height = windowHeight / resScale;
@@ -376,13 +381,6 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  // Access elements using row and column indices
-  // for (size_t i = 0; i < width; i++) {
-  //   for (size_t j = 0; j < height; j++) {
-  //     pixelBuffer[i * height + j] = 0;  // Example assignment
-  //   }
-  // }
-
   // RNG
   srand(time(0));
 
@@ -411,7 +409,7 @@ int main() {
   bool limitSpeed = false;
   bool checkerBoardRendering = false;
   bool hardwareAcceleration = true;
-  bool noiseEnabled = false;
+  bool noiseEnabled = true;
 
   // needed for calculations inside the loop
   float deltaTime = 1.0f;
@@ -510,7 +508,7 @@ int main() {
     // printf("XM: %d, YM:%d\n", playerPosMap.x, playerPosMap.y);
 
     // reset pixel buffer
-    ResetPixelBuffer(width, height, pixelBuffer);
+    // ResetPixelBuffer(width, height, pixelBuffer);
 
     if (noiseEnabled)
       FillWithNoise(width, height, pixelBuffer);

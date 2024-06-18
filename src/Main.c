@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
@@ -67,13 +68,13 @@ long GetMicroTime() {
 }
 
 uint32_t PackRGB(uint8_t r, uint8_t g, uint8_t b) {
-  uint32_t rgba = 0;
-  rgba |= 0 << 24;
-  rgba |= r << 16;
-  rgba |= g << 8;
-  rgba |= b;
+  uint32_t argb = 0;
+  argb |= 0 << 24;
+  argb |= r << 16;
+  argb |= g << 8;
+  argb |= b;
 
-  return rgba;
+  return argb;
 }
 
 RGB UnpackRGB(uint32_t packedRgb) {
@@ -125,11 +126,19 @@ void addCircle(int width, int height, uint32_t *pixelBuffer, float radius,
 }
 
 void FillWithNoise(int width, int height, uint32_t *pixelBuffer) {
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      uint32_t randomColor = random();
-      pixelBuffer[y * width + x] = randomColor;
-    }
+  // for (int y = 0; y < height; y++) {
+  //   for (int x = 0; x < width; x++) {
+  //     uint32_t randomColor = random();
+  //     pixelBuffer[y * width + x] = randomColor;
+  //   }
+  // }
+  for (int p = 0; p < width * height; p++) {
+    int x = p % width;
+    int y = p / width;
+    int i = y * width + x;
+
+    uint32_t randomColor = random();
+    pixelBuffer[i] = randomColor;
   }
 }
 
@@ -138,64 +147,69 @@ void SoftwareRenderer(int width, int height, uint32_t *pixelBuffer,
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      int index = y * width + x;
-      if (pixelBuffer[index] == 0) {
-        continue;
-      }
-      const RGB rgb = UnpackRGB(pixelBuffer[index]);
-      SDL_SetRenderDrawColor(renderer, rgb.r, rgb.g, rgb.b, 255);
-      SDL_RenderDrawPoint(renderer, x, y);
+  for (int p = 0; p < width * height; p++) {
+    int x = p % width;
+    int y = p / width;
+    int i = y * width + x;
+
+    if (pixelBuffer[i] == 0) {
+      continue;
     }
+    const RGB rgb = UnpackRGB(pixelBuffer[i]);
+    SDL_SetRenderDrawColor(renderer, rgb.r, rgb.g, rgb.b, 255);
+    SDL_RenderDrawPoint(renderer, x, y);
   }
+
   SDL_RenderPresent(renderer);
 }
 
-int HardwareRenderer(int width, int height, uint32_t *pixelBuffer,
-                     SDL_Renderer *renderer, SDL_Window *window,
-                     SDL_Texture *texture) {
-  uint32_t *pixels;
-  int pitch;
+void HardwareRenderer(int width, int height, uint32_t *pixelBuffer,
+                      SDL_Renderer *renderer, SDL_Window *window,
+                      SDL_Texture *texture) {
+  // uint32_t *pixels;
+  // int pitch;
 
-  // lock texture
-  if (SDL_LockTexture(texture, NULL, (void **)&pixels, &pitch) != 0) {
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    printf("SDL_LockTexture Error: %s\n", SDL_GetError());
-    SDL_Quit();
-    return 1;
-  }
+  // // lock texture
+  // if (SDL_LockTexture(texture, NULL, (void **)&pixels, &pitch) != 0) {
+  //   SDL_DestroyTexture(texture);
+  //   SDL_DestroyRenderer(renderer);
+  //   SDL_DestroyWindow(window);
+  //   printf("SDL_LockTexture Error: %s\n", SDL_GetError());
+  //   SDL_Quit();
+  //   return 1;
+  // }
 
-  uint32_t *pixPtr = (uint32_t *)pixels;
-  // pixPtr = pixelBuffer;
+  // uint32_t *pixPtr = (uint32_t *)pixels;
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      int i = y * width + x;
-      pixPtr[i] = pixelBuffer[i];
-    }
-  }
+  // memcpy(pixPtr, pixelBuffer, width * height * sizeof(uint32_t));
+
+  // for (int i = 0; i < width * height; i++) {
+  //   int x = i % width;
+  //   int y = i / width;
+
+  //   pixPtr[y * width + x] = pixelBuffer[y * width + x];
+  // }
   // printf("%d\n", pixelBuffer[0]);
   // printf("%d\n", pixPtr[0]);
 
-  SDL_UnlockTexture(texture);
+  // SDL_UnlockTexture(texture);
+  // SDL_RenderCopy(renderer, texture, NULL, NULL);
+  // SDL_RenderPresent(renderer);
+
+  SDL_UpdateTexture(texture, NULL, pixelBuffer, width * 4);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
   SDL_RenderPresent(renderer);
 
-  // SDL_UpdateTexture(texture_buffer, NULL, pixelBuffer, width * 4);
-  // SDL_RenderCopy(renderer, texture_buffer, NULL, NULL);
-  // SDL_RenderPresent(renderer);
-
-  return 0;
+  // return 0;
 }
 
 void ResetPixelBuffer(int width, int height, uint32_t *pixelBuffer) {
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      pixelBuffer[y * width + x] = 0;
-    }
+  for (int p = 0; p < width * height; p++) {
+    int x = p % width;
+    int y = p / width;
+    int i = y * width + x;
+
+    pixelBuffer[i] = 0;
   }
 }
 
@@ -215,8 +229,8 @@ Vector2i StartingPositionForCentering(int width, int height, int objectWidth,
   return pos;
 }
 
-// struct Vector2i PositionInCorner(int width, int height, int objectWidth, int
-// objectHeight)
+// struct Vector2i PositionInCorner(int width, int height, int objectWidth,
+// int objectHeight)
 // {
 //   struct Vector2i position;
 //   position.x = width / 2 - (objectWidth) / 2;
@@ -334,7 +348,7 @@ int main() {
   // initialize sdl
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     SDL_Log("SDL could not initialize! SDL_Error: %s", SDL_GetError());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // create window
@@ -344,7 +358,7 @@ int main() {
   if (window == NULL) {
     SDL_Log("Window could not be created! SDL_Error: %s", SDL_GetError());
     SDL_Quit();
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
@@ -356,7 +370,7 @@ int main() {
     SDL_Log("Renderer could not be created! SDL_Error: %s", SDL_GetError());
     SDL_DestroyWindow(window);
     SDL_Quit();
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // set resolution inside the window
@@ -371,7 +385,7 @@ int main() {
     SDL_DestroyWindow(window);
     printf("SDL_CreateTexture Error: %s\n", SDL_GetError());
     SDL_Quit();
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // create a 2D array that will store colors of each pixel
@@ -520,11 +534,10 @@ int main() {
     }
 
     if (hardwareAcceleration) {
-      int r = HardwareRenderer(width, height, pixelBuffer, renderer, window,
-                               texture);
-      if (r != 0) {
-        return 1;
-      }
+      HardwareRenderer(width, height, pixelBuffer, renderer, window, texture);
+      // if (r != 0) {
+      //   return EXIT_FAILURE;
+      // }
     } else {
       SoftwareRenderer(width, height, pixelBuffer, renderer);
     }

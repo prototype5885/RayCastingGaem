@@ -5,7 +5,8 @@ float deg2rad(float num) { return num * (M_PI / 180.0); }
 
 float sqr(float num) { return num * num; }
 
-int clampi(int d, int min, int max) {
+int clampi(int d, int min, int max)
+{
   const int t = d < min ? min : d;
   return t > max ? max : t;
 }

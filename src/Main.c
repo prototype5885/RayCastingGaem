@@ -47,6 +47,13 @@ typedef struct
 
 typedef struct
 {
+  int8_t x, y;
+} Vector2i8;
+
+typedef struct
+{
+  float moveDirRad;
+  float speed;
   Vector2 pos;
   float rot;
 } Player;
@@ -106,21 +113,24 @@ void AddPixelToBuffer(WindowData wd, int x, int y, uint32_t color)
   }
 }
 
-void AddCircle(WindowData wd, float radius, Vector2i circlePos)
+void AddCircle(WindowData wd, float radius, Vector2i circlePos, uint32_t color)
 {
   // int t1 = radius / 16;
   int x = radius;
   int y = 0;
 
-  AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, BLUE_COLOR);
+  AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
+  AddPixelToBuffer(wd, circlePos.x - x, circlePos.y + y, color);
+  // AddPixelToBuffer(wd, circlePos.x + x, circlePos.y - y, color);
+  // AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
 
-  if (radius > 0)
-  {
-    AddPixelToBuffer(wd, x + circlePos.x, -y + circlePos.y, BLUE_COLOR);
-    AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, BLUE_COLOR);
-    AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, BLUE_COLOR);
-    AddPixelToBuffer(wd, -y + circlePos.x, x + circlePos.y, BLUE_COLOR);
-  }
+  // if (radius > 0)
+  // {
+  //   AddPixelToBuffer(wd, x + circlePos.x, -y + circlePos.y, color);
+  //   AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, color);
+  //   AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, color);
+  //   AddPixelToBuffer(wd, -y + circlePos.x, x + circlePos.y, color);
+  // }
 
   int p = 1 - radius;
   while (x > y)
@@ -140,18 +150,18 @@ void AddCircle(WindowData wd, float radius, Vector2i circlePos)
     if (x < y)
       break;
 
-    AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, BLUE_COLOR);
-    AddPixelToBuffer(wd, circlePos.x + -x, circlePos.y + y, BLUE_COLOR);
-    AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + -y, BLUE_COLOR);
-    AddPixelToBuffer(wd, circlePos.x + -x, circlePos.y + -y, BLUE_COLOR);
+    AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
+    AddPixelToBuffer(wd, circlePos.x + -x, circlePos.y + y, color);
+    AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + -y, color);
+    AddPixelToBuffer(wd, circlePos.x + -x, circlePos.y + -y, color);
 
-    if (x != y)
-    {
-      AddPixelToBuffer(wd, circlePos.x + y, circlePos.y + x, BLUE_COLOR);
-      AddPixelToBuffer(wd, circlePos.x + -y, circlePos.y + x, BLUE_COLOR);
-      AddPixelToBuffer(wd, circlePos.x + y, circlePos.y + -x, BLUE_COLOR);
-      AddPixelToBuffer(wd, circlePos.x + -y, circlePos.y + -x, BLUE_COLOR);
-    }
+    // if (x != y)
+    // {
+    AddPixelToBuffer(wd, circlePos.x + y, circlePos.y + x, color);
+    AddPixelToBuffer(wd, circlePos.x + -y, circlePos.y + x, color);
+    AddPixelToBuffer(wd, circlePos.x + y, circlePos.y + -x, color);
+    AddPixelToBuffer(wd, circlePos.x + -y, circlePos.y + -x, color);
+    // }
   }
   // for (float i = 0; i < 360; i++)
   // {
@@ -193,7 +203,7 @@ void AddCircle(WindowData wd, float radius, Vector2i circlePos)
   // AddPixelToBuffer(wd, circlePos.x, circlePos.y, WHITE_COLOR);
 }
 
-void PlotLineLow(WindowData wd, Vector2i from, Vector2i to)
+void PlotLineLow(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
 {
   const int dx = to.x - from.x;
   int dy = to.y - from.y;
@@ -211,7 +221,7 @@ void PlotLineLow(WindowData wd, Vector2i from, Vector2i to)
 
   for (int x = from.x; x < to.x; x++)
   {
-    AddPixelToBuffer(wd, x, y, WHITE_COLOR);
+    AddPixelToBuffer(wd, x, y, color);
     if (d > 0)
     {
       y = y + yi;
@@ -224,7 +234,7 @@ void PlotLineLow(WindowData wd, Vector2i from, Vector2i to)
   }
 }
 
-void PlotLineHigh(WindowData wd, Vector2i from, Vector2i to)
+void PlotLineHigh(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
 {
   int dx = to.x - from.x;
   const int dy = to.y - from.y;
@@ -242,7 +252,7 @@ void PlotLineHigh(WindowData wd, Vector2i from, Vector2i to)
 
   for (int y = from.y; y < to.y; y++)
   {
-    AddPixelToBuffer(wd, x, y, WHITE_COLOR);
+    AddPixelToBuffer(wd, x, y, color);
     if (d > 0)
     {
       x = x + xi;
@@ -255,25 +265,52 @@ void PlotLineHigh(WindowData wd, Vector2i from, Vector2i to)
   }
 }
 
-void AddLine(WindowData wd, Vector2i from, Vector2i to)
+void AddLine(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
 {
   if (abs(to.y - from.y) < abs(to.x - from.x))
   {
     if (from.x > to.x)
-      PlotLineLow(wd, to, from);
+      PlotLineLow(wd, to, from, color);
     else
-      PlotLineLow(wd, from, to);
+      PlotLineLow(wd, from, to, color);
   }
   else
   {
     if (from.y > to.y)
-      PlotLineHigh(wd, to, from);
+      PlotLineHigh(wd, to, from, color);
     else
-      PlotLineHigh(wd, from, to);
+      PlotLineHigh(wd, from, to, color);
   }
 
-  AddPixelToBuffer(wd, from.x, from.y, GREEN_COLOR);
-  AddPixelToBuffer(wd, to.x, to.y, RED_COLOR);
+  AddPixelToBuffer(wd, from.x, from.y, color);
+  AddPixelToBuffer(wd, to.x, to.y, color);
+}
+
+Vector2i CalculateLineEndpoint(Vector2i endPoint, float length, float angle)
+{
+  Vector2i arrowEndPoint;
+  arrowEndPoint.x = endPoint.x + cos(angle) * length;
+  arrowEndPoint.y = endPoint.y + sin(angle) * length;
+  return arrowEndPoint;
+}
+
+void AddLineWithArrow(WindowData wd, Vector2i from, Vector2i to, float rot, uint32_t color)
+{
+  AddLine(wd, from, to, color);
+
+  float arrowHeadAngle = deg2rad(135);
+  for (int i = 0; i < 2; i++)
+  {
+    Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0, rot - arrowHeadAngle);
+    AddLine(wd, to, arrowheadEndPoint, color);
+    arrowHeadAngle += M_PI_2;
+  }
+}
+
+void AddLineInDirection(WindowData wd, Vector2i from, float length, float rot, uint32_t color)
+{
+  Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
+  AddLineWithArrow(wd, from, lineEndpoint, rot, color);
 }
 
 void FillWithNoise(WindowData wd)
@@ -354,13 +391,13 @@ void ResetPixelBuffer(WindowData wd)
   }
 }
 
-void AddPlayer(WindowData wd, Player player)
-{
-  Vector2i playerPosMap = {roundf(player.pos.x), -roundf(player.pos.y)};
+// void AddPlayer(WindowData wd, Player player)
+// {
+//   Vector2i playerPosMap = {roundf(player.pos.x), -roundf(player.pos.y)};
 
-  float radius = 128.0f;
-  AddCircle(wd, radius, playerPosMap);
-}
+//   float radius = 128.0f;
+//   AddCircle(wd, radius, playerPosMap, WHITE_COLOR);
+// }
 
 Vector2i StartingPositionForCentering(WindowData wd, int objectWidth, int objectHeight)
 {
@@ -381,7 +418,7 @@ Vector2i StartingPositionForCentering(WindowData wd, int objectWidth, int object
 
 void DrawMap(WindowData wd, Player player, int resScale)
 {
-  const int upscaleMultiplier = 128 / resScale;
+  const int upscaleMultiplier = 64 / resScale;
   const int mapSize = 8;
 
   Vector2i pos = StartingPositionForCentering(wd, upscaleMultiplier * mapSize, upscaleMultiplier * mapSize);
@@ -426,21 +463,25 @@ void DrawMap(WindowData wd, Player player, int resScale)
     }
   }
 
-  // draw player in center
-  // Vector2i playerPosi = {width / 2, height / 2};
-  // addCircle(width, height, pixelBuffer, 4, playerPosi);
-
   const int playerSize = 8 / resScale;
   Vector2i centerDotPos = StartingPositionForCentering(wd, playerSize, playerSize);
 
-  for (int p = 0; p < playerSize * playerSize; p++)
-  {
-    int x = p % playerSize;
-    int y = p / playerSize;
-    // int i = y * playerSize + x;
+  // for (int p = 0; p < playerSize * playerSize; p++)
+  // {
+  //   int x = p % playerSize;
+  //   int y = p / playerSize;
 
-    wd.pixelBuffer[(centerDotPos.y + y) * wd.width + (centerDotPos.x + x)] = GREEN_COLOR;
+  //   wd.pixelBuffer[(centerDotPos.y + y) * wd.width + (centerDotPos.x + x)] = GREEN_COLOR;
+  // }
+
+  // draw player in center
+  AddLineInDirection(wd, centerDotPos, 16.0, player.rot, RED_COLOR);
+  // direction arrow for player
+  if (player.speed != 0)
+  {
+    AddLineInDirection(wd, centerDotPos, 12.0, player.rot + player.moveDirRad, GREEN_COLOR);
   }
+  // printf("%f\n", player.speed);
 }
 
 int CalculateAverageFps(int executionTime)
@@ -448,9 +489,6 @@ int CalculateAverageFps(int executionTime)
   const int FPS_HISTORY_SIZE = 16;
 
   static int fpsHistory[16];
-
-  // calculate fps
-  int momentFps = 1000000 / executionTime;
 
   for (int i = FPS_HISTORY_SIZE; i >= 0; i--)
   {
@@ -461,7 +499,7 @@ int CalculateAverageFps(int executionTime)
       fpsHistory[nexti] = fpsHistory[i];
     }
   }
-  fpsHistory[0] = momentFps;
+  fpsHistory[0] = 1000000 / executionTime;
 
   int32_t sumFps = 0;
   for (int i = 0; i < FPS_HISTORY_SIZE; i++)
@@ -497,7 +535,7 @@ int main()
   // int centerX = 1920 / 2;
   // int centerY = 1080 / 2;
 
-  int resScale = 8;
+  int resScale = 2;
 
   int width = windowWidth / resScale;
   int height = windowHeight / resScale;
@@ -552,15 +590,6 @@ int main()
   //   return EXIT_FAILURE;
   // }
 
-  // creates a 3D array that stores pre generated noise
-  // uint32_t *noiseArray = malloc((width * height) * 8 * sizeof(uint32_t));
-
-  // for (int p = 0; p < (width * height) * 8; p++)
-  // {
-  //   uint32_t randomColor = random();
-  //   noiseArray[p] = randomColor;
-  // }
-
   WindowData wd;
   wd.pixelBuffer = pixelBuffer;
   wd.width = width;
@@ -575,7 +604,7 @@ int main()
   player.pos.x = 50.0;
   player.pos.y = -50.0;
 
-  float playerSpeed = 256.0f;
+  float playerSpeedDefault = 256.0f;
 
   // key pressed values
   bool wKeyPressed = false;
@@ -589,7 +618,7 @@ int main()
   bool hKeyPressed = false;
 
   // map
-  bool mapEnabled = false;
+  bool mapEnabled = true;
 
   // extra debug stuff
   bool limitSpeed = false;
@@ -601,16 +630,10 @@ int main()
   float deltaTime = 1.0f;
   long currentTime = GetMicroTime();
 
-  // stuff for average fps calculation
-
-  // for (int i = 0; i < fpsHistorySize; i++) {
-  //   fpsHistory[i] = 0;
-  // }
-
   char hwsw[] = "HW";
 
   // SDL_ShowCursor(true);
-  // SDL_SetRelativeMouseMode(true);
+  SDL_SetRelativeMouseMode(true);
   Vector2i mousePosition;
 
   SDL_Event event;
@@ -619,9 +642,6 @@ int main()
   {
     // start time is used to calculate delta time
     long startTime = GetMicroTime();
-
-    // SDL_WarpMouseInWindow(window, centerX, centerY);
-    // SDL_HINT_MOUSE_RELATIVE_MODE_CENTER(true);
 
     // handle events
     while (SDL_PollEvent(&event))
@@ -686,37 +706,54 @@ int main()
         break;
       case SDL_MOUSEMOTION:
         // player.rotation += (width / 2.0 - event.motion.x) / 128;
-        player.rot += event.motion.xrel;
+        player.rot += deg2rad(event.motion.xrel);
 
-        if (player.rot < 0)
+        if (player.rot < -M_PI)
         {
-          player.rot += 360.0;
+          player.rot += 2 * M_PI;
         }
-        else if (player.rot > 360.0)
+        else if (player.rot > M_PI)
         {
-          player.rot -= 360;
+          player.rot -= 2 * M_PI;
         }
 
-        mousePosition.x = event.motion.x;
-        mousePosition.y = event.motion.y;
+        // mousePosition.x = event.motion.x;
+        // mousePosition.y = event.motion.y;
 
-        // printf("%.6f\n", player.rotation);
+        // printf("%.6f\n", player.rot);
 
         break;
       }
     }
 
-    Vector2 inputDirection = {0.0f, 0.0f};
-    inputDirection.x = dKeyPressed - aKeyPressed;
-    inputDirection.y = wKeyPressed - sKeyPressed;
+    int8_t forwards, sideways;
+    sideways = dKeyPressed - aKeyPressed;
+    forwards = wKeyPressed - sKeyPressed;
 
-    const float value = 0.0166f * playerSpeed * deltaTime;
-    player.pos.x = player.pos.x + value * inputDirection.x;
-    player.pos.y = player.pos.y + value * inputDirection.y;
+    if (sideways != 0 || forwards != 0)
+    {
+      player.speed = playerSpeedDefault;
+    }
+    else
+    {
+      player.speed = 0;
+    }
 
-    // printf("X: %f, Y:%f\n", player.pos.x, player.pos.y);
+    float realSpeed;
 
-    // printf("XM: %d, YM:%d\n", playerPosMap.x, playerPosMap.y);
+    float speedMultiplier = 0.0166f * player.speed * deltaTime;
+    // player.pos.x += speedMultiplier * sideways;
+    // player.pos.y += speedMultiplier * forwards;
+
+    // gets the movement direction angle in radian
+    player.moveDirRad = atan2(sideways, forwards);
+
+    player.pos.x += cos(player.rot + player.moveDirRad) * speedMultiplier;
+    player.pos.y -= sin(player.rot + player.moveDirRad) * speedMultiplier;
+
+    static Vector2 previousPos;
+    previousPos.x = player.pos.x;
+    previousPos.y = player.pos.y;
 
     // reset pixel buffer
     ResetPixelBuffer(wd);
@@ -745,11 +782,6 @@ int main()
       DrawMap(wd, player, resScale);
     }
 
-    Vector2i start = {width / 2, height / 2};
-
-    AddLine(wd, start, mousePosition);
-    AddCircle(wd, 16, mousePosition);
-
     // render
     if (hardwareAcceleration)
     {
@@ -774,20 +806,6 @@ int main()
       }
     }
 
-    // int sumFps = 0;
-
-    // calculate fps
-    // int momentFps = 1000000 / executionTime;
-
-    // for (int i = fpsHistorySize; i >= 0; i--) {
-    //   fpsHistory[i + 1] = fpsHistory[i];
-    // }
-    // fpsHistory[0] = momentFps;
-
-    // for (int i = 0; i < fpsHistorySize; i++) {
-    //   sumFps += fpsHistory[i];
-    //   // printf("%d: %d\n", i, fpsHistory[i]);
-    // }
     int avgFps = CalculateAverageFps(executionTime);
     deltaTime = (GetMicroTime() - startTime) * 60.0 / 1000000.0;
 

@@ -1,39 +1,21 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_pixels.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_video.h>
-#include <SDL_events.h>
-#include <SDL_hints.h>
-#include <SDL_keycode.h>
-#include <SDL_mouse.h>
-#include <SDL_stdinc.h>
 #include <bits/stdint-intn.h>
 #include <bits/stdint-uintn.h>
-#include <immintrin.h>
+#include <bits/time.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "ProToMath.h"
-
-// #define SDL_HINT_MOUSE_RELATIVE_MODE_CENTER "SDL_MOUSE_RELATIVE_MODE_CENTER"
 
 #define WHITE_COLOR (0 << 24) | (255 << 16) | (255 << 8) | 255
 #define BLACK_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 0
 #define RED_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 0
 #define GREEN_COLOR (0 << 24) | (0 << 16) | (255 << 8) | 0
 #define BLUE_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 255
-
-#define COLOR_CHANNELS 3
-
-// #define macro()
 
 typedef struct
 {
@@ -56,6 +38,7 @@ typedef struct
   float speed;
   Vector2 pos;
   float rot;
+  uint8_t fov;
 } Player;
 
 typedef struct
@@ -69,17 +52,22 @@ typedef struct
   uint32_t *pixelBuffer;
 } WindowData;
 
-int map[8][8] = {{1, 1, 1, 1, 1, 1, 1, 1},
-                 {1, 0, 0, 0, 0, 0, 0, 1},
-                 {1, 0, 0, 0, 0, 1, 0, 1},
-                 {1, 0, 0, 0, 0, 0, 0, 1},
-                 {1, 0, 0, 0, 0, 0, 0, 1},
-                 {1, 0, 0, 0, 0, 0, 0, 1},
-                 {1, 1, 0, 0, 0, 0, 0, 1},
-                 {1, 1, 1, 1, 1, 1, 1, 1}};
+int8_t map[8][8] = {{1, 1, 1, 1, 1, 1, 1, 1},
+                    {1, 0, 0, 0, 0, 0, 0, 1},
+                    {1, 0, 0, 0, 0, 1, 0, 1},
+                    {1, 0, 0, 0, 0, 0, 0, 1},
+                    {1, 0, 0, 0, 0, 0, 0, 1},
+                    {1, 0, 0, 0, 0, 0, 0, 1},
+                    {1, 1, 0, 0, 0, 0, 0, 1},
+                    {1, 1, 1, 1, 1, 1, 1, 1}};
 
 long GetMicroTime()
 {
+  // struct timespec currentTime;
+  // clock_gettime(CLOCK_MONOTONIC, &currentTime);
+  // printf("%ld\n", currentTime.tv_nsec);
+  // return currentTime.tv_nsec;
+
   struct timeval currentTime;
   gettimeofday(&currentTime, NULL);
   return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
@@ -289,8 +277,8 @@ void AddLine(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
 Vector2i CalculateLineEndpoint(Vector2i endPoint, float length, float angle)
 {
   Vector2i arrowEndPoint;
-  arrowEndPoint.x = endPoint.x + cos(angle) * length;
-  arrowEndPoint.y = endPoint.y + sin(angle) * length;
+  arrowEndPoint.x = endPoint.x + cosf(angle) * length;
+  arrowEndPoint.y = endPoint.y + sinf(angle) * length;
   return arrowEndPoint;
 }
 
@@ -307,10 +295,16 @@ void AddLineWithArrow(WindowData wd, Vector2i from, Vector2i to, float rot, uint
   }
 }
 
-void AddLineInDirection(WindowData wd, Vector2i from, float length, float rot, uint32_t color)
+void AddLineInDirectionWithArrow(WindowData wd, Vector2i from, float length, float rot, uint32_t color)
 {
   Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLineWithArrow(wd, from, lineEndpoint, rot, color);
+}
+
+void AddLineInDirection(WindowData wd, Vector2i from, float length, float rot, uint32_t color)
+{
+  Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
+  AddLine(wd, from, lineEndpoint, color);
 }
 
 void FillWithNoise(WindowData wd)
@@ -322,13 +316,39 @@ void FillWithNoise(WindowData wd)
   }
 }
 
-// void FillArrayWithNoise(int width, int height, )
+void RayHit(WindowData wd, int column)
+{
+  const int wallHeight = RandomMax(150);
+
+  const int middle = wd.height / 2;
+  const int startPos = middle - wallHeight / 2;
+  const int endPos = startPos + wallHeight;
+
+  for (int pixel = startPos; pixel < endPos; pixel++)
+  {
+    AddPixelToBuffer(wd, column, pixel, WHITE_COLOR);
+  }
+}
+
+void CastRays(WindowData wd)
+{
+  for (int column = 0; column < wd.width; column++)
+  {
+    RayHit(wd, column);
+  }
+}
+
+void DrawWalls(WindowData wd)
+{
+  for (int l = 0; l < wd.width; l++)
+  {
+    const int index = wd.height / 2 * wd.width + l;
+    wd.pixelBuffer[index] = RED_COLOR;
+  }
+}
 
 void SoftwareRenderer(WindowData wd, SDL_Renderer *renderer)
 {
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-  SDL_RenderClear(renderer);
-
   for (int p = 0; p < wd.width * wd.height; p++)
   {
     const int x = p % wd.width;
@@ -345,50 +365,6 @@ void SoftwareRenderer(WindowData wd, SDL_Renderer *renderer)
     SDL_RenderDrawPoint(renderer, x, y);
   }
   SDL_RenderPresent(renderer);
-}
-
-void HardwareRenderer(WindowData wd, SDL_Renderer *renderer, SDL_Window *window, SDL_Texture *texture)
-{
-  // uint32_t *pixels;
-  // int pitch;
-
-  // // lock texture
-  // if (SDL_LockTexture(texture, NULL, (void **)&pixels, &pitch) != 0) {
-  //   SDL_DestroyTexture(texture);
-  //   SDL_DestroyRenderer(renderer);
-  //   SDL_DestroyWindow(window);
-  //   printf("SDL_LockTexture Error: %s\n", SDL_GetError());
-  //   SDL_Quit();
-  // }
-
-  // uint32_t *pixPtr = (uint32_t *)pixels;
-
-  // for (int p = 0; p < width * height; p++) {
-  //   int x = p % width;
-  //   int y = p / width;
-
-  //   pixPtr[y * width + x] = pixelBuffer[y * width + x];
-  // }
-
-  // SDL_UnlockTexture(texture);
-  // SDL_RenderCopy(renderer, texture, NULL, NULL);
-  // SDL_RenderPresent(renderer);
-
-  SDL_UpdateTexture(texture, NULL, wd.pixelBuffer, wd.width * 4);
-  SDL_RenderCopy(renderer, texture, NULL, NULL);
-  SDL_RenderPresent(renderer);
-}
-
-void ResetPixelBuffer(WindowData wd)
-{
-  for (int p = 0; p < wd.width * wd.height; p++)
-  {
-    const int x = p % wd.width;
-    const int y = p / wd.width;
-    const int i = y * wd.width + x;
-
-    wd.pixelBuffer[i] = 0;
-  }
 }
 
 // void AddPlayer(WindowData wd, Player player)
@@ -463,32 +439,45 @@ void DrawMap(WindowData wd, Player player, int resScale)
     }
   }
 
-  const int playerSize = 8 / resScale;
-  Vector2i centerDotPos = StartingPositionForCentering(wd, playerSize, playerSize);
+  // const int playerSize = 8 / resScale;
+  // Vector2i centerDotPos = StartingPositionForCentering(wd, playerSize, playerSize);
 
-  // for (int p = 0; p < playerSize * playerSize; p++)
-  // {
-  //   int x = p % playerSize;
-  //   int y = p / playerSize;
+  Vector2i centerPos;
+  centerPos.x = wd.width / 2;
+  centerPos.y = wd.height / 2;
 
-  //   wd.pixelBuffer[(centerDotPos.y + y) * wd.width + (centerDotPos.x + x)] = GREEN_COLOR;
-  // }
+  // draw rays from player
+  const float fovInRad = deg2rad(player.fov);
+  const int rayCount = wd.width;
 
-  // draw player in center
-  AddLineInDirection(wd, centerDotPos, 16.0, player.rot, RED_COLOR);
+  const float startAngle = player.rot - fovInRad / 2;
+  // float endAngle = player.rot + player.fov / 2;
+
+  float currentAngle = startAngle;
+  const float oneDegree = fovInRad / rayCount;
+
+  for (int r = 0; r < rayCount; r++)
+  {
+    AddLineInDirection(wd, centerPos, 512, currentAngle, WHITE_COLOR);
+    currentAngle += oneDegree;
+    // printf("%f\n", currentAngle);
+  }
+
+  // draw player arrow in center
+  AddLineInDirectionWithArrow(wd, centerPos, 12.0, player.rot, RED_COLOR);
+
   // direction arrow for player
   if (player.speed != 0)
   {
-    AddLineInDirection(wd, centerDotPos, 12.0, player.rot + player.moveDirRad, GREEN_COLOR);
+    AddLineInDirectionWithArrow(wd, centerPos, 8.0, player.rot + player.moveDirRad, GREEN_COLOR);
   }
-  // printf("%f\n", player.speed);
 }
 
 int CalculateAverageFps(int executionTime)
 {
-  const int FPS_HISTORY_SIZE = 16;
+  const int FPS_HISTORY_SIZE = 64;
 
-  static int fpsHistory[16];
+  static int fpsHistory[64];
 
   for (int i = FPS_HISTORY_SIZE; i >= 0; i--)
   {
@@ -596,13 +585,14 @@ int main()
   wd.height = height;
 
   // RNG
-  srand(time(0));
+  // srand(time(0));
 
   // player values
   Player player;
   player.rot = 0.0;
   player.pos.x = 50.0;
   player.pos.y = -50.0;
+  player.fov = 90;
 
   float playerSpeedDefault = 256.0f;
 
@@ -629,11 +619,12 @@ int main()
   // needed for calculations inside the loop
   float deltaTime = 1.0f;
   long currentTime = GetMicroTime();
+  // printf("%ld\n", currentTime);
 
   char hwsw[] = "HW";
 
   // SDL_ShowCursor(true);
-  SDL_SetRelativeMouseMode(true);
+  // SDL_SetRelativeMouseMode(true);
   Vector2i mousePosition;
 
   SDL_Event event;
@@ -739,65 +730,70 @@ int main()
       player.speed = 0;
     }
 
-    float realSpeed;
-
     float speedMultiplier = 0.0166f * player.speed * deltaTime;
     // player.pos.x += speedMultiplier * sideways;
     // player.pos.y += speedMultiplier * forwards;
 
     // gets the movement direction angle in radian
-    player.moveDirRad = atan2(sideways, forwards);
 
-    player.pos.x += cos(player.rot + player.moveDirRad) * speedMultiplier;
-    player.pos.y -= sin(player.rot + player.moveDirRad) * speedMultiplier;
+    player.moveDirRad = atan2f(sideways, forwards);
 
-    static Vector2 previousPos;
-    previousPos.x = player.pos.x;
-    previousPos.y = player.pos.y;
+    player.pos.x += cosf(player.rot + player.moveDirRad) * speedMultiplier;
+    player.pos.y -= sinf(player.rot + player.moveDirRad) * speedMultiplier;
+
+    // static Vector2 previousPos;
+    // previousPos.x = player.pos.x;
+    // previousPos.y = player.pos.y;
 
     // reset pixel buffer
-    ResetPixelBuffer(wd);
+    if (hardwareAcceleration)
+    {
 
-    static int noisePageCounter = 0;
+      for (int p = 0; p < wd.width * wd.height; p++)
+      {
+        const int x = p % wd.width;
+        const int y = p / wd.width;
+        const int i = y * wd.width + x;
+
+        wd.pixelBuffer[i] = BLACK_COLOR;
+      }
+    }
+    else
+    {
+      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+      SDL_RenderClear(renderer);
+    }
+
     if (noiseEnabled)
     {
       FillWithNoise(wd);
-
-      // const int i = noisePageCounter * (width * height);
-
-      // memcpy(pixelBuffer, noiseArray + i, (width * height) * sizeof(uint32_t));
-
-      // noisePageCounter++;
-
-      // if (noisePageCounter >= 7)
-      // {
-      //   noisePageCounter = 0;
-      // }
     }
-
-    // AddPlayer(width, height, pixelBuffer, playerPos);
 
     if (mapEnabled)
     {
       DrawMap(wd, player, resScale);
     }
+    else
+    {
+      CastRays(wd);
+    }
 
     // render
     if (hardwareAcceleration)
     {
-      HardwareRenderer(wd, renderer, window, texture);
+      SDL_UpdateTexture(texture, NULL, wd.pixelBuffer, wd.width * 4);
+      SDL_RenderCopy(renderer, texture, NULL, NULL);
+      SDL_RenderPresent(renderer);
     }
     else
     {
       SoftwareRenderer(wd, renderer);
     }
 
-    int executionTime = GetMicroTime() - startTime;
-    int32_t elapsedTime = GetMicroTime() - currentTime;
-
     // printf("execution time: %d\n", executionTime);
     if (limitSpeed)
     {
+      int executionTime = GetMicroTime() - startTime;
       int timeToSleep = 16666 - executionTime;
 
       if (timeToSleep > 0)
@@ -806,7 +802,10 @@ int main()
       }
     }
 
-    int avgFps = CalculateAverageFps(executionTime);
+    int32_t elapsedTime = GetMicroTime() - currentTime;
+    int executionTimeWithSleep = GetMicroTime() - startTime;
+
+    int avgFps = CalculateAverageFps(executionTimeWithSleep);
     deltaTime = (GetMicroTime() - startTime) * 60.0 / 1000000.0;
 
     // printf("%.6f\n", deltaTime);
@@ -817,7 +816,7 @@ int main()
     if (elapsedTime >= 1000000)
     {
       // int duration = GetMicroTime() - startTime;
-      // printf("duration: %d\n", duration);
+      // printf("elapsed time: %d\n", elapsedTime);
 
       char buffer[16];
       sprintf(buffer, "%d fps, %s", avgFps, hwsw);

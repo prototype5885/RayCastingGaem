@@ -3,13 +3,15 @@ project(RayCastingGaem C)
 
 set(CMAKE_C_STANDARD 99)
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+set(EXECUTABLE_NAME RayCastingGaem)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+# if(NOT CMAKE_BUILD_TYPE)
+#   set(CMAKE_BUILD_TYPE Release)
+# endif()
+
+# set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+# set(CMAKE_CXX_FLAGS_DEBUG "-g")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
@@ -18,7 +20,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 find_package(SDL2 REQUIRED)
 
-set(EXECUTABLE_NAME RayCastingGaem)
+
 
 add_executable(${EXECUTABLE_NAME} src/Main.c
         src/ProToMath.c

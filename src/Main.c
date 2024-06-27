@@ -330,21 +330,91 @@ void RayHit(WindowData wd, int column)
   }
 }
 
-void CastRays(WindowData wd)
+void CastRays(WindowData wd, Player player, int32_t *raycastHitPoints)
 {
-  for (int column = 0; column < wd.width; column++)
-  {
-    RayHit(wd, column);
-  }
+  // const float fovInRad = deg2rad(player.fov);
+  // const int rayCount = 1;
+
+  // const float startAngle = player.rot - fovInRad / 2;
+
+  // float currentAngle = startAngle;
+  // const float oneDegree = fovInRad / rayCount;
+
+  // printf("Player position: %f, %f\n", player.pos.x, player.pos.y);
+
+  int flooredPosY = floorf(player.pos.y);
+
+  float A = -player.rot;
+  float B = deg2rad(90.0);
+  float C = deg2rad(180.0) - deg2rad(90.0) - A;
+
+  float a = 1 - (player.pos.y - flooredPosY);
+  float b = a * sinf(B) / sinf(A);
+  float c = a * sinf(C) / sinf(A);
+
+  float x = player.pos.x + c;
+  float y = player.pos.y + a;
+  float distance = b;
+
+  raycastHitPoints[0] = x;
+  raycastHitPoints[1] = x;
+
+  printf("Player position: %f, %f\n", player.pos.x, player.pos.y);
+  // printf("Distance: %f\n", distance);
+  // printf("Intersection point, X: %f, Y: %f\n", x, y);
+
+  // printf("A = %f\n", A);
+  // printf("B = %f\n", B);
+  // printf("C = %f\n", C);
+
+  // printf("a = %f\n", a);
+  // printf("b = %f\n", b);
+  // printf("c = %f\n", c);
+
+  // for (int ray = 0; ray < rayCount; ray++)
+  // {
+  //   printf("Distance to wall: %d\n", ray);
+
+  //   currentAngle += oneDegree;
+  //   // printf("%f\n", currentAngle);
+  // }
+
+  // for (int column = 0; column < wd.width; column++)
+  // {
+  //   printf("Ray %d shot...\n", column);
+  //   RayHit(wd, column);
+  // }
 }
 
-void DrawWalls(WindowData wd)
+void HardwareRenderer(WindowData wd, SDL_Renderer *renderer, SDL_Window *window, SDL_Texture *texture)
 {
-  for (int l = 0; l < wd.width; l++)
+  uint32_t *pixels;
+  int pitch;
+
+  // lock texture
+  if (SDL_LockTexture(texture, NULL, (void **)&pixels, &pitch) != 0)
   {
-    const int index = wd.height / 2 * wd.width + l;
-    wd.pixelBuffer[index] = RED_COLOR;
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    printf("SDL_LockTexture Error: %s\n", SDL_GetError());
+    SDL_Quit();
   }
+
+  uint32_t *pixPtr = (uint32_t *)pixels;
+
+  for (int p = 0; p < wd.width * wd.height; p++)
+  {
+    const int x = p % wd.width;
+    const int y = p / wd.width;
+    const int i = y * wd.width + x;
+
+    pixPtr[i] = wd.pixelBuffer[i];
+  }
+
+  SDL_UnlockTexture(texture);
+  SDL_RenderCopy(renderer, texture, NULL, NULL);
+  SDL_RenderPresent(renderer);
 }
 
 void SoftwareRenderer(WindowData wd, SDL_Renderer *renderer)
@@ -355,10 +425,10 @@ void SoftwareRenderer(WindowData wd, SDL_Renderer *renderer)
     const int y = p / wd.width;
     const int i = y * wd.width + x;
 
-    if (wd.pixelBuffer[i] == 0)
-    {
-      continue;
-    }
+    // if (wd.pixelBuffer[i] == 0)
+    // {
+    //   continue;
+    // }
 
     const RGB rgb = UnpackRGB(wd.pixelBuffer[i]);
     SDL_SetRenderDrawColor(renderer, rgb.r, rgb.g, rgb.b, 255);
@@ -392,15 +462,16 @@ Vector2i StartingPositionForCentering(WindowData wd, int objectWidth, int object
 //   return position;
 // }
 
-void DrawMap(WindowData wd, Player player, int resScale)
+void DrawMap(WindowData wd, Player player, int resScale, int32_t *raycastHitPoints)
 {
-  const int upscaleMultiplier = 64 / resScale;
-  const int mapSize = 8;
+  // const int upscaleMultiplier = 64 / resScale;
+  const int upscaleMultiplier = 1;
+  const int mapSize = 8; // map width and height
 
   Vector2i pos = StartingPositionForCentering(wd, upscaleMultiplier * mapSize, upscaleMultiplier * mapSize);
 
-  pos.x = pos.x - roundf(player.pos.x) / resScale;
-  pos.y = pos.y - -roundf(player.pos.y) / resScale;
+  pos.x = pos.x - roundf(player.pos.x);
+  pos.y = pos.y - -roundf(player.pos.y);
 
   // int midX = width / 2;
   // int midY = height / 2;
@@ -446,22 +517,27 @@ void DrawMap(WindowData wd, Player player, int resScale)
   centerPos.x = wd.width / 2;
   centerPos.y = wd.height / 2;
 
+  Vector2i to;
+  to.x = raycastHitPoints[0];
+  to.y = raycastHitPoints[1];
+
   // draw rays from player
-  const float fovInRad = deg2rad(player.fov);
-  const int rayCount = wd.width;
+  AddLine(wd, centerPos, to, RED_COLOR);
 
-  const float startAngle = player.rot - fovInRad / 2;
-  // float endAngle = player.rot + player.fov / 2;
+  // const float fovInRad = deg2rad(player.fov);
+  // const int rayCount = wd.width;
 
-  float currentAngle = startAngle;
-  const float oneDegree = fovInRad / rayCount;
+  // const float startAngle = player.rot - fovInRad / 2;
 
-  for (int r = 0; r < rayCount; r++)
-  {
-    AddLineInDirection(wd, centerPos, 512, currentAngle, WHITE_COLOR);
-    currentAngle += oneDegree;
-    // printf("%f\n", currentAngle);
-  }
+  // float currentAngle = startAngle;
+  // const float oneDegree = fovInRad / rayCount;
+
+  // for (int r = 0; r < rayCount; r++)
+  // {
+  //   AddLineInDirection(wd, centerPos, 512, currentAngle, WHITE_COLOR);
+  //   currentAngle += oneDegree;
+  //   // printf("%f\n", currentAngle);
+  // }
 
   // draw player arrow in center
   AddLineInDirectionWithArrow(wd, centerPos, 12.0, player.rot, RED_COLOR);
@@ -524,7 +600,7 @@ int main()
   // int centerX = 1920 / 2;
   // int centerY = 1080 / 2;
 
-  int resScale = 2;
+  int resScale = 8;
 
   int width = windowWidth / resScale;
   int height = windowHeight / resScale;
@@ -573,11 +649,19 @@ int main()
 
   // create a 2D array that will store colors of each pixel
   uint32_t *pixelBuffer = malloc(width * height * sizeof(uint32_t));
-  // if (pixelBuffer == NULL)
-  // {
-  //   perror("Failed to allocate memory");
-  //   return EXIT_FAILURE;
-  // }
+  if (pixelBuffer == NULL)
+  {
+    perror("Failed to allocate memory for 2D pixel array");
+    return EXIT_FAILURE;
+  }
+
+  // create an array to store ray cast hit coordinates
+  int32_t *raycastHitPoints = malloc(2 * sizeof(int32_t));
+  if (raycastHitPoints == NULL)
+  {
+    perror("Failed to allocate memory for raycast hits array");
+    return EXIT_FAILURE;
+  }
 
   WindowData wd;
   wd.pixelBuffer = pixelBuffer;
@@ -589,12 +673,12 @@ int main()
 
   // player values
   Player player;
-  player.rot = 0.0;
-  player.pos.x = 50.0;
-  player.pos.y = -50.0;
+  player.rot = deg2rad(-90.0);
+  player.pos.x = 0;
+  player.pos.y = 0;
   player.fov = 90;
 
-  float playerSpeedDefault = 256.0f;
+  float playerSpeedDefault = 8.0f;
 
   // key pressed values
   bool wKeyPressed = false;
@@ -608,7 +692,7 @@ int main()
   bool hKeyPressed = false;
 
   // map
-  bool mapEnabled = true;
+  bool mapEnabled = false;
 
   // extra debug stuff
   bool limitSpeed = false;
@@ -707,6 +791,7 @@ int main()
         {
           player.rot -= 2 * M_PI;
         }
+        // printf("%f\n", player.rot * 57.29578);
 
         // mousePosition.x = event.motion.x;
         // mousePosition.y = event.motion.y;
@@ -741,27 +826,16 @@ int main()
     player.pos.x += cosf(player.rot + player.moveDirRad) * speedMultiplier;
     player.pos.y -= sinf(player.rot + player.moveDirRad) * speedMultiplier;
 
-    // static Vector2 previousPos;
-    // previousPos.x = player.pos.x;
-    // previousPos.y = player.pos.y;
+    CastRays(wd, player, raycastHitPoints);
 
     // reset pixel buffer
-    if (hardwareAcceleration)
+    for (int p = 0; p < wd.width * wd.height; p++)
     {
+      const int x = p % wd.width;
+      const int y = p / wd.width;
+      const int i = y * wd.width + x;
 
-      for (int p = 0; p < wd.width * wd.height; p++)
-      {
-        const int x = p % wd.width;
-        const int y = p / wd.width;
-        const int i = y * wd.width + x;
-
-        wd.pixelBuffer[i] = BLACK_COLOR;
-      }
-    }
-    else
-    {
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-      SDL_RenderClear(renderer);
+      wd.pixelBuffer[i] = BLACK_COLOR;
     }
 
     if (noiseEnabled)
@@ -771,11 +845,24 @@ int main()
 
     if (mapEnabled)
     {
-      DrawMap(wd, player, resScale);
+      DrawMap(wd, player, resScale, raycastHitPoints);
     }
     else
     {
-      CastRays(wd);
+
+      // static double startPos = 0.0;
+      // int scale = 50;
+      // for (double d = 0.0; d <= 360.0; d += 0.01)
+      // {
+      //   int sx = d * scale;
+      //   float sy = height / 2 - (deg2rad(sinf(d))) * (scale * 100);
+      //   AddPixelToBuffer(wd, sx, sy, BLUE_COLOR);
+
+      //   int cx = d * scale;
+      //   float cy = height / 2 - (deg2rad(cosf(d))) * (scale * 100);
+      //   AddPixelToBuffer(wd, cx, cy, RED_COLOR);
+      // }
+      // startPos += 0.001;
     }
 
     // render
@@ -784,6 +871,7 @@ int main()
       SDL_UpdateTexture(texture, NULL, wd.pixelBuffer, wd.width * 4);
       SDL_RenderCopy(renderer, texture, NULL, NULL);
       SDL_RenderPresent(renderer);
+      // HardwareRenderer(wd, renderer, window, texture);
     }
     else
     {

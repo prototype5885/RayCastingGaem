@@ -4,6 +4,8 @@
 
 float deg2rad(float num) { return num * (M_PI / 180.0); }
 
+float rad2deg(float num) { return num * 57.29578; }
+
 float sqr(float num) { return num * num; }
 
 int clampi(int d, int min, int max)

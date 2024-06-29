@@ -2,6 +2,11 @@
 #include <stdlib.h>
 // #define ONE_RAD (3.14159 / 180.0);
 
+float lerpf(float from, float to, float percentage)
+{
+  return from + (to - from) * percentage;
+}
+
 float deg2rad(float num) { return num * (M_PI / 180.0); }
 
 float rad2deg(float num) { return num * 57.29578; }

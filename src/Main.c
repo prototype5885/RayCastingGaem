@@ -1,68 +1,80 @@
 #include <SDL2/SDL.h>
+#include <SDL_pixels.h>
 #include <bits/stdint-intn.h>
 #include <bits/stdint-uintn.h>
 #include <bits/time.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "ProToMath.h"
+#include "TextureLoader.h"
 
 #define WHITE_COLOR (0 << 24) | (255 << 16) | (255 << 8) | 255
+#define GREY_COLOR (0 << 24) | (50 << 16) | (50 << 8) | 50
+#define DARKER_GREY_COLOR (0 << 24) | (30 << 16) | (30 << 8) | 30
 #define BLACK_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 0
 #define RED_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 0
 #define GREEN_COLOR (0 << 24) | (0 << 16) | (255 << 8) | 0
 #define BLUE_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 255
+#define YELLOW_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 255
 
-typedef struct
-{
+typedef struct {
   float x, y;
 } Vector2;
 
-typedef struct
-{
+typedef struct {
   int x, y;
 } Vector2i;
 
-typedef struct
-{
+typedef struct {
   int8_t x, y;
 } Vector2i8;
 
-typedef struct
-{
+typedef struct {
   float moveDirRad;
   float speed;
   Vector2 pos;
   float rot;
-  uint8_t fov;
+  uint16_t fov;
 } Player;
 
-typedef struct
-{
+typedef struct {
   uint8_t r, g, b;
 } RGB;
 
-typedef struct
-{
+typedef struct {
   int width, height;
   uint32_t *pixelBuffer;
 } WindowData;
 
-int8_t map[8][8] = {{1, 1, 1, 1, 1, 1, 1, 1},
-                    {1, 0, 0, 0, 0, 0, 0, 1},
-                    {1, 0, 0, 0, 0, 1, 0, 1},
-                    {1, 0, 0, 0, 0, 0, 0, 1},
-                    {1, 0, 0, 0, 0, 0, 0, 1},
-                    {1, 0, 0, 0, 0, 0, 0, 1},
-                    {1, 1, 0, 0, 0, 0, 0, 1},
-                    {1, 1, 1, 1, 1, 1, 1, 1}};
+// clang-format off
+int32_t map[16][16] = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                      {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
+                      {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                      {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
 
-long GetMicroTime()
-{
+
+// int32_t map[1][1] = {1};
+// clang-format on
+
+long GetMicroTime() {
   // struct timespec currentTime;
   // clock_gettime(CLOCK_MONOTONIC, &currentTime);
   // printf("%ld\n", currentTime.tv_nsec);
@@ -73,8 +85,7 @@ long GetMicroTime()
   return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
 }
 
-uint32_t PackRGB(uint8_t r, uint8_t g, uint8_t b)
-{
+uint32_t PackRGB(uint8_t r, uint8_t g, uint8_t b) {
   uint32_t argb = 0;
   argb |= 0 << 24;
   argb |= r << 16;
@@ -84,8 +95,7 @@ uint32_t PackRGB(uint8_t r, uint8_t g, uint8_t b)
   return argb;
 }
 
-RGB UnpackRGB(uint32_t packedRgb)
-{
+RGB UnpackRGB(uint32_t packedRgb) {
   const uint8_t r = (packedRgb >> 16) & 0xFF;
   const uint8_t g = (packedRgb >> 8) & 0xFF;
   const uint8_t b = (packedRgb) & 0xFF;
@@ -93,16 +103,13 @@ RGB UnpackRGB(uint32_t packedRgb)
   return rgb;
 }
 
-void AddPixelToBuffer(WindowData wd, int x, int y, uint32_t color)
-{
-  if (x >= 0 && x < wd.width && y >= 0 && y < wd.height)
-  {
+void AddPixelToBuffer(WindowData wd, int x, int y, uint32_t color) {
+  if (x >= 0 && x < wd.width && y >= 0 && y < wd.height) {
     wd.pixelBuffer[y * wd.width + x] = color;
   }
 }
 
-void AddCircle(WindowData wd, float radius, Vector2i circlePos, uint32_t color)
-{
+void AddCircle(WindowData wd, float radius, Vector2i circlePos, uint32_t color) {
   // int t1 = radius / 16;
   int x = radius;
   int y = 0;
@@ -121,16 +128,12 @@ void AddCircle(WindowData wd, float radius, Vector2i circlePos, uint32_t color)
   // }
 
   int p = 1 - radius;
-  while (x > y)
-  {
+  while (x > y) {
     y++;
 
-    if (p <= 0)
-    {
+    if (p <= 0) {
       p = p + 2 * y + 1;
-    }
-    else
-    {
+    } else {
       x--;
       p = p + 2 * y - 2 * x + 1;
     }
@@ -191,15 +194,13 @@ void AddCircle(WindowData wd, float radius, Vector2i circlePos, uint32_t color)
   // AddPixelToBuffer(wd, circlePos.x, circlePos.y, WHITE_COLOR);
 }
 
-void PlotLineLow(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
-{
+void PlotLineLow(WindowData wd, Vector2i from, Vector2i to, uint32_t color) {
   const int dx = to.x - from.x;
   int dy = to.y - from.y;
 
   int yi = 1;
 
-  if (dy < 0)
-  {
+  if (dy < 0) {
     yi = -1;
     dy = -dy;
   }
@@ -207,30 +208,24 @@ void PlotLineLow(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
   int d = 2 * dy - dx;
   int y = from.y;
 
-  for (int x = from.x; x < to.x; x++)
-  {
+  for (int x = from.x; x < to.x; x++) {
     AddPixelToBuffer(wd, x, y, color);
-    if (d > 0)
-    {
+    if (d > 0) {
       y = y + yi;
       d = d + (2 * (dy - dx));
-    }
-    else
-    {
+    } else {
       d = d + 2 * dy;
     }
   }
 }
 
-void PlotLineHigh(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
-{
+void PlotLineHigh(WindowData wd, Vector2i from, Vector2i to, uint32_t color) {
   int dx = to.x - from.x;
   const int dy = to.y - from.y;
 
   int xi = 1;
 
-  if (dx < 0)
-  {
+  if (dx < 0) {
     xi = -1;
     dx = -dx;
   }
@@ -238,32 +233,24 @@ void PlotLineHigh(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
   int d = 2 * dx - dy;
   int x = from.x;
 
-  for (int y = from.y; y < to.y; y++)
-  {
+  for (int y = from.y; y < to.y; y++) {
     AddPixelToBuffer(wd, x, y, color);
-    if (d > 0)
-    {
+    if (d > 0) {
       x = x + xi;
       d = d + (2 * (dx - dy));
-    }
-    else
-    {
+    } else {
       d = d + 2 * dx;
     }
   }
 }
 
-void AddLine(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
-{
-  if (abs(to.y - from.y) < abs(to.x - from.x))
-  {
+void AddLine(WindowData wd, Vector2i from, Vector2i to, uint32_t color) {
+  if (abs(to.y - from.y) < abs(to.x - from.x)) {
     if (from.x > to.x)
       PlotLineLow(wd, to, from, color);
     else
       PlotLineLow(wd, from, to, color);
-  }
-  else
-  {
+  } else {
     if (from.y > to.y)
       PlotLineHigh(wd, to, from, color);
     else
@@ -274,126 +261,186 @@ void AddLine(WindowData wd, Vector2i from, Vector2i to, uint32_t color)
   AddPixelToBuffer(wd, to.x, to.y, color);
 }
 
-Vector2i CalculateLineEndpoint(Vector2i endPoint, float length, float angle)
-{
+Vector2i CalculateLineEndpoint(Vector2i from, float length, float angle) {
   Vector2i arrowEndPoint;
-  arrowEndPoint.x = endPoint.x + cosf(angle) * length;
-  arrowEndPoint.y = endPoint.y + sinf(angle) * length;
+  arrowEndPoint.x = from.x + cosf(angle) * length;
+  arrowEndPoint.y = from.y + sinf(angle) * length;
   return arrowEndPoint;
 }
 
-void AddLineWithArrow(WindowData wd, Vector2i from, Vector2i to, float rot, uint32_t color)
-{
+void AddLineWithArrow(WindowData wd, Vector2i from, Vector2i to, float rot, uint32_t color) {
   AddLine(wd, from, to, color);
 
   float arrowHeadAngle = deg2rad(135);
-  for (int i = 0; i < 2; i++)
-  {
-    Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0, rot - arrowHeadAngle);
+  for (int i = 0; i < 2; i++) {
+    Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0f, rot - arrowHeadAngle);
     AddLine(wd, to, arrowheadEndPoint, color);
     arrowHeadAngle += M_PI_2;
   }
 }
 
-void AddLineInDirectionWithArrow(WindowData wd, Vector2i from, float length, float rot, uint32_t color)
-{
+void AddLineInDirectionWithArrow(WindowData wd, Vector2i from, float length, float rot, uint32_t color) {
   Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLineWithArrow(wd, from, lineEndpoint, rot, color);
 }
 
-void AddLineInDirection(WindowData wd, Vector2i from, float length, float rot, uint32_t color)
-{
+void AddLineInDirection(WindowData wd, Vector2i from, float length, float rot, uint32_t color) {
   Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLine(wd, from, lineEndpoint, color);
 }
 
-void FillWithNoise(WindowData wd)
-{
-  for (int p = 0; p < wd.width * wd.height; p++)
-  {
+void FillWithNoise(WindowData wd) {
+  for (int p = 0; p < wd.width * wd.height; p++) {
     uint32_t randomColor = random();
     wd.pixelBuffer[p] = randomColor;
   }
 }
 
-void RayHit(WindowData wd, int column)
-{
-  const int wallHeight = RandomMax(150);
+void CastRays(WindowData wd, Player player, uint32_t *wallTextures[]) {
+  for (int ray = 0; ray < wd.width; ray++) {
+    const float rayAngle = deg2rad((rad2deg(player.rot) - (player.fov / 2.0f)) + ((float)ray / wd.width) * player.fov);
 
-  const int middle = wd.height / 2;
-  const int startPos = middle - wallHeight / 2;
-  const int endPos = startPos + wallHeight;
+    const float dx = cosf(rayAngle);
+    const float dy = sinf(rayAngle);
 
-  for (int pixel = startPos; pixel < endPos; pixel++)
-  {
-    AddPixelToBuffer(wd, column, pixel, WHITE_COLOR);
+    int mapX = (int)player.pos.x;
+    int mapY = (int)player.pos.y;
+
+    float sideDistX, sideDistY;
+
+    const float deltaDistX = fabsf(1 / dx);
+    const float deltaDistY = fabsf(1 / dy);
+    float distance;
+
+    int8_t stepX, stepY;
+
+    float hitPointX, hitPointY;
+
+    uint32_t *wallTexture;
+
+    if (dx < 0) {
+      stepX = -1;
+      sideDistX = (player.pos.x - (float)mapX) * deltaDistX;
+    } else {
+      stepX = 1;
+      sideDistX = (float)(mapX + 1.0f - player.pos.x) * deltaDistX;
+    }
+    if (dy < 0) {
+      stepY = -1;
+      sideDistY = (player.pos.y - (float)mapY) * deltaDistY;
+    } else {
+      stepY = 1;
+      sideDistY = ((float)mapY + 1.0f - player.pos.y) * deltaDistY;
+    }
+
+    bool side;
+    int attempt = 0;
+    bool outside = false;
+    while (attempt < 64) {
+      attempt++;
+
+      if (sideDistX < sideDistY) {
+        sideDistX += deltaDistX;
+        mapX += stepX;
+        side = false;
+      } else {
+        sideDistY += deltaDistY;
+        mapY += stepY;
+        side = true;
+      }
+
+      if (mapX > 16 || mapX < 0 || mapY > 16 || mapY < 0) {
+        outside = true;
+        return;
+      }
+
+      if (map[mapX][mapY] == 1) {
+        wallTexture = wallTextures[0];
+        break;
+      } else if (map[mapX][mapY] == 2) {
+        wallTexture = wallTextures[1];
+        break;
+      }
+    }
+
+    if (!side) // if hit a horizontal wall
+    {
+      distance = (mapX - player.pos.x + (1.0f - stepX) / 2.0f) / dx;
+      hitPointX = mapX + ((float)stepX / 2);
+      hitPointY = player.pos.y + distance * dy;
+    } else // if hit a vertical wall
+    {
+      distance = (mapY - player.pos.y + (1.0f - stepY) / 2.0f) / dy;
+      hitPointX = player.pos.x + distance * dx;
+      hitPointY = mapY + ((float)stepY / 2);
+    }
+
+    distance = distance * cosf(rayAngle - player.rot);
+
+    int wallHeight = (int)(wd.height / distance * (float)(100.0f / player.fov));
+    int middle = wd.height / 2;
+
+    int startPos = middle - wallHeight / 2;
+    if (startPos < 0)
+      startPos = 0;
+
+    int endPos = middle + wallHeight / 2;
+    if (endPos >= wd.height) {
+      endPos = wd.height - 1;
+    }
+    const float c = side ? hitPointX - floorf(hitPointX) : hitPointY - floorf(hitPointY);
+
+    // offset is needed for walls that are very close to the player so they wont stick to the top of the screen
+    // it stays 0 if wall height is smaller than the screen height
+    float offset = 0;
+    if (wallHeight > wd.height) {
+      offset = (wallHeight - wd.height) / 2.0f;
+    }
+
+    float stepBetweenHorizontalSegments = 64.0f / (float)wallHeight;
+    float horizontalSegment = offset * stepBetweenHorizontalSegments;
+
+    float percentage = ((distance - 4.0f) / (16.0f - 4.0f));
+
+    percentage = 1.0f - percentage;
+
+    if (distance < 4.0f) {
+      percentage = 1.0f;
+    }
+    if (distance > 16.0f) {
+      percentage = 0.0f;
+    }
+
+    if (percentage < 0.25f)
+      percentage = 0.25f;
+
+    for (int pixel = startPos; pixel < endPos; pixel++) {
+      const int verticalSegment = 64.0f * c;
+
+      uint32_t color = wallTexture[(int)horizontalSegment * 64 + verticalSegment];
+      horizontalSegment += stepBetweenHorizontalSegments;
+
+      RGB rgb = UnpackRGB(color);
+
+      rgb.r *= percentage;
+      rgb.g *= percentage;
+      rgb.b *= percentage;
+
+      uint32_t reColor = PackRGB(rgb.r, rgb.g, rgb.b);
+
+      // AddPixelToBuffer(wd, ray, pixel, reColor);
+      int index = pixel * wd.width + ray;
+      wd.pixelBuffer[index] = reColor;
+    }
   }
 }
 
-void CastRays(WindowData wd, Player player, int32_t *raycastHitPoints)
-{
-  // const float fovInRad = deg2rad(player.fov);
-  // const int rayCount = 1;
-
-  // const float startAngle = player.rot - fovInRad / 2;
-
-  // float currentAngle = startAngle;
-  // const float oneDegree = fovInRad / rayCount;
-
-  // printf("Player position: %f, %f\n", player.pos.x, player.pos.y);
-
-  int flooredPosY = floorf(player.pos.y);
-
-  float A = -player.rot;
-  float B = deg2rad(90.0);
-  float C = deg2rad(180.0) - deg2rad(90.0) - A;
-
-  float a = 1 - (player.pos.y - flooredPosY);
-  float b = a * sinf(B) / sinf(A);
-  float c = a * sinf(C) / sinf(A);
-
-  float x = player.pos.x + c;
-  float y = player.pos.y + a;
-  float distance = b;
-
-  raycastHitPoints[0] = x;
-  raycastHitPoints[1] = x;
-
-  printf("Player position: %f, %f\n", player.pos.x, player.pos.y);
-  // printf("Distance: %f\n", distance);
-  // printf("Intersection point, X: %f, Y: %f\n", x, y);
-
-  // printf("A = %f\n", A);
-  // printf("B = %f\n", B);
-  // printf("C = %f\n", C);
-
-  // printf("a = %f\n", a);
-  // printf("b = %f\n", b);
-  // printf("c = %f\n", c);
-
-  // for (int ray = 0; ray < rayCount; ray++)
-  // {
-  //   printf("Distance to wall: %d\n", ray);
-
-  //   currentAngle += oneDegree;
-  //   // printf("%f\n", currentAngle);
-  // }
-
-  // for (int column = 0; column < wd.width; column++)
-  // {
-  //   printf("Ray %d shot...\n", column);
-  //   RayHit(wd, column);
-  // }
-}
-
-void HardwareRenderer(WindowData wd, SDL_Renderer *renderer, SDL_Window *window, SDL_Texture *texture)
-{
+void HardwareRenderer(WindowData wd, SDL_Renderer *renderer, SDL_Window *window, SDL_Texture *texture) {
   uint32_t *pixels;
   int pitch;
 
   // lock texture
-  if (SDL_LockTexture(texture, NULL, (void **)&pixels, &pitch) != 0)
-  {
+  if (SDL_LockTexture(texture, NULL, (void **)&pixels, &pitch) != 0) {
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -403,8 +450,7 @@ void HardwareRenderer(WindowData wd, SDL_Renderer *renderer, SDL_Window *window,
 
   uint32_t *pixPtr = (uint32_t *)pixels;
 
-  for (int p = 0; p < wd.width * wd.height; p++)
-  {
+  for (int p = 0; p < wd.width * wd.height; p++) {
     const int x = p % wd.width;
     const int y = p / wd.width;
     const int i = y * wd.width + x;
@@ -417,10 +463,8 @@ void HardwareRenderer(WindowData wd, SDL_Renderer *renderer, SDL_Window *window,
   SDL_RenderPresent(renderer);
 }
 
-void SoftwareRenderer(WindowData wd, SDL_Renderer *renderer)
-{
-  for (int p = 0; p < wd.width * wd.height; p++)
-  {
+void SoftwareRenderer(WindowData wd, SDL_Renderer *renderer) {
+  for (int p = 0; p < wd.width * wd.height; p++) {
     const int x = p % wd.width;
     const int y = p / wd.width;
     const int i = y * wd.width + x;
@@ -445,8 +489,7 @@ void SoftwareRenderer(WindowData wd, SDL_Renderer *renderer)
 //   AddCircle(wd, radius, playerPosMap, WHITE_COLOR);
 // }
 
-Vector2i StartingPositionForCentering(WindowData wd, int objectWidth, int objectHeight)
-{
+Vector2i StartingPositionForCentering(WindowData wd, int objectWidth, int objectHeight) {
   Vector2i pos;
   pos.x = wd.width / 2 - objectWidth / 2;
   pos.y = wd.height / 2 - objectHeight / 2;
@@ -462,113 +505,69 @@ Vector2i StartingPositionForCentering(WindowData wd, int objectWidth, int object
 //   return position;
 // }
 
-void DrawMap(WindowData wd, Player player, int resScale, int32_t *raycastHitPoints)
-{
-  // const int upscaleMultiplier = 64 / resScale;
-  const int upscaleMultiplier = 1;
-  const int mapSize = 8; // map width and height
+void DrawMap(WindowData wd, Player player, int resScale) {
+  const int mapWidth = 16;
+  const int mapHeight = 16;
 
-  Vector2i pos = StartingPositionForCentering(wd, upscaleMultiplier * mapSize, upscaleMultiplier * mapSize);
+  Vector2i playerPosOnMap;
+  playerPosOnMap.x = player.pos.x;
+  playerPosOnMap.y = player.pos.y;
 
-  pos.x = pos.x - roundf(player.pos.x);
-  pos.y = pos.y - -roundf(player.pos.y);
+  for (int i = 0; i < mapWidth * mapHeight; i++) {
+    int x = i % mapWidth;
+    int y = i / mapWidth;
 
-  // int midX = width / 2;
-  // int midY = height / 2;
+    // map squares
+    if (map[x][y] == 1) {
+      AddPixelToBuffer(wd, x, y, BLUE_COLOR);
+    } else if (map[x][y] == 2) {
+      AddPixelToBuffer(wd, x, y, WHITE_COLOR);
+    }
 
-  for (int y = 0; y < upscaleMultiplier; y++)
-  {
-    for (int x = 0; x < upscaleMultiplier; x++)
-    {
-      for (int mapY = 0; mapY < mapSize; mapY++)
-      {
-        for (int mapX = 0; mapX < mapSize; mapX++)
-        {
-          int screenY = mapY * upscaleMultiplier + y + pos.y;
-          int screenX = mapX * upscaleMultiplier + x + pos.x;
-
-          // int index = screenY * width + screenX;
-
-          // map squares
-          if (map[mapX][mapY] == 1)
-          {
-            AddPixelToBuffer(wd, screenX, screenY, BLUE_COLOR);
-          }
-          else
-          {
-            AddPixelToBuffer(wd, screenX, screenY, BLACK_COLOR);
-          }
-
-          // // outlines
-          // if (x == 0 || x == upscaleMultiplier - 1 || y == 0 ||
-          //     y == upscaleMultiplier - 1) {
-          //   AddPixelToBuffer(width, height, pixelBuffer, screenX, screenY,
-          //                    WHITE_COLOR);
-          // }
-        }
-      }
+    else {
+      AddPixelToBuffer(wd, x, y, BLACK_COLOR);
     }
   }
-
-  // const int playerSize = 8 / resScale;
-  // Vector2i centerDotPos = StartingPositionForCentering(wd, playerSize, playerSize);
 
   Vector2i centerPos;
   centerPos.x = wd.width / 2;
   centerPos.y = wd.height / 2;
 
-  Vector2i to;
-  to.x = raycastHitPoints[0];
-  to.y = raycastHitPoints[1];
-
-  // draw rays from player
-  AddLine(wd, centerPos, to, RED_COLOR);
-
-  // const float fovInRad = deg2rad(player.fov);
-  // const int rayCount = wd.width;
-
-  // const float startAngle = player.rot - fovInRad / 2;
-
-  // float currentAngle = startAngle;
-  // const float oneDegree = fovInRad / rayCount;
-
-  // for (int r = 0; r < rayCount; r++)
-  // {
-  //   AddLineInDirection(wd, centerPos, 512, currentAngle, WHITE_COLOR);
-  //   currentAngle += oneDegree;
-  //   // printf("%f\n", currentAngle);
-  // }
-
   // draw player arrow in center
-  AddLineInDirectionWithArrow(wd, centerPos, 12.0, player.rot, RED_COLOR);
+  AddLineInDirectionWithArrow(wd, playerPosOnMap, 12.0f, player.rot, RED_COLOR);
+
+  Vector2i to;
+  // to.x = raycastHitPoints[0];
+  // to.y = raycastHitPoints[1];
+
+  // printf("Hit sector, X: %d, Y: %d\n", raycastHitPoints[0], raycastHitPoints[1]);
+
+  AddPixelToBuffer(wd, playerPosOnMap.x, playerPosOnMap.y, GREEN_COLOR);
+  AddPixelToBuffer(wd, to.x, to.y - 1, YELLOW_COLOR);
+  // AddLine(wd, playerPosOnMap, to, YELLOW_COLOR);
 
   // direction arrow for player
-  if (player.speed != 0)
-  {
-    AddLineInDirectionWithArrow(wd, centerPos, 8.0, player.rot + player.moveDirRad, GREEN_COLOR);
+  if (player.speed != 0) {
+    AddLineInDirectionWithArrow(wd, playerPosOnMap, 8.0f, player.rot + player.moveDirRad, GREEN_COLOR);
   }
 }
 
-int CalculateAverageFps(int executionTime)
-{
+int CalculateAverageFps(int executionTime) {
   const int FPS_HISTORY_SIZE = 64;
 
   static int fpsHistory[64];
 
-  for (int i = FPS_HISTORY_SIZE; i >= 0; i--)
-  {
+  for (int i = FPS_HISTORY_SIZE; i >= 0; i--) {
     int nexti = i + 1;
     // printf("%d\n", i);
-    if (nexti <= FPS_HISTORY_SIZE - 1)
-    {
+    if (nexti <= FPS_HISTORY_SIZE - 1) {
       fpsHistory[nexti] = fpsHistory[i];
     }
   }
   fpsHistory[0] = 1000000 / executionTime;
 
   int32_t sumFps = 0;
-  for (int i = 0; i < FPS_HISTORY_SIZE; i++)
-  {
+  for (int i = 0; i < FPS_HISTORY_SIZE; i++) {
     sumFps += fpsHistory[i];
     // printf("%d: %d\n", i, fpsHistory[i]);
   }
@@ -576,46 +575,43 @@ int CalculateAverageFps(int executionTime)
   return avgFps;
 }
 
-void ToggleHardwareAcceleration(bool *hardwareAcceleration, char *hwsw)
-{
+void ToggleHardwareAcceleration(bool *hardwareAcceleration, char *hwsw) {
   *hardwareAcceleration = !(*hardwareAcceleration);
-  if (*hardwareAcceleration)
-  {
+  if (*hardwareAcceleration) {
     hwsw[0] = 'H';
     // strcpy(hwsw, "HW");
-  }
-  else
-  {
+  } else {
     hwsw[0] = 'S';
     // strcpy(hwsw, "SW");
   }
 }
 void ToggleMap(bool *mapEnabled) { *mapEnabled = !(*mapEnabled); }
 
-int main()
-{
-  int windowWidth = 1920;
-  int windowHeight = 1080;
+int main() {
+  int windowWidth = 2560;
+  int windowHeight = 1440;
 
-  // int centerX = 1920 / 2;
-  // int centerY = 1080 / 2;
+  uint32_t *wallTextures[16];
+  wallTextures[0] = LoadTexture(0);
+  wallTextures[1] = LoadTexture(1);
 
-  int resScale = 8;
+  // uint32_t *wall1 = LoadTexture(0);
+  // uint32_t *wall2 = LoadTexture(1);
 
-  int width = windowWidth / resScale;
-  int height = windowHeight / resScale;
+  float resScale = 0.2f;
+
+  int width = windowWidth * resScale;
+  int height = windowHeight * resScale;
 
   // initialize sdl
-  if (SDL_Init(SDL_INIT_VIDEO) < 0)
-  {
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     SDL_Log("SDL could not initialize! SDL_Error: %s", SDL_GetError());
     return EXIT_FAILURE;
   }
 
   // create window
   SDL_Window *window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOW_FULLSCREEN, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
-  if (window == NULL)
-  {
+  if (window == NULL) {
     SDL_Log("Window could not be created! SDL_Error: %s", SDL_GetError());
     SDL_Quit();
     return EXIT_FAILURE;
@@ -625,8 +621,7 @@ int main()
 
   // create renderer
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  if (renderer == NULL)
-  {
+  if (renderer == NULL) {
     SDL_Log("Renderer could not be created! SDL_Error: %s", SDL_GetError());
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -638,8 +633,7 @@ int main()
 
   // create the texture that will display content in the window
   SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
-  if (texture == NULL)
-  {
+  if (texture == NULL) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     printf("SDL_CreateTexture Error: %s\n", SDL_GetError());
@@ -649,19 +643,18 @@ int main()
 
   // create a 2D array that will store colors of each pixel
   uint32_t *pixelBuffer = malloc(width * height * sizeof(uint32_t));
-  if (pixelBuffer == NULL)
-  {
+  // uint32_t pixelBuffer[width * height];
+  if (pixelBuffer == NULL) {
     perror("Failed to allocate memory for 2D pixel array");
     return EXIT_FAILURE;
   }
 
   // create an array to store ray cast hit coordinates
-  int32_t *raycastHitPoints = malloc(2 * sizeof(int32_t));
-  if (raycastHitPoints == NULL)
-  {
-    perror("Failed to allocate memory for raycast hits array");
-    return EXIT_FAILURE;
-  }
+  // int32_t *raycastHitPoints = malloc(width * 2 * sizeof(int32_t));
+  // if (raycastHitPoints == NULL) {
+  //   perror("Failed to allocate memory for raycast hits array");
+  //   return EXIT_FAILURE;
+  // }
 
   WindowData wd;
   wd.pixelBuffer = pixelBuffer;
@@ -673,12 +666,12 @@ int main()
 
   // player values
   Player player;
-  player.rot = deg2rad(-90.0);
-  player.pos.x = 0;
-  player.pos.y = 0;
+  player.rot = 0;
+  player.pos.x = 2;
+  player.pos.y = 4;
   player.fov = 90;
 
-  float playerSpeedDefault = 8.0f;
+  float playerSpeedDefault = 4.0f;
 
   // key pressed values
   bool wKeyPressed = false;
@@ -708,90 +701,79 @@ int main()
   char hwsw[] = "HW";
 
   // SDL_ShowCursor(true);
-  // SDL_SetRelativeMouseMode(true);
+  SDL_SetRelativeMouseMode(true);
   Vector2i mousePosition;
+
+  // uint32_t test[1] = {RED_COLOR};
+
+  // for (int i = 0; i < 2048; i++) {
+  //   test[i] = GREEN_COLOR;
+  // }
 
   SDL_Event event;
   bool running = true;
-  while (running)
-  {
+  while (running) {
     // start time is used to calculate delta time
     long startTime = GetMicroTime();
 
     // handle events
-    while (SDL_PollEvent(&event))
-    {
-      switch (event.type)
-      {
+    while (SDL_PollEvent(&event)) {
+      switch (event.type) {
       case SDL_QUIT:
         running = false;
         break;
       // look for a keypress
       case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_ESCAPE)
-        {
+        if (event.key.keysym.sym == SDLK_ESCAPE) {
           running = false;
         }
-        if (event.key.keysym.sym == SDLK_w)
-        {
+        if (event.key.keysym.sym == SDLK_w) {
           wKeyPressed = true;
         }
-        if (event.key.keysym.sym == SDLK_s)
-        {
+        if (event.key.keysym.sym == SDLK_s) {
           sKeyPressed = true;
         }
-        if (event.key.keysym.sym == SDLK_a)
-        {
+        if (event.key.keysym.sym == SDLK_a) {
           aKeyPressed = true;
         }
-        if (event.key.keysym.sym == SDLK_d)
-        {
+        if (event.key.keysym.sym == SDLK_d) {
           dKeyPressed = true;
         }
-        if (event.key.keysym.sym == SDLK_TAB)
-        {
+        if (event.key.keysym.sym == SDLK_TAB) {
           ToggleMap(&mapEnabled);
         }
-        if (event.key.keysym.sym == SDLK_n)
-        {
+        if (event.key.keysym.sym == SDLK_n) {
           noiseEnabled = !noiseEnabled;
         }
-        if (event.key.keysym.sym == SDLK_h)
-        {
+        if (event.key.keysym.sym == SDLK_h) {
           ToggleHardwareAcceleration(&hardwareAcceleration, hwsw);
         }
         break;
       case SDL_KEYUP:
-        if (event.key.keysym.sym == SDLK_w)
-        {
+        if (event.key.keysym.sym == SDLK_w) {
           wKeyPressed = false;
         }
-        if (event.key.keysym.sym == SDLK_s)
-        {
+        if (event.key.keysym.sym == SDLK_s) {
           sKeyPressed = false;
         }
-        if (event.key.keysym.sym == SDLK_a)
-        {
+        if (event.key.keysym.sym == SDLK_a) {
           aKeyPressed = false;
         }
-        if (event.key.keysym.sym == SDLK_d)
-        {
+        if (event.key.keysym.sym == SDLK_d) {
           dKeyPressed = false;
         }
         break;
       case SDL_MOUSEMOTION:
-        // player.rotation += (width / 2.0 - event.motion.x) / 128;
-        player.rot += deg2rad(event.motion.xrel);
+        // player.rotation += (width / 2.0f - event.motion.x) / 128;
+        player.rot += deg2rad(event.motion.xrel) / 8 / resScale;
 
-        if (player.rot < -M_PI)
-        {
+        if (player.rot < -M_PI) {
           player.rot += 2 * M_PI;
-        }
-        else if (player.rot > M_PI)
-        {
+        } else if (player.rot > M_PI) {
           player.rot -= 2 * M_PI;
         }
-        // printf("%f\n", player.rot * 57.29578);
+
+        // player.rot = -player.rot;
 
         // mousePosition.x = event.motion.x;
         // mousePosition.y = event.motion.y;
@@ -806,86 +788,65 @@ int main()
     sideways = dKeyPressed - aKeyPressed;
     forwards = wKeyPressed - sKeyPressed;
 
-    if (sideways != 0 || forwards != 0)
-    {
+    if (sideways != 0 || forwards != 0) {
       player.speed = playerSpeedDefault;
-    }
-    else
-    {
+    } else {
       player.speed = 0;
     }
 
-    float speedMultiplier = 0.0166f * player.speed * deltaTime;
-    // player.pos.x += speedMultiplier * sideways;
-    // player.pos.y += speedMultiplier * forwards;
-
-    // gets the movement direction angle in radian
+    const float speedMultiplier = 0.0166f * player.speed * deltaTime;
 
     player.moveDirRad = atan2f(sideways, forwards);
 
-    player.pos.x += cosf(player.rot + player.moveDirRad) * speedMultiplier;
-    player.pos.y -= sinf(player.rot + player.moveDirRad) * speedMultiplier;
+    const int colX = (int)floorf(player.pos.x + cosf(player.rot + player.moveDirRad) / 2.0f);
+    const int colY = (int)floorf(player.pos.y + sinf(player.rot + player.moveDirRad) / 2.0f);
 
-    CastRays(wd, player, raycastHitPoints);
+    // printf("%d, %d\n", colX, colY);
 
-    // reset pixel buffer
-    for (int p = 0; p < wd.width * wd.height; p++)
-    {
-      const int x = p % wd.width;
-      const int y = p / wd.width;
-      const int i = y * wd.width + x;
+    if (map[colX][colY] != 0) {
 
-      wd.pixelBuffer[i] = BLACK_COLOR;
+    } else {
+      player.pos.x += cosf(player.rot + player.moveDirRad) * speedMultiplier;
+      player.pos.y += sinf(player.rot + player.moveDirRad) * speedMultiplier;
     }
 
-    if (noiseEnabled)
-    {
+    // reset pixel buffer
+    for (int p = 0; p < width * height; p++) {
+      int x = p % width;
+      int y = p / width;
+
+      if (y > height / 2)
+        pixelBuffer[p] = GREY_COLOR;
+      else
+        pixelBuffer[p] = DARKER_GREY_COLOR;
+    }
+
+    if (noiseEnabled) {
       FillWithNoise(wd);
     }
 
-    if (mapEnabled)
-    {
-      DrawMap(wd, player, resScale, raycastHitPoints);
-    }
-    else
-    {
-
-      // static double startPos = 0.0;
-      // int scale = 50;
-      // for (double d = 0.0; d <= 360.0; d += 0.01)
-      // {
-      //   int sx = d * scale;
-      //   float sy = height / 2 - (deg2rad(sinf(d))) * (scale * 100);
-      //   AddPixelToBuffer(wd, sx, sy, BLUE_COLOR);
-
-      //   int cx = d * scale;
-      //   float cy = height / 2 - (deg2rad(cosf(d))) * (scale * 100);
-      //   AddPixelToBuffer(wd, cx, cy, RED_COLOR);
-      // }
-      // startPos += 0.001;
+    if (mapEnabled) {
+      DrawMap(wd, player, resScale);
+    } else {
+      CastRays(wd, player, wallTextures);
     }
 
     // render
-    if (hardwareAcceleration)
-    {
+    if (hardwareAcceleration) {
       SDL_UpdateTexture(texture, NULL, wd.pixelBuffer, wd.width * 4);
       SDL_RenderCopy(renderer, texture, NULL, NULL);
       SDL_RenderPresent(renderer);
       // HardwareRenderer(wd, renderer, window, texture);
-    }
-    else
-    {
+    } else {
       SoftwareRenderer(wd, renderer);
     }
 
     // printf("execution time: %d\n", executionTime);
-    if (limitSpeed)
-    {
+    if (limitSpeed) {
       int executionTime = GetMicroTime() - startTime;
       int timeToSleep = 16666 - executionTime;
 
-      if (timeToSleep > 0)
-      {
+      if (timeToSleep > 0) {
         usleep(timeToSleep);
       }
     }
@@ -894,20 +855,19 @@ int main()
     int executionTimeWithSleep = GetMicroTime() - startTime;
 
     int avgFps = CalculateAverageFps(executionTimeWithSleep);
-    deltaTime = (GetMicroTime() - startTime) * 60.0 / 1000000.0;
+    deltaTime = (GetMicroTime() - startTime) * 60.0f / 1000000.0f;
 
     // printf("%.6f\n", deltaTime);
     // long frameTime = GetMicroTime() - startTime;
-    // float gameSpeed = ((1.0f / frameTime / 60.0f) * 1000000.0) * deltaTime;
+    // float gameSpeed = ((1.0f / frameTime / 60.0f) * 1000000.0f) * deltaTime;
 
     // Break the loop after 1 second (1,000,000 microseconds)
-    if (elapsedTime >= 1000000)
-    {
+    if (elapsedTime >= 1000000) {
       // int duration = GetMicroTime() - startTime;
       // printf("elapsed time: %d\n", elapsedTime);
 
-      char buffer[16];
-      sprintf(buffer, "%d fps, %s", avgFps, hwsw);
+      char buffer[15];
+      sprintf(buffer, "%dx%d - %d fps - %s", width, height, avgFps, hwsw);
 
       SDL_SetWindowTitle(window, buffer);
       currentTime = GetMicroTime();
@@ -915,7 +875,7 @@ int main()
   }
 
   // Free the allocated memory
-  free(pixelBuffer);
+  // free(pixelBuffer);
 
   // Clean up
   SDL_DestroyRenderer(renderer);

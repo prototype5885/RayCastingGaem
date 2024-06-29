@@ -55,3 +55,7 @@ dkms.conf
 /.idea
 *.sh
 /.vscode
+
+*.png
+*.jpg
+*.bin

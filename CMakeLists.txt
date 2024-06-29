@@ -24,6 +24,8 @@ find_package(SDL2 REQUIRED)
 
 add_executable(${EXECUTABLE_NAME} src/Main.c
         src/ProToMath.c
-        src/ProToMath.h)
+        src/ProToMath.h
+        src/TextureLoader.c
+        src/TextureLoader.h)
 
 target_link_libraries(${EXECUTABLE_NAME} -lm ${SDL2_LIBRARIES})

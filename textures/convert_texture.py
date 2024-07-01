@@ -6,13 +6,11 @@ width, height = image.size
 
 image = image.convert('RGB')
 
-# Open binary file for writing
-output_file = "wall1.bin"  # Output binary file path
+output_file = "wall1.bin"
 with open(output_file, 'wb') as f:
     for y in range(height):
         for x in range(width):
             r, g, b = image.getpixel((x, y))
-            # f.write(bytes([a]))
             f.write(bytes([r]))
             f.write(bytes([g]))
             f.write(bytes([b]))

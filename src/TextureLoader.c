@@ -5,9 +5,7 @@
 
 uint32_t *LoadTexture(int textureIndex) {
 
-  const char *texturePath = "textures/";
   char *fileName;
-  const char *extension = ".bin";
 
   if (textureIndex == 0) {
     fileName = "wall1";
@@ -19,9 +17,9 @@ uint32_t *LoadTexture(int textureIndex) {
 
   char filePath[32];
 
-  strcpy(filePath, texturePath); // Copy texturePath into result
-  strcat(filePath, fileName);    // Concatenate fileName onto result
-  strcat(filePath, extension);   // Concatenate extension onto result
+  strcpy(filePath, "textures/");
+  strcat(filePath, fileName);
+  strcat(filePath, ".bin");
 
   // texture will be stored in this array
   uint32_t *texture = (uint32_t *)malloc(64 * 64 * sizeof(uint32_t));
@@ -58,10 +56,8 @@ uint32_t *LoadTexture(int textureIndex) {
   // convers the 8 bit array to 32 bit
   for (int p = 0; p < 64 * 64; p++) {
     const int i = p * 3;
-    texture[p] = (buffer[0] << 24) | (buffer[i + 0] << 16) | (buffer[i + 1] << 8) | buffer[i + 2];
+    texture[p] = (0 << 24) | (buffer[i + 0] << 16) | (buffer[i + 1] << 8) | buffer[i + 2];
   }
-
-  // free(buffer);
 
   return texture;
 }

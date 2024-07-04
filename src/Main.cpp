@@ -1,11 +1,15 @@
-#include <SDL.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <SDL2/SDL.h>
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+#include <thread>
 
 #include "ProToMath.h"
 #include "TextureLoader.h"
+
+using namespace std;
 
 #define WHITE_COLOR (0 << 24) | (255 << 16) | (255 << 8) | 255
 #define GREY_COLOR (0 << 24) | (50 << 16) | (50 << 8) | 50
@@ -36,32 +40,49 @@ typedef struct {
   float fov;
 } Player;
 
-typedef struct {
+// typedef struct {
+//   uint8_t r, g, b;
+// } RGB;
+
+class RGB {
+public:
   uint8_t r, g, b;
-} RGB;
+
+  RGB(uint32_t rgb) {
+    r = (rgb >> 16) & 0xFF;
+    g = (rgb >> 8) & 0xFF;
+    b = (rgb) & 0xFF;
+  }
+
+  uint32_t PackRGB() {
+    uint32_t rgb = 0;
+    rgb |= 0 << 24;
+    rgb |= r << 16;
+    rgb |= g << 8;
+    rgb |= b;
+
+    return rgb;
+  }
+
+  void Multiply(float multiplier) {
+    r *= multiplier;
+    g *= multiplier;
+    b *= multiplier;
+  }
+
+  void display() const { std::cout << "R: " << static_cast<int>(r) << ", G: " << static_cast<int>(g) << ", B: " << static_cast<int>(b) << std::endl; }
+};
+
+// typedef struct {
+//   int width, height;
+//   uint32_t *pixelBuffer;
+// } WindowData;
 
 long GetMicroTime() {
-  struct timeval currentTime;
-  gettimeofday(&currentTime, NULL);
-  return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
-}
+  auto now = chrono::steady_clock::now();
 
-uint32_t PackRGB(uint8_t r, uint8_t g, uint8_t b) {
-  uint32_t argb = 0;
-  argb |= 0 << 24;
-  argb |= r << 16;
-  argb |= g << 8;
-  argb |= b;
-
-  return argb;
-}
-
-RGB UnpackRGB(uint32_t packedRgb) {
-  const uint8_t r = (packedRgb >> 16) & 0xFF;
-  const uint8_t g = (packedRgb >> 8) & 0xFF;
-  const uint8_t b = (packedRgb) & 0xFF;
-  const RGB rgb = {r, g, b};
-  return rgb;
+  auto duration = now.time_since_epoch();
+  return chrono::duration_cast<chrono::microseconds>(duration).count();
 }
 
 void AddPixelToBuffer(uint32_t *pixelBuffer, int width, int height, int x, int y, uint32_t color) {
@@ -71,92 +92,92 @@ void AddPixelToBuffer(uint32_t *pixelBuffer, int width, int height, int x, int y
   }
 }
 
-void AddCircle(uint32_t *pixelBuffer, int width, int height, float radius, Vector2i circlePos, uint32_t color) {
-  // int t1 = radius / 16;
-  int x = radius;
-  int y = 0;
+// void AddCircle(WindowData wd, float radius, Vector2i circlePos, uint32_t color) {
+//   // int t1 = radius / 16;
+//   int x = radius;
+//   int y = 0;
 
-  AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + x, circlePos.y + y, color);
-  AddPixelToBuffer(pixelBuffer, width, height, circlePos.x - x, circlePos.y + y, color);
-  // AddPixelToBuffer(wd, circlePos.x + x, circlePos.y - y, color);
-  // AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
+//   AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
+//   AddPixelToBuffer(wd, circlePos.x - x, circlePos.y + y, color);
+//   // AddPixelToBuffer(wd, circlePos.x + x, circlePos.y - y, color);
+//   // AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
 
-  // if (radius > 0)
-  // {
-  //   AddPixelToBuffer(wd, x + circlePos.x, -y + circlePos.y, color);
-  //   AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, color);
-  //   AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, color);
-  //   AddPixelToBuffer(wd, -y + circlePos.x, x + circlePos.y, color);
-  // }
+//   // if (radius > 0)
+//   // {
+//   //   AddPixelToBuffer(wd, x + circlePos.x, -y + circlePos.y, color);
+//   //   AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, color);
+//   //   AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, color);
+//   //   AddPixelToBuffer(wd, -y + circlePos.x, x + circlePos.y, color);
+//   // }
 
-  int p = 1 - radius;
-  while (x > y) {
-    y++;
+//   int p = 1 - radius;
+//   while (x > y) {
+//     y++;
 
-    if (p <= 0) {
-      p = p + 2 * y + 1;
-    } else {
-      x--;
-      p = p + 2 * y - 2 * x + 1;
-    }
+//     if (p <= 0) {
+//       p = p + 2 * y + 1;
+//     } else {
+//       x--;
+//       p = p + 2 * y - 2 * x + 1;
+//     }
 
-    if (x < y)
-      break;
+//     if (x < y)
+//       break;
 
-    AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + x, circlePos.y + y, color);
-    AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + -x, circlePos.y + y, color);
-    AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + x, circlePos.y + -y, color);
-    AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + -x, circlePos.y + -y, color);
+//     AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
+//     AddPixelToBuffer(wd, circlePos.x + -x, circlePos.y + y, color);
+//     AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + -y, color);
+//     AddPixelToBuffer(wd, circlePos.x + -x, circlePos.y + -y, color);
 
-    // if (x != y)
-    // {
-    AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + y, circlePos.y + x, color);
-    AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + -y, circlePos.y + x, color);
-    AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + y, circlePos.y + -x, color);
-    AddPixelToBuffer(pixelBuffer, width, height, circlePos.x + -y, circlePos.y + -x, color);
-    // }
-  }
-  // for (float i = 0; i < 360; i++)
-  // {
-  //   const float angle = (float)i;
+//     // if (x != y)
+//     // {
+//     AddPixelToBuffer(wd, circlePos.x + y, circlePos.y + x, color);
+//     AddPixelToBuffer(wd, circlePos.x + -y, circlePos.y + x, color);
+//     AddPixelToBuffer(wd, circlePos.x + y, circlePos.y + -x, color);
+//     AddPixelToBuffer(wd, circlePos.x + -y, circlePos.y + -x, color);
+//     // }
+//   }
+//   // for (float i = 0; i < 360; i++)
+//   // {
+//   //   const float angle = (float)i;
 
-  //   const float yf = radius * sinf(deg2rad(i));
-  //   const float xf = sqrtf(sqr(radius) - sqr(yf));
+//   //   const float yf = radius * sinf(deg2rad(i));
+//   //   const float xf = sqrtf(sqr(radius) - sqr(yf));
 
-  //   int x, y;
+//   //   int x, y;
 
-  //   if (angle >= 0.0f && angle < 90.0f)
-  //   {
-  //     x = circlePos.x + round(xf);
-  //     y = circlePos.y + roundf(yf);
-  //   }
-  //   else if (angle >= 90.0f && angle < 180.0f)
-  //   {
-  //     x = circlePos.x + roundf(xf);
-  //     y = circlePos.y - roundf(yf);
-  //   }
-  //   else if (angle >= 180.0f && angle < 270.f)
-  //   {
-  //     x = circlePos.x - roundf(xf);
-  //     y = circlePos.y - roundf(yf);
-  //   }
-  //   else if (angle >= 270.0f && angle <= 360.0f)
-  //   {
-  //     x = circlePos.x - roundf(xf);
-  //     y = circlePos.y + roundf(yf);
-  //   }
-  //   else
-  //   {
-  //     printf("wrong angle\n");
-  //     continue;
-  //   }
-  //   AddPixelToBuffer(wd, x, y, WHITE_COLOR);
-  // }
-  // // dot in center
-  // AddPixelToBuffer(wd, circlePos.x, circlePos.y, WHITE_COLOR);
-}
+//   //   if (angle >= 0.0f && angle < 90.0f)
+//   //   {
+//   //     x = circlePos.x + round(xf);
+//   //     y = circlePos.y + roundf(yf);
+//   //   }
+//   //   else if (angle >= 90.0f && angle < 180.0f)
+//   //   {
+//   //     x = circlePos.x + roundf(xf);
+//   //     y = circlePos.y - roundf(yf);
+//   //   }
+//   //   else if (angle >= 180.0f && angle < 270.f)
+//   //   {
+//   //     x = circlePos.x - roundf(xf);
+//   //     y = circlePos.y - roundf(yf);
+//   //   }
+//   //   else if (angle >= 270.0f && angle <= 360.0f)
+//   //   {
+//   //     x = circlePos.x - roundf(xf);
+//   //     y = circlePos.y + roundf(yf);
+//   //   }
+//   //   else
+//   //   {
+//   //     printf("wrong angle\n");
+//   //     continue;
+//   //   }
+//   //   AddPixelToBuffer(wd, x, y, WHITE_COLOR);
+//   // }
+//   // // dot in center
+//   // AddPixelToBuffer(wd, circlePos.x, circlePos.y, WHITE_COLOR);
+// }
 
-void PlotLineLow(uint32_t *pixels, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
+void PlotLineLow(uint32_t *pixelBuffer, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
   const int dx = to.x - from.x;
   int dy = to.y - from.y;
 
@@ -171,7 +192,7 @@ void PlotLineLow(uint32_t *pixels, int width, int height, Vector2i from, Vector2
   int y = from.y;
 
   for (int x = from.x; x < to.x; x++) {
-    AddPixelToBuffer(pixels, width, height, x, y, color);
+    AddPixelToBuffer(pixelBuffer, width, height, x, y, color);
     if (d > 0) {
       y = y + yi;
       d = d + (2 * (dy - dx));
@@ -181,7 +202,7 @@ void PlotLineLow(uint32_t *pixels, int width, int height, Vector2i from, Vector2
   }
 }
 
-void PlotLineHigh(uint32_t *pixels, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
+void PlotLineHigh(uint32_t *pixelBuffer, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
   int dx = to.x - from.x;
   const int dy = to.y - from.y;
 
@@ -196,7 +217,7 @@ void PlotLineHigh(uint32_t *pixels, int width, int height, Vector2i from, Vector
   int x = from.x;
 
   for (int y = from.y; y < to.y; y++) {
-    AddPixelToBuffer(pixels, width, height, x, y, color);
+    AddPixelToBuffer(pixelBuffer, width, height, x, y, color);
     if (d > 0) {
       x = x + xi;
       d = d + (2 * (dx - dy));
@@ -206,21 +227,21 @@ void PlotLineHigh(uint32_t *pixels, int width, int height, Vector2i from, Vector
   }
 }
 
-void AddLine(uint32_t *pixels, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
+void AddLine(uint32_t *pixelBuffer, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
   if (abs(to.y - from.y) < abs(to.x - from.x)) {
     if (from.x > to.x)
-      PlotLineLow(pixels, width, height, to, from, color);
+      PlotLineLow(pixelBuffer, width, height, to, from, color);
     else
-      PlotLineLow(pixels, width, height, from, to, color);
+      PlotLineLow(pixelBuffer, width, height, from, to, color);
   } else {
     if (from.y > to.y)
-      PlotLineHigh(pixels, width, height, to, from, color);
+      PlotLineHigh(pixelBuffer, width, height, to, from, color);
     else
-      PlotLineHigh(pixels, width, height, from, to, color);
+      PlotLineHigh(pixelBuffer, width, height, from, to, color);
   }
 
-  AddPixelToBuffer(pixels, width, height, from.x, from.y, color);
-  AddPixelToBuffer(pixels, width, height, to.x, to.y, color);
+  AddPixelToBuffer(pixelBuffer, width, height, from.x, from.y, color);
+  AddPixelToBuffer(pixelBuffer, width, height, to.x, to.y, color);
 }
 
 Vector2i CalculateLineEndpoint(Vector2i from, float length, float angle) {
@@ -230,25 +251,25 @@ Vector2i CalculateLineEndpoint(Vector2i from, float length, float angle) {
   return arrowEndPoint;
 }
 
-void AddLineWithArrow(uint32_t *pixels, int width, int height, Vector2i from, Vector2i to, float rot, uint32_t color) {
-  AddLine(pixels, width, height, from, to, color);
+void AddLineWithArrow(uint32_t *pixelBuffer, int width, int height, Vector2i from, Vector2i to, float rot, uint32_t color) {
+  AddLine(pixelBuffer, width, height, from, to, color);
 
   float arrowHeadAngle = deg2rad(135);
   for (int i = 0; i < 2; i++) {
     Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0f, rot - arrowHeadAngle);
-    AddLine(pixels, width, height, to, arrowheadEndPoint, color);
+    AddLine(pixelBuffer, width, height, to, arrowheadEndPoint, color);
     arrowHeadAngle += M_PI_2;
   }
 }
 
-void AddLineInDirectionWithArrow(uint32_t *pixels, int width, int height, Vector2i from, float length, float rot, uint32_t color) {
+void AddLineInDirectionWithArrow(uint32_t *pixelBuffer, int width, int height, Vector2i from, float length, float rot, uint32_t color) {
   const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
-  AddLineWithArrow(pixels, width, height, from, lineEndpoint, rot, color);
+  AddLineWithArrow(pixelBuffer, width, height, from, lineEndpoint, rot, color);
 }
 
-void AddLineInDirection(uint32_t *pixels, int width, int height, Vector2i from, float length, float rot, uint32_t color) {
+void AddLineInDirection(uint32_t *pixelBuffer, int width, int height, Vector2i from, float length, float rot, uint32_t color) {
   const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
-  AddLine(pixels, width, height, from, lineEndpoint, color);
+  AddLine(pixelBuffer, width, height, from, lineEndpoint, color);
 }
 
 void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *map, uint32_t *tileMap) {
@@ -268,7 +289,7 @@ void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *ma
 
     float distance;
 
-    int32_t stepX, stepY;
+    int stepX, stepY;
 
     float hitPointX, hitPointY;
 
@@ -371,30 +392,23 @@ void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *ma
       const int verticalSegment = 64 * c;
 
       const int hpi = (int)horizontalSegment * 64 + verticalSegment; // horizontal pixel index
-      const uint32_t color = tileMap[hpi + tOffset];
-      // printf("%d\n", hpi);
       horizontalSegment += stepBetweenHorizontalSegments;
 
-      RGB rgb = UnpackRGB(color);
-
-      rgb.r *= percentage;
-      rgb.g *= percentage;
-      rgb.b *= percentage;
-
-      const uint32_t reColor = PackRGB(rgb.r, rgb.g, rgb.b);
+      RGB rgb(tileMap[hpi + tOffset]);
+      rgb.Multiply(percentage);
+      const uint32_t reColor = rgb.PackRGB();
 
       pixels[pixel * width + ray] = reColor;
     }
   }
-  // printf("%ld\n", end);
 }
 
-Vector2i StartingPositionForCentering(uint32_t *pixels, int width, int height, int objectWidth, int objectHeight) {
-  Vector2i pos;
-  pos.x = width / 2 - objectWidth / 2;
-  pos.y = height / 2 - objectHeight / 2;
-  return pos;
-}
+// Vector2i StartingPositionForCentering(uint32_t *pixelBuffer, int width, int height, int objectWidth, int objectHeight) {
+//   Vector2i pos;
+//   pos.x = width / 2 - objectWidth / 2;
+//   pos.y = height / 2 - objectHeight / 2;
+//   return pos;
+// }
 
 // struct Vector2i PositionInCorner(int width, int height, int objectWidth,
 // int objectHeight)
@@ -405,7 +419,7 @@ Vector2i StartingPositionForCentering(uint32_t *pixels, int width, int height, i
 //   return position;
 // }
 
-void DrawMap(uint32_t *pixels, int width, int height, int8_t *map, Player player) {
+void DrawMap(uint32_t *pixelBuffer, int width, int height, int8_t *map, Player player) {
   const int mapSize = 16;
 
   Vector2i playerPosOnMap;
@@ -418,34 +432,34 @@ void DrawMap(uint32_t *pixels, int width, int height, int8_t *map, Player player
 
     // map squares
     if (map[i] == 1) {
-      AddPixelToBuffer(pixels, width, height, x, y, BLUE_COLOR);
+      AddPixelToBuffer(pixelBuffer, width, height, x, y, BLUE_COLOR);
     } else if (map[i] == 2) {
-      AddPixelToBuffer(pixels, width, height, x, y, WHITE_COLOR);
+      AddPixelToBuffer(pixelBuffer, width, height, x, y, WHITE_COLOR);
     }
 
     else {
-      AddPixelToBuffer(pixels, width, height, x, y, BLACK_COLOR);
+      AddPixelToBuffer(pixelBuffer, width, height, x, y, BLACK_COLOR);
     }
   }
 
-  Vector2i centerPos;
-  centerPos.x = width / 2;
-  centerPos.y = height / 2;
+  // Vector2i centerPos;
+  // centerPos.x = width / 2;
+  // centerPos.y = height / 2;
 
   // draw player arrow in center
-  AddLineInDirectionWithArrow(pixels, width, height, playerPosOnMap, 12.0f, player.rot, RED_COLOR);
+  // AddLineInDirectionWithArrow(pixelBuffer, width, height, playerPosOnMap, 12.0f, player.rot, RED_COLOR);
 
-  Vector2i to;
+  // Vector2i to;
 
   // printf("Hit sector, X: %d, Y: %d\n", raycastHitPoints[0], raycastHitPoints[1]);
 
-  AddPixelToBuffer(pixels, width, height, playerPosOnMap.x, playerPosOnMap.y, GREEN_COLOR);
-  AddPixelToBuffer(pixels, width, height, to.x, to.y - 1, YELLOW_COLOR);
+  // AddPixelToBuffer(pixelBuffer, width, height, playerPosOnMap.x, playerPosOnMap.y, GREEN_COLOR);
+  // AddPixelToBuffer(pixelBuffer, width, height, to.x, to.y - 1, YELLOW_COLOR);
   // AddLine(wd, playerPosOnMap, to, YELLOW_COLOR);
 
   // direction arrow for player
   if (player.speed != 0) {
-    AddLineInDirectionWithArrow(pixels, width, height, playerPosOnMap, 8.0f, player.rot + player.moveDirRad, GREEN_COLOR);
+    AddLineInDirectionWithArrow(pixelBuffer, width, height, playerPosOnMap, 8.0f, player.rot + player.moveDirRad, GREEN_COLOR);
   }
 }
 
@@ -479,6 +493,9 @@ int main() {
   int windowHeight = 1080;
 
   uint32_t *tileMap = LoadTexture();
+
+  // uint32_t *wall1 = LoadTexture(0);
+  // uint32_t *wall2 = LoadTexture(1);
 
   float resScale = 0.25f;
 
@@ -581,10 +598,10 @@ int main() {
   bool aKeyPressed = false;
   bool dKeyPressed = false;
 
-  bool tabKeyPressed = false;
+  // bool tabKeyPressed = false;
 
-  bool nKeyPressed = false;
-  bool hKeyPressed = false;
+  // bool nKeyPressed = false;
+  // bool hKeyPressed = false;
 
   // map
   bool mapEnabled = false;
@@ -601,8 +618,9 @@ int main() {
   // char hwsw[] = "HW";
 
   // SDL_ShowCursor(true);
+  // SDL_SetRelativeMouseMode(true);
   SDL_SetRelativeMouseMode(SDL_TRUE);
-  Vector2i mousePosition;
+  // Vector2i mousePosition;
 
   // uint32_t test[1] = {RED_COLOR};
 
@@ -612,8 +630,6 @@ int main() {
 
   SDL_Event event;
   bool running = true;
-
-  // main loop
   while (running) {
     // start time is used to calculate delta time
     long startTime = GetMicroTime();
@@ -723,7 +739,8 @@ int main() {
 
     // reset pixel buffer
     for (int i = 0; i < width * height; i++) {
-      const int y = i / width;
+      int y = i / width;
+
       if (y > height / 2) {
         pixels[i] = GREY_COLOR;
       } else {
@@ -756,7 +773,7 @@ int main() {
       int timeToSleep = 16666 - executionTime;
 
       if (timeToSleep > 0) {
-        usleep(timeToSleep);
+        this_thread::sleep_for(chrono::microseconds(timeToSleep));
       }
     }
 
@@ -775,10 +792,12 @@ int main() {
     if (elapsedTime >= 1000000) {
       // int duration = GetMicroTime() - startTime;
       // printf("elapsed time: %d\n", elapsedTime);
-      char buffer[32];
-      sprintf(buffer, "%dx%d - %d fps", width, height, avgFps);
+      // char buffer[32];
+      // sprintf(buffer, "%dx%d - %d fps", width, height, avgFps);
 
-      SDL_SetWindowTitle(window, buffer);
+      const string title = to_string(width) + "x" + to_string(height) + " - " + to_string(avgFps) + " fps";
+
+      SDL_SetWindowTitle(window, title.c_str());
       currentTime = GetMicroTime();
     }
   }

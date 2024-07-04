@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
 project(RayCastingGaem)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(EXECUTABLE_NAME RayCastingGaem)
 
@@ -21,10 +22,10 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 find_package(SDL2 REQUIRED)
 
 add_executable(${EXECUTABLE_NAME} 
-        src/Main.c
-        src/ProToMath.c
+        src/Main.cpp
+        src/ProToMath.cpp
         src/ProToMath.h
-        src/TextureLoader.c
+        src/TextureLoader.cpp
         src/TextureLoader.h
         )
 

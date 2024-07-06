@@ -1,23 +1,29 @@
 #include <SDL2/SDL.h>
-#include <chrono>
+#include <SDL_video.h>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <ostream>
+#include <string>
 #include <thread>
 
 #include "ProToMath.h"
 #include "TextureLoader.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
+using std::string;
+using std::to_string;
 
 #define WHITE_COLOR (0 << 24) | (255 << 16) | (255 << 8) | 255
 #define GREY_COLOR (0 << 24) | (50 << 16) | (50 << 8) | 50
 #define DARKER_GREY_COLOR (0 << 24) | (30 << 16) | (30 << 8) | 30
 #define BLACK_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 0
-#define RED_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 255
+#define RED_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 0
 #define GREEN_COLOR (0 << 24) | (0 << 16) | (255 << 8) | 0
-#define BLUE_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 0
+#define BLUE_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 255
 #define YELLOW_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 255
 
 typedef struct {
@@ -32,29 +38,46 @@ typedef struct {
   int8_t x, y;
 } Vector2i8;
 
-typedef struct {
-  float moveDirRad;
-  float speed;
+// typedef struct {
+//   float moveDirRad;
+//   float speed;
+//   Vector2 pos;
+//   float rot;
+//   float fov;
+// } Player;
+
+class Player {
+public:
+  float moveDirRad = 0.0f;
+  float speed = 0.0f;
   Vector2 pos;
-  float rot;
-  float fov;
-} Player;
+  // float x = 0.0f;
+  // float y = 0.0f;
+  float rotRad = 0.0f;
+  float rotDeg = 0.0f;
+  float fov = 90.0f;
+
+  // void ConvertRadToDeg() {
+  //   rotDeg *= 57.29578;
+  // }
+};
 
 // typedef struct {
 //   uint8_t r, g, b;
 // } RGB;
 
 class RGB {
-public:
+private:
   uint8_t r, g, b;
 
+public:
   RGB(uint32_t rgb) {
     r = (rgb >> 16) & 0xFF;
     g = (rgb >> 8) & 0xFF;
     b = (rgb) & 0xFF;
   }
 
-  uint32_t PackRGB() {
+  uint32_t ReturnRGB() {
     uint32_t rgb = 0;
     rgb |= 0 << 24;
     rgb |= r << 16;
@@ -70,114 +93,77 @@ public:
     b *= multiplier;
   }
 
-  void display() const { std::cout << "R: " << static_cast<int>(r) << ", G: " << static_cast<int>(g) << ", B: " << static_cast<int>(b) << std::endl; }
+  void Display() const { cout << "R: " << static_cast<int>(r) << ", G: " << static_cast<int>(g) << ", B: " << static_cast<int>(b) << std::endl; }
 };
 
-// typedef struct {
-//   int width, height;
-//   uint32_t *pixelBuffer;
-// } WindowData;
+typedef struct {
+  int width, height, size;
+  uint32_t *pixels;
+} DisplayData;
 
 long GetMicroTime() {
-  auto now = chrono::steady_clock::now();
+  auto now = std::chrono::steady_clock::now();
 
   auto duration = now.time_since_epoch();
-  return chrono::duration_cast<chrono::microseconds>(duration).count();
+  return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
-void AddPixelToBuffer(uint32_t *pixelBuffer, int width, int height, int x, int y, uint32_t color) {
-  int i = y * width + height;
-  if (i > width * height) {
-    pixelBuffer[y * width + x] = color;
+void AddPixelToBuffer(DisplayData *dd, int x, int y, uint32_t color) {
+  int i = y * dd->width + x;
+  if (i < dd->size && i > 0) {
+    // cout << i << endl;
+    dd->pixels[i] = color;
   }
 }
 
-// void AddCircle(WindowData wd, float radius, Vector2i circlePos, uint32_t color) {
-//   // int t1 = radius / 16;
-//   int x = radius;
-//   int y = 0;
+void AddCircle(DisplayData *dd, float radius, Vector2i circlePos, uint32_t color) {
+  // int t1 = radius / 16;
+  int x = radius;
+  int y = 0;
 
-//   AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
-//   AddPixelToBuffer(wd, circlePos.x - x, circlePos.y + y, color);
-//   // AddPixelToBuffer(wd, circlePos.x + x, circlePos.y - y, color);
-//   // AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
+  AddPixelToBuffer(dd, circlePos.x + x, circlePos.y + y, color);
+  AddPixelToBuffer(dd, circlePos.x - x, circlePos.y + y, color);
+  // AddPixelToBuffer(wd, circlex + x, circley - y, color);
+  // AddPixelToBuffer(wd, circlex + x, circley + y, color);
 
-//   // if (radius > 0)
-//   // {
-//   //   AddPixelToBuffer(wd, x + circlePos.x, -y + circlePos.y, color);
-//   //   AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, color);
-//   //   AddPixelToBuffer(wd, y + circlePos.x, x + circlePos.y, color);
-//   //   AddPixelToBuffer(wd, -y + circlePos.x, x + circlePos.y, color);
-//   // }
+  // if (radius > 0)
+  // {
+  //   AddPixelToBuffer(wd, x + circlex, -y + circley, color);
+  //   AddPixelToBuffer(wd, y + circlex, x + circley, color);
+  //   AddPixelToBuffer(wd, y + circlex, x + circley, color);
+  //   AddPixelToBuffer(wd, -y + circlex, x + circley, color);
+  // }
 
-//   int p = 1 - radius;
-//   while (x > y) {
-//     y++;
+  int p = 1 - radius;
+  while (x > y) {
+    y++;
 
-//     if (p <= 0) {
-//       p = p + 2 * y + 1;
-//     } else {
-//       x--;
-//       p = p + 2 * y - 2 * x + 1;
-//     }
+    if (p <= 0) {
+      p = p + 2 * y + 1;
+    } else {
+      x--;
+      p = p + 2 * y - 2 * x + 1;
+    }
 
-//     if (x < y)
-//       break;
+    if (x < y)
+      break;
 
-//     AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + y, color);
-//     AddPixelToBuffer(wd, circlePos.x + -x, circlePos.y + y, color);
-//     AddPixelToBuffer(wd, circlePos.x + x, circlePos.y + -y, color);
-//     AddPixelToBuffer(wd, circlePos.x + -x, circlePos.y + -y, color);
+    // AddPixelToBuffer(wd, circlex + x, circley + y, color);
+    // AddPixelToBuffer(wd, circlex + -x, circley + y, color);
+    // AddPixelToBuffer(wd, circlex + x, circley + -y, color);
+    // AddPixelToBuffer(wd, circlex + -x, circley + -y, color);
 
-//     // if (x != y)
-//     // {
-//     AddPixelToBuffer(wd, circlePos.x + y, circlePos.y + x, color);
-//     AddPixelToBuffer(wd, circlePos.x + -y, circlePos.y + x, color);
-//     AddPixelToBuffer(wd, circlePos.x + y, circlePos.y + -x, color);
-//     AddPixelToBuffer(wd, circlePos.x + -y, circlePos.y + -x, color);
-//     // }
-//   }
-//   // for (float i = 0; i < 360; i++)
-//   // {
-//   //   const float angle = (float)i;
+    // // if (x != y)
+    // // {
+    // AddPixelToBuffer(wd, circlex + y, circley + x, color);
+    // AddPixelToBuffer(wd, circlex + -y, circley + x, color);
+    // AddPixelToBuffer(wd, circlex + y, circley + -x, color);
+    // AddPixelToBuffer(wd, circlex + -y, circley + -x, color);
+    // // }
+  }
+}
 
-//   //   const float yf = radius * sinf(deg2rad(i));
-//   //   const float xf = sqrtf(sqr(radius) - sqr(yf));
-
-//   //   int x, y;
-
-//   //   if (angle >= 0.0f && angle < 90.0f)
-//   //   {
-//   //     x = circlePos.x + round(xf);
-//   //     y = circlePos.y + roundf(yf);
-//   //   }
-//   //   else if (angle >= 90.0f && angle < 180.0f)
-//   //   {
-//   //     x = circlePos.x + roundf(xf);
-//   //     y = circlePos.y - roundf(yf);
-//   //   }
-//   //   else if (angle >= 180.0f && angle < 270.f)
-//   //   {
-//   //     x = circlePos.x - roundf(xf);
-//   //     y = circlePos.y - roundf(yf);
-//   //   }
-//   //   else if (angle >= 270.0f && angle <= 360.0f)
-//   //   {
-//   //     x = circlePos.x - roundf(xf);
-//   //     y = circlePos.y + roundf(yf);
-//   //   }
-//   //   else
-//   //   {
-//   //     printf("wrong angle\n");
-//   //     continue;
-//   //   }
-//   //   AddPixelToBuffer(wd, x, y, WHITE_COLOR);
-//   // }
-//   // // dot in center
-//   // AddPixelToBuffer(wd, circlePos.x, circlePos.y, WHITE_COLOR);
-// }
-
-void PlotLineLow(uint32_t *pixelBuffer, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
+void PlotLineLow(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
   const int dx = to.x - from.x;
   int dy = to.y - from.y;
 
@@ -192,7 +178,7 @@ void PlotLineLow(uint32_t *pixelBuffer, int width, int height, Vector2i from, Ve
   int y = from.y;
 
   for (int x = from.x; x < to.x; x++) {
-    AddPixelToBuffer(pixelBuffer, width, height, x, y, color);
+    AddPixelToBuffer(dd, x, y, color);
     if (d > 0) {
       y = y + yi;
       d = d + (2 * (dy - dx));
@@ -202,7 +188,7 @@ void PlotLineLow(uint32_t *pixelBuffer, int width, int height, Vector2i from, Ve
   }
 }
 
-void PlotLineHigh(uint32_t *pixelBuffer, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
+void PlotLineHigh(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
   int dx = to.x - from.x;
   const int dy = to.y - from.y;
 
@@ -217,7 +203,7 @@ void PlotLineHigh(uint32_t *pixelBuffer, int width, int height, Vector2i from, V
   int x = from.x;
 
   for (int y = from.y; y < to.y; y++) {
-    AddPixelToBuffer(pixelBuffer, width, height, x, y, color);
+    AddPixelToBuffer(dd, x, y, color);
     if (d > 0) {
       x = x + xi;
       d = d + (2 * (dx - dy));
@@ -227,21 +213,21 @@ void PlotLineHigh(uint32_t *pixelBuffer, int width, int height, Vector2i from, V
   }
 }
 
-void AddLine(uint32_t *pixelBuffer, int width, int height, Vector2i from, Vector2i to, uint32_t color) {
+void AddLine(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
   if (abs(to.y - from.y) < abs(to.x - from.x)) {
     if (from.x > to.x)
-      PlotLineLow(pixelBuffer, width, height, to, from, color);
+      PlotLineLow(dd, to, from, color);
     else
-      PlotLineLow(pixelBuffer, width, height, from, to, color);
+      PlotLineLow(dd, from, to, color);
   } else {
     if (from.y > to.y)
-      PlotLineHigh(pixelBuffer, width, height, to, from, color);
+      PlotLineHigh(dd, to, from, color);
     else
-      PlotLineHigh(pixelBuffer, width, height, from, to, color);
+      PlotLineHigh(dd, from, to, color);
   }
 
-  AddPixelToBuffer(pixelBuffer, width, height, from.x, from.y, color);
-  AddPixelToBuffer(pixelBuffer, width, height, to.x, to.y, color);
+  AddPixelToBuffer(dd, from.x, from.y, color);
+  AddPixelToBuffer(dd, to.x, to.y, color);
 }
 
 Vector2i CalculateLineEndpoint(Vector2i from, float length, float angle) {
@@ -251,36 +237,38 @@ Vector2i CalculateLineEndpoint(Vector2i from, float length, float angle) {
   return arrowEndPoint;
 }
 
-void AddLineWithArrow(uint32_t *pixelBuffer, int width, int height, Vector2i from, Vector2i to, float rot, uint32_t color) {
-  AddLine(pixelBuffer, width, height, from, to, color);
+void AddLineWithArrow(DisplayData *dd, Vector2i from, Vector2i to, float rot, uint32_t color) {
+  AddLine(dd, from, to, color);
 
   float arrowHeadAngle = deg2rad(135);
   for (int i = 0; i < 2; i++) {
     Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0f, rot - arrowHeadAngle);
-    AddLine(pixelBuffer, width, height, to, arrowheadEndPoint, color);
+    AddLine(dd, to, arrowheadEndPoint, color);
     arrowHeadAngle += M_PI_2;
   }
 }
 
-void AddLineInDirectionWithArrow(uint32_t *pixelBuffer, int width, int height, Vector2i from, float length, float rot, uint32_t color) {
+void AddLineInDirectionWithArrow(DisplayData *dd, Vector2i from, float length, float rot, uint32_t color) {
   const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
-  AddLineWithArrow(pixelBuffer, width, height, from, lineEndpoint, rot, color);
+  AddLineWithArrow(dd, from, lineEndpoint, rot, color);
 }
 
-void AddLineInDirection(uint32_t *pixelBuffer, int width, int height, Vector2i from, float length, float rot, uint32_t color) {
+void AddLineInDirection(DisplayData *dd, Vector2i from, float length, float rot, uint32_t color) {
   const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
-  AddLine(pixelBuffer, width, height, from, lineEndpoint, color);
+  AddLine(dd, from, lineEndpoint, color);
 }
 
-void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *map, uint32_t *tileMap) {
-  for (int ray = 0; ray < width; ray++) {
-    const float rayAngle = deg2rad((rad2deg(player.rot) - (player.fov / 2.0f)) + ((float)ray / (float)width) * player.fov);
+void CastRays(DisplayData *dd, Player *player, int8_t *map, uint32_t *tileMap) {
+  for (int ray = 0; ray < dd->width; ray++) {
+    const float aspectRatio = (float)dd->width / (float)dd->height;
+    float rayAngle = player->rotRad - (aspectRatio / 2.0f);         // start angle of leftmost ray relative to player rotation
+    rayAngle += (deg2rad(ray) / deg2rad(dd->width)) * aspectRatio; // then increment each ray in radian by this amount to the right
 
     const float dx = cosf(rayAngle);
     const float dy = sinf(rayAngle);
 
-    int mapX = (int)player.pos.x;
-    int mapY = (int)player.pos.y;
+    int mapX = (int)player->pos.x;
+    int mapY = (int)player->pos.y;
 
     float sideDistX, sideDistY;
 
@@ -297,17 +285,17 @@ void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *ma
 
     if (dx < 0.0f) {
       stepX = -1;
-      sideDistX = (player.pos.x - (float)mapX) * deltaDistX;
+      sideDistX = (player->pos.x - (float)mapX) * deltaDistX;
     } else {
       stepX = 1;
-      sideDistX = ((float)mapX + 1.0f - player.pos.x) * deltaDistX;
+      sideDistX = ((float)mapX + 1.0f - player->pos.x) * deltaDistX;
     }
     if (dy < 0.0f) {
       stepY = -1;
-      sideDistY = (player.pos.y - (float)mapY) * deltaDistY;
+      sideDistY = (player->pos.y - (float)mapY) * deltaDistY;
     } else {
       stepY = 1;
-      sideDistY = ((float)mapY + 1.0f - player.pos.y) * deltaDistY;
+      sideDistY = ((float)mapY + 1.0f - player->pos.y) * deltaDistY;
     }
 
     bool side;
@@ -341,35 +329,29 @@ void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *ma
       }
     }
 
-    if (!side) // if hit a horizontal wall
-    {
-      distance = ((float)mapX - player.pos.x + (1.0f - (float)stepX) / 2.0f) / dx;
+    if (!side) { // if hit a horizontal wall
+      distance = ((float)mapX - player->pos.x + (1.0f - (float)stepX) / 2.0f) / dx;
       hitPointX = (float)mapX + ((float)stepX / 2.0f);
-      hitPointY = player.pos.y + distance * dy;
-    } else // if hit a vertical wall
-    {
-      distance = (mapY - player.pos.y + (1.0f - stepY) / 2.0f) / dy;
-      hitPointX = player.pos.x + distance * dx;
+      hitPointY = player->pos.y + distance * dy;
+    } else { // if hit a vertical wall
+      distance = (mapY - player->pos.y + (1.0f - stepY) / 2.0f) / dy;
+      hitPointX = player->pos.x + distance * dx;
       hitPointY = mapY + ((float)stepY / 2.0f);
     }
 
-    distance = distance * cosf(rayAngle - player.rot);
+    distance = distance * cosf(rayAngle - player->rotRad); // fisheye fix
 
-    const int wallHeight = (int)(height / distance * (100.0f / player.fov));
-    const int middle = height / 2;
+    // const int wallHeight = height / distance * (100.0f / player.fov); // this is how tall the wall will be based on ray distance
+    const int wallHeight = dd->height / distance; // this is how tall the wall will be based on ray distance
+    const int middle = dd->height / 2;            // middle of the screen
 
-    int startPos = middle - wallHeight / 2;
-    if (startPos < 0)
+    int startPos = middle - wallHeight / 2; // wall starts at this height
+    if (startPos < 0)                       // prevent it from starting from above the screen
       startPos = 0;
 
-    int endPos = middle + wallHeight / 2;
-    if (endPos >= height) {
-      endPos = height - 1;
-    }
-
-    // offset is needed for walls that are very close to the player so they wont stick to the top of the screen
-    // it stays 0 if wall height is smaller than the screen height
-    const float offset = (wallHeight > height) ? (wallHeight - height) / 2.0f : 0;
+    int endPos = middle + wallHeight / 2; // wall ends here
+    if (endPos > dd->height)              // prevent it from starting from below the screen
+      endPos = dd->height;
 
     float percentage = 1.0 - (distance - 4.0f) / (16.0f - 4.0f);
 
@@ -383,6 +365,11 @@ void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *ma
       percentage = 0.25f;
 
     const float stepBetweenHorizontalSegments = 64.0f / (float)wallHeight;
+
+    // offset is needed for walls that are very close to the player so they wont stick to the top of the screen
+    // it stays 0 if wall height is smaller than the screen height
+    const float offset = (wallHeight > dd->height) ? (wallHeight - dd->height) / 2.0f : 0;
+
     float horizontalSegment = offset * stepBetweenHorizontalSegments;
 
     const float c = side ? hitPointX - floorf(hitPointX) : hitPointY - floorf(hitPointY);
@@ -396,17 +383,28 @@ void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *ma
 
       RGB rgb(tileMap[hpi + tOffset]);
       rgb.Multiply(percentage);
-      const uint32_t reColor = rgb.PackRGB();
+      const uint32_t reColor = rgb.ReturnRGB();
 
-      pixels[pixel * width + ray] = reColor;
+      dd->pixels[pixel * dd->width + ray] = reColor;
     }
+
+    // add rays to the map
+    // Vector2i hitPoint;
+    // hitPoint.x = hitPointX + hitPointX * 8.0f;
+    // hitPoint.y = hitPointY + hitPointY * 8.0f;
+
+    // Vector2i playerPos;
+    // playerPos.x = player.x + player.x * 8.0f;
+    // playerPos.y = player.y + player.y * 8.0f;
+
+    // AddLine(dd, playerPos, hitPoint, RED_COLOR);
   }
 }
 
 // Vector2i StartingPositionForCentering(uint32_t *pixelBuffer, int width, int height, int objectWidth, int objectHeight) {
 //   Vector2i pos;
-//   pos.x = width / 2 - objectWidth / 2;
-//   pos.y = height / 2 - objectHeight / 2;
+//   x = width / 2 - objectWidth / 2;
+//   y = height / 2 - objectHeight / 2;
 //   return pos;
 // }
 
@@ -419,47 +417,51 @@ void CastRays(uint32_t *pixels, int width, int height, Player player, int8_t *ma
 //   return position;
 // }
 
-void DrawMap(uint32_t *pixelBuffer, int width, int height, int8_t *map, Player player) {
-  const int mapSize = 16;
+void DrawMap(DisplayData *dd, int8_t *map, Player *player) {
+  const int mapWidth = 16;
+  const int mapHeight = 16;
 
-  Vector2i playerPosOnMap;
-  playerPosOnMap.x = player.pos.x;
-  playerPosOnMap.y = player.pos.y;
+  for (int s = 0; s < mapWidth * mapHeight; s++) {
+    const int x = s % mapWidth;
+    const int y = s / mapWidth;
+    // const int offset = 8;
 
-  for (int i = 0; i < mapSize * mapSize; i++) {
-    const int x = i % mapSize;
-    const int y = i / mapSize;
+    // const int xCounter = 0;
+    // const int yCounter = 0;
 
-    // map squares
-    if (map[i] == 1) {
-      AddPixelToBuffer(pixelBuffer, width, height, x, y, BLUE_COLOR);
-    } else if (map[i] == 2) {
-      AddPixelToBuffer(pixelBuffer, width, height, x, y, WHITE_COLOR);
-    }
-
-    else {
-      AddPixelToBuffer(pixelBuffer, width, height, x, y, BLACK_COLOR);
-    }
+    AddPixelToBuffer(dd, x + x * 8, y + y * 8, RED_COLOR);
   }
 
-  // Vector2i centerPos;
-  // centerPos.x = width / 2;
-  // centerPos.y = height / 2;
+  Vector2i playerPosOnMap;
+  playerPosOnMap.x = player->pos.x + player->pos.x * 8;
+  playerPosOnMap.y = player->pos.y + player->pos.y * 8;
 
-  // draw player arrow in center
-  // AddLineInDirectionWithArrow(pixelBuffer, width, height, playerPosOnMap, 12.0f, player.rot, RED_COLOR);
+  // for (int i = 0; i < dd->width; i++) {
+  //   AddPixelToBuffer(dd, raycastHitPoints[i]->x, raycastHitPoints[i]->y, RED_COLOR);
+  // }
 
-  // Vector2i to;
+  // for (int i = 0; i < mapSize * mapSize; i++) {
+  //   const int x = i % mapSize;
+  //   const int y = i / mapSize;
 
-  // printf("Hit sector, X: %d, Y: %d\n", raycastHitPoints[0], raycastHitPoints[1]);
+  //   // map squares
+  //   if (map[i] == 1) {
+  //     AddPixelToBuffer(dd, x, y, BLUE_COLOR);
+  //   } else if (map[i] == 2) {
+  //     AddPixelToBuffer(dd, x, y, WHITE_COLOR);
+  //   }
 
-  // AddPixelToBuffer(pixelBuffer, width, height, playerPosOnMap.x, playerPosOnMap.y, GREEN_COLOR);
-  // AddPixelToBuffer(pixelBuffer, width, height, to.x, to.y - 1, YELLOW_COLOR);
-  // AddLine(wd, playerPosOnMap, to, YELLOW_COLOR);
+  //   else {
+  //     AddPixelToBuffer(dd, x, y, BLACK_COLOR);
+  //   }
+  // }
+
+  // // draw player arrow in center
+  AddLineInDirectionWithArrow(dd, playerPosOnMap, 12.0f, player->rotRad, RED_COLOR);
 
   // direction arrow for player
-  if (player.speed != 0) {
-    AddLineInDirectionWithArrow(pixelBuffer, width, height, playerPosOnMap, 8.0f, player.rot + player.moveDirRad, GREEN_COLOR);
+  if (player->speed != 0) {
+    AddLineInDirectionWithArrow(dd, playerPosOnMap, 8.0f, player->rotRad + player->moveDirRad, GREEN_COLOR);
   }
 }
 
@@ -489,18 +491,21 @@ int CalculateAverageFps(int executionTime) {
 void ToggleMap(bool *mapEnabled) { *mapEnabled = !(*mapEnabled); }
 
 int main() {
-  int windowWidth = 1920;
-  int windowHeight = 1080;
+  int windowWidth = 1280;
+  int windowHeight = 960;
 
-  uint32_t *tileMap = LoadTexture();
+  uint32_t *tileMap = LoadTexture("tilemap", 512, 512);
+  // uint32_t *skybox1 = LoadTexture("skybox1", 512, 256);
 
-  // uint32_t *wall1 = LoadTexture(0);
-  // uint32_t *wall2 = LoadTexture(1);
+  int resScale = 4;
 
-  float resScale = 0.25f;
+  int width = windowWidth / resScale;
+  int height = windowHeight / resScale;
 
-  int width = windowWidth * resScale;
-  int height = windowHeight * resScale;
+  int size = width * height;
+
+  // const int width = 1000;
+  // const int height = 1000;
 
   // clang-format off
   int8_t map[16 * 16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1,
@@ -529,7 +534,7 @@ int main() {
   }
 
   // create window
-  SDL_Window *window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOW_FULLSCREEN, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
+  SDL_Window *window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
   if (window == NULL) {
     SDL_Log("Window could not be created! SDL_Error: %s", SDL_GetError());
     SDL_Quit();
@@ -560,35 +565,18 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  // create a 2D array that will store colors of each pixel
-  // uint32_t *pixelBuffer = malloc(width * height * sizeof(uint32_t));
-  // uint32_t pixelBuffer[width * height];
-  // if (pixelBuffer == NULL) {
-  //   perror("Failed to allocate memory for 2D pixel array");
-  //   return EXIT_FAILURE;
-  // }
-
-  // create an array to store ray cast hit coordinates
-  // int32_t *raycastHitPoints = malloc(width * 2 * sizeof(int32_t));
-  // if (raycastHitPoints == NULL) {
-  //   perror("Failed to allocate memory for raycast hits array");
-  //   return EXIT_FAILURE;
-  // }
-
-  // WindowData wd;
-  // wd.pixelBuffer = pixelBuffer;
-  // wd.width = width;
-  // wd.height = height;
+  DisplayData dd;
+  dd.width = width;
+  dd.height = height;
+  dd.size = size;
 
   // RNG
   // srand(time(0));
 
   // player values
   Player player;
-  player.rot = 0;
   player.pos.x = 8.0f;
   player.pos.y = 8.0f;
-  player.fov = 90.0f;
 
   float playerSpeedDefault = 4.0f;
 
@@ -680,13 +668,15 @@ int main() {
         break;
       case SDL_MOUSEMOTION:
         // player.rotation += (width / 2.0f - event.motion.x) / 128;
-        player.rot += deg2rad(event.motion.xrel) / 8 / resScale;
+        player.rotRad += deg2rad(event.motion.xrel) * resScale / 8;
 
-        if (player.rot < -M_PI) {
-          player.rot += 2 * M_PI;
-        } else if (player.rot > M_PI) {
-          player.rot -= 2 * M_PI;
+        if (player.rotRad < -M_PI) {
+          player.rotRad += 2 * M_PI;
+        } else if (player.rotRad > M_PI) {
+          player.rotRad -= 2 * M_PI;
         }
+
+        player.rotDeg = player.rotRad * 57.29578;
 
         // player.rot = -player.rot;
 
@@ -712,18 +702,18 @@ int main() {
 
     player.moveDirRad = atan2f(sideways, forwards);
 
-    const int colX = player.pos.x + cosf(player.rot + player.moveDirRad) / 2.0f;
-    const int colY = player.pos.y + sinf(player.rot + player.moveDirRad) / 2.0f;
+    const int colX = player.pos.x + cosf(player.rotRad + player.moveDirRad) / 2.0f;
+    const int colY = player.pos.y + sinf(player.rotRad + player.moveDirRad) / 2.0f;
 
     const int i = colY * 16 + colX;
     if (i < 256) {
       if (map[i] == 0) {
-        player.pos.x += cosf(player.rot + player.moveDirRad) * speedMultiplier;
-        player.pos.y += sinf(player.rot + player.moveDirRad) * speedMultiplier;
+        player.pos.x += cosf(player.rotRad + player.moveDirRad) * speedMultiplier;
+        player.pos.y += sinf(player.rotRad + player.moveDirRad) * speedMultiplier;
       }
     }
 
-    // printf("X: %f, Y: %f, r: %f\n", player.pos.x, player.pos.y, player.rot);
+    // printf("X: %f, Y: %f, r: %f\n", player.x, player.y, player.rot);
 
     // lock the texture
     uint32_t *pixels;
@@ -735,30 +725,49 @@ int main() {
       printf("SDL_LockTexture Error: %s\n", SDL_GetError());
       SDL_Quit();
     }
-    // uint32_t *pixelBuffer = (uint32_t *)pixels;
+    dd.pixels = pixels;
 
-    // reset pixel buffer
-    for (int i = 0; i < width * height; i++) {
-      int y = i / width;
+    // draw stuff before casting rays
+    for (int i = 0; i < size; i++) {
+      // const int x = i % width;
+      const int y = i / width;
 
+      // add ceiling/floor color
       if (y > height / 2) {
         pixels[i] = GREY_COLOR;
       } else {
         pixels[i] = DARKER_GREY_COLOR;
       }
+
+      // draw sky
+      // const float skyboxScale = 256.0f / (height / 2.0f);
+
+      // const int skyboxX = x * skyboxScale + player.rotRad * (player.rotRad * 57.29578f);
+      // const int skyboxY = y * skyboxScale;
+      // pixels[i] = skybox1[skyboxY * 512 + skyboxX];
+
+      // add floor
+      // if (y > height / 2) {
+      //   pixels[i] = GREY_COLOR;
+      // }
     }
 
+    // draw sky
+    // for (int i = 0; i < 512 * 256; i++) {
+    //   const int x = i % 512;
+    //   const int y = i / 512;
+
+    //   pixels[y * width + x] = skybox1[i];
+    // }
+
     if (noiseEnabled) {
-      for (int p = 0; p < width * height; p++) {
+      for (int p = 0; p < size; p++) {
         pixels[p] = rand();
       }
     }
-
-    if (mapEnabled) {
-      // DrawMap(pixels, width, height, map, player);
-    } else {
-      CastRays(pixels, width, height, player, map, tileMap);
-    }
+    CastRays(&dd, &player, map, tileMap);
+    if (mapEnabled)
+      DrawMap(&dd, map, &player);
 
     // printf("%d\n", map[4]);
 
@@ -773,7 +782,7 @@ int main() {
       int timeToSleep = 16666 - executionTime;
 
       if (timeToSleep > 0) {
-        this_thread::sleep_for(chrono::microseconds(timeToSleep));
+        std::this_thread::sleep_for(std::chrono::microseconds(timeToSleep));
       }
     }
 
@@ -792,8 +801,6 @@ int main() {
     if (elapsedTime >= 1000000) {
       // int duration = GetMicroTime() - startTime;
       // printf("elapsed time: %d\n", elapsedTime);
-      // char buffer[32];
-      // sprintf(buffer, "%dx%d - %d fps", width, height, avgFps);
 
       const string title = to_string(width) + "x" + to_string(height) + " - " + to_string(avgFps) + " fps";
 

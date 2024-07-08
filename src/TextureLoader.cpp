@@ -11,34 +11,19 @@ using std::ifstream;
 using std::ios;
 using std::string;
 
-// #ifdef _WIN32
-// #include <windows.h>
-// string GetExecutablePath() {
-//   char buffer[MAX_PATH];
-//   GetModuleFileName(NULL, buffer, MAX_PATH);
-//   string::size_type pos = string(buffer).find_last_of("\\/");
-//   return string(buffer).substr(0, pos);
-// }
-
-// #else
-// #include <limits.h>
-// #include <unistd.h>
-// string GetExecutablePath() {
-//   char buffer[PATH_MAX];
-//   ssize_t count = readlink("/proc/self/exe", buffer, PATH_MAX);
-//   string execPath = string(buffer, (count > 0) ? count : 0);
-//   string::size_type pos = execPath.find_last_of("\\/");
-//   return execPath.substr(0, pos);
-// }
-// #endif
+#if defined(_WIN32) || defined(_WIN64)
+const string PATH_SEPARATOR = "\\";
+#elif defined(__linux__)
+const string PATH_SEPARATOR = "/";
+#else
+const string PATH_SEPARATOR = "/"; // for non windows and linux
+#endif
 
 uint32_t *LoadTexture(string name, int textureWidth, int textureHeight) {
   // const int textureWidth = width;
   const int tSize = textureWidth * textureHeight;
 
-  // string execPath = GetExecutablePath();
-
-  const string filePath = "textures\\" + name + ".bin";
+  const string filePath = "textures" + PATH_SEPARATOR + name + ".bin";
 
   // texture will be stored in this array on the heap
   uint32_t *texture = new uint32_t[tSize];

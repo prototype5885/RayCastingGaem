@@ -1,4 +1,11 @@
+#if defined(_WIN32) || defined(_WIN64)
 #include <SDL.h>
+#include <windows.h>
+
+#else
+#include <SDL2/SDL.h>
+#endif
+
 #include <cmath>
 #include <cstddef>
 #include <cstdint>

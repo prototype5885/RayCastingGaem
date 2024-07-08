@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -497,6 +497,9 @@ int main(int argv, char **args) {
   int windowHeight = 1080;
 
   uint32_t *tileMap = LoadTexture("tilemap", 512, 512);
+  if (tileMap == NULL) {
+    return 1;
+  }
   // uint32_t *skybox1 = LoadTexture("skybox1", 512, 256);
 
   int resScale = 4;

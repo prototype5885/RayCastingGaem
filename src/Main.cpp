@@ -1,5 +1,4 @@
 #include <SDL2/SDL.h>
-#include <SDL_video.h>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -17,14 +16,14 @@ using std::endl;
 using std::string;
 using std::to_string;
 
-#define WHITE_COLOR (0 << 24) | (255 << 16) | (255 << 8) | 255
-#define GREY_COLOR (0 << 24) | (50 << 16) | (50 << 8) | 50
-#define DARKER_GREY_COLOR (0 << 24) | (30 << 16) | (30 << 8) | 30
-#define BLACK_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 0
-#define RED_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 0
-#define GREEN_COLOR (0 << 24) | (0 << 16) | (255 << 8) | 0
-#define BLUE_COLOR (0 << 24) | (0 << 16) | (0 << 8) | 255
-#define YELLOW_COLOR (0 << 24) | (255 << 16) | (0 << 8) | 255
+#define WHITE_COLOR ((0 << 24) | (255 << 16) | (255 << 8) | 255)
+#define GREY_COLOR ((0 << 24) | (50 << 16) | (50 << 8) | 50)
+#define DARKER_GREY_COLOR ((0 << 24) | (30 << 16) | (30 << 8) | 30)
+#define BLACK_COLOR ((0 << 24) | (0 << 16) | (0 << 8) | 0)
+#define RED_COLOR ((0 << 24) | (255 << 16) | (0 << 8) | 0)
+#define GREEN_COLOR ((0 << 24) | (0 << 16) | (255 << 8) | 0)
+#define BLUE_COLOR ((0 << 24) | (0 << 16) | (0 << 8) | 255)
+#define YELLOW_COLOR ((0 << 24) | (255 << 16) | (255 << 8) | 0)
 
 typedef struct {
   float x, y;
@@ -50,7 +49,7 @@ class Player {
 public:
   float moveDirRad = 0.0f;
   float speed = 0.0f;
-  Vector2 pos;
+  Vector2 pos{0.0f, 0.0f};
   // float x = 0.0f;
   // float y = 0.0f;
   float rotRad = 0.0f;
@@ -102,9 +101,9 @@ typedef struct {
 } DisplayData;
 
 long GetMicroTime() {
-  auto now = std::chrono::steady_clock::now();
+  auto const now = std::chrono::steady_clock::now();
 
-  auto duration = now.time_since_epoch();
+  auto const duration = now.time_since_epoch();
   return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
@@ -116,9 +115,9 @@ void AddPixelToBuffer(DisplayData *dd, int x, int y, uint32_t color) {
   }
 }
 
-void AddCircle(DisplayData *dd, float radius, Vector2i circlePos, uint32_t color) {
+void AddCircle(DisplayData *dd, float const radius, Vector2i const circlePos, uint32_t const color) {
   // int t1 = radius / 16;
-  int x = radius;
+  int x = static_cast<int>(radius);
   int y = 0;
 
   AddPixelToBuffer(dd, circlePos.x + x, circlePos.y + y, color);
@@ -213,7 +212,7 @@ void PlotLineHigh(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
   }
 }
 
-void AddLine(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
+void AddLine(DisplayData *dd, Vector2i const from, Vector2i const to, uint32_t const color) {
   if (abs(to.y - from.y) < abs(to.x - from.x)) {
     if (from.x > to.x)
       PlotLineLow(dd, to, from, color);
@@ -230,14 +229,14 @@ void AddLine(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
   AddPixelToBuffer(dd, to.x, to.y, color);
 }
 
-Vector2i CalculateLineEndpoint(Vector2i from, float length, float angle) {
+Vector2i CalculateLineEndpoint(Vector2i const from, float const length, float const angle) {
   Vector2i arrowEndPoint;
   arrowEndPoint.x = from.x + cosf(angle) * length;
   arrowEndPoint.y = from.y + sinf(angle) * length;
   return arrowEndPoint;
 }
 
-void AddLineWithArrow(DisplayData *dd, Vector2i from, Vector2i to, float rot, uint32_t color) {
+void AddLineWithArrow(DisplayData *dd, Vector2i const from, Vector2i const to, float const rot, uint32_t const color) {
   AddLine(dd, from, to, color);
 
   float arrowHeadAngle = deg2rad(135);
@@ -248,27 +247,27 @@ void AddLineWithArrow(DisplayData *dd, Vector2i from, Vector2i to, float rot, ui
   }
 }
 
-void AddLineInDirectionWithArrow(DisplayData *dd, Vector2i from, float length, float rot, uint32_t color) {
+void AddLineInDirectionWithArrow(DisplayData *dd, Vector2i const from, float const length, float const rot, uint32_t const color) {
   const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLineWithArrow(dd, from, lineEndpoint, rot, color);
 }
 
-void AddLineInDirection(DisplayData *dd, Vector2i from, float length, float rot, uint32_t color) {
+void AddLineInDirection(DisplayData *dd, Vector2i const from, float const length, float const rot, uint32_t const color) {
   const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLine(dd, from, lineEndpoint, color);
 }
 
-void CastRays(DisplayData *dd, Player *player, int8_t *map, uint32_t *tileMap) {
+void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, uint32_t const *tileMap) {
   for (int ray = 0; ray < dd->width; ray++) {
-    const float aspectRatio = (float)dd->width / (float)dd->height;
-    float rayAngle = player->rotRad - (aspectRatio / 2.0f);         // start angle of leftmost ray relative to player rotation
+    const float aspectRatio = static_cast<float>(dd->width) / static_cast<float>(dd->height);
+    float rayAngle = player->rotRad - (aspectRatio / 2.0f);        // start angle of leftmost ray relative to player rotation
     rayAngle += (deg2rad(ray) / deg2rad(dd->width)) * aspectRatio; // then increment each ray in radian by this amount to the right
 
     const float dx = cosf(rayAngle);
     const float dy = sinf(rayAngle);
 
-    int mapX = (int)player->pos.x;
-    int mapY = (int)player->pos.y;
+    int mapX = player->pos.x;
+    int mapY = player->pos.y;
 
     float sideDistX, sideDistY;
 
@@ -390,14 +389,17 @@ void CastRays(DisplayData *dd, Player *player, int8_t *map, uint32_t *tileMap) {
 
     // add rays to the map
     // Vector2i hitPoint;
-    // hitPoint.x = hitPointX + hitPointX * 8.0f;
-    // hitPoint.y = hitPointY + hitPointY * 8.0f;
+    // hitPoint.x = hitPointX + hitPointX * 8;
+    // hitPoint.y = hitPointY + hitPointY * 8;
+
+    // dd->pixels[hitPoint.y * dd->width + hitPoint.x] = YELLOW_COLOR;
+    // AddPixelToBuffer(dd, hitPoint.x, hitPoint.y, YELLOW_COLOR);
 
     // Vector2i playerPos;
-    // playerPos.x = player.x + player.x * 8.0f;
-    // playerPos.y = player.y + player.y * 8.0f;
+    // playerPos.x = player->pos.x + player->pos.x * 8.0f;
+    // playerPos.y = player->pos.y + player->pos.y * 8.0f;
 
-    // AddLine(dd, playerPos, hitPoint, RED_COLOR);
+    // AddLine(dd, playerPos, hitPoint, YELLOW_COLOR);
   }
 }
 
@@ -490,9 +492,9 @@ int CalculateAverageFps(int executionTime) {
 
 void ToggleMap(bool *mapEnabled) { *mapEnabled = !(*mapEnabled); }
 
-int main() {
-  int windowWidth = 1280;
-  int windowHeight = 960;
+int main(int argv, char **args) {
+  int windowWidth = 1920;
+  int windowHeight = 1080;
 
   uint32_t *tileMap = LoadTexture("tilemap", 512, 512);
   // uint32_t *skybox1 = LoadTexture("skybox1", 512, 256);
@@ -529,10 +531,9 @@ int main() {
 
   // initialize sdl
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    SDL_Log("SDL could not initialize! SDL_Error: %s", SDL_GetError());
+    SDL_Log("SDL video could not initialize! SDL_Error: %s", SDL_GetError());
     return EXIT_FAILURE;
   }
-
   // create window
   SDL_Window *window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
   if (window == NULL) {
@@ -581,10 +582,10 @@ int main() {
   float playerSpeedDefault = 4.0f;
 
   // key pressed values
-  bool wKeyPressed = false;
-  bool sKeyPressed = false;
-  bool aKeyPressed = false;
-  bool dKeyPressed = false;
+  int8_t wKeyPressed = 0;
+  int8_t sKeyPressed = 0;
+  int8_t aKeyPressed = 0;
+  int8_t dKeyPressed = 0;
 
   // bool tabKeyPressed = false;
 
@@ -634,16 +635,16 @@ int main() {
           running = false;
         }
         if (event.key.keysym.sym == SDLK_w) {
-          wKeyPressed = true;
+          wKeyPressed = 1;
         }
         if (event.key.keysym.sym == SDLK_s) {
-          sKeyPressed = true;
+          sKeyPressed = 1;
         }
         if (event.key.keysym.sym == SDLK_a) {
-          aKeyPressed = true;
+          aKeyPressed = 1;
         }
         if (event.key.keysym.sym == SDLK_d) {
-          dKeyPressed = true;
+          dKeyPressed = 1;
         }
         if (event.key.keysym.sym == SDLK_TAB) {
           ToggleMap(&mapEnabled);
@@ -654,16 +655,16 @@ int main() {
         break;
       case SDL_KEYUP:
         if (event.key.keysym.sym == SDLK_w) {
-          wKeyPressed = false;
+          wKeyPressed = 0;
         }
         if (event.key.keysym.sym == SDLK_s) {
-          sKeyPressed = false;
+          sKeyPressed = 0;
         }
         if (event.key.keysym.sym == SDLK_a) {
-          aKeyPressed = false;
+          aKeyPressed = 0;
         }
         if (event.key.keysym.sym == SDLK_d) {
-          dKeyPressed = false;
+          dKeyPressed = 0;
         }
         break;
       case SDL_MOUSEMOTION:
@@ -786,10 +787,10 @@ int main() {
       }
     }
 
-    int32_t elapsedTime = GetMicroTime() - currentTime;
-    int executionTimeWithSleep = GetMicroTime() - startTime;
+    long const elapsedTime = GetMicroTime() - currentTime;
+    long const executionTimeWithSleep = GetMicroTime() - startTime;
 
-    int avgFps = CalculateAverageFps(executionTimeWithSleep);
+    int const avgFps = CalculateAverageFps(executionTimeWithSleep);
     deltaTime = (GetMicroTime() - startTime) * 60.0f / 1000000.0f;
 
     // printf("%.6f\n", deltaTime);

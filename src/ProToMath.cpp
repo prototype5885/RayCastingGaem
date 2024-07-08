@@ -1,5 +1,5 @@
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 // #define ONE_RAD (3.14159 / 180.0);
 
 float lerpf(float from, float to, float percentage) { return from + (to - from) * percentage; }
@@ -20,4 +20,4 @@ int clampi(int d, int min, int max) {
 //   return (random() % (max - min + 1)) + min;
 // }
 
-int RandomMax(int max) { return random() % max; }
+int RandomMax(int max) { return rand() % max; }

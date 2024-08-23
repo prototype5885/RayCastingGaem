@@ -58,4 +58,4 @@ dkms.conf
 
 *.png
 *.jpg
-*.bin
+textureconverter/*.bin

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.25)
 project(RayCastingGaem)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -15,11 +15,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-
-# set(CMAKE_BUILD_TYPE Debug)
-
-# add_subdirectory(external/SDL2)
-# include_directories(external/SDL2/include)
 
 find_package(SDL2 REQUIRED)
 

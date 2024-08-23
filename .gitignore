@@ -56,6 +56,4 @@ dkms.conf
 *.sh
 /.vscode
 
-*.png
-*.jpg
-textureconverter/*.bin
+/textureconverter/*.bin

@@ -1,5 +1,5 @@
 #if defined(_WIN32) || defined(_WIN64)
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <windows.h>
 
 #else
@@ -77,7 +77,7 @@ private:
   uint8_t r, g, b;
 
 public:
-  RGB(uint32_t rgb) {
+  void CreateRGB(uint32_t rgb) {
     r = (rgb >> 16) & 0xFF;
     g = (rgb >> 8) & 0xFF;
     b = (rgb) & 0xFF;
@@ -381,13 +381,12 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
     const float c = side ? hitPointX - floorf(hitPointX) : hitPointY - floorf(hitPointY);
 
     for (int pixel = startPos; pixel < endPos; pixel++) {
-
       const int verticalSegment = 64 * c;
 
       const int hpi = (int)horizontalSegment * 64 + verticalSegment; // horizontal pixel index
       horizontalSegment += stepBetweenHorizontalSegments;
-
-      RGB rgb(tileMap[hpi + tOffset]);
+      RGB rgb;
+      rgb.CreateRGB(tileMap[hpi + tOffset]);
       rgb.Multiply(percentage);
       const uint32_t reColor = rgb.ReturnRGB();
 
@@ -481,7 +480,6 @@ int CalculateAverageFps(int executionTime) {
 
   for (int i = FPS_HISTORY_SIZE; i >= 0; i--) {
     int nexti = i + 1;
-    // printf("%d\n", i);
     if (nexti <= FPS_HISTORY_SIZE - 1) {
       fpsHistory[nexti] = fpsHistory[i];
     }
@@ -491,7 +489,6 @@ int CalculateAverageFps(int executionTime) {
   int32_t sumFps = 0;
   for (int i = 0; i < FPS_HISTORY_SIZE; i++) {
     sumFps += fpsHistory[i];
-    // printf("%d: %d\n", i, fpsHistory[i]);
   }
   const int avgFps = sumFps / FPS_HISTORY_SIZE;
   return avgFps;
@@ -509,7 +506,7 @@ int main(int argv, char **args) {
   }
   // uint32_t *skybox1 = LoadTexture("skybox1", 512, 256);
 
-  int resScale = 4;
+  float resScale = 1;
 
   int width = windowWidth / resScale;
   int height = windowHeight / resScale;
@@ -723,8 +720,6 @@ int main(int argv, char **args) {
         player.pos.y += sinf(player.rotRad + player.moveDirRad) * speedMultiplier;
       }
     }
-
-    // printf("X: %f, Y: %f, r: %f\n", player.x, player.y, player.rot);
 
     // lock the texture
     uint32_t *pixels;

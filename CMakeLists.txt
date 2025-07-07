@@ -4,7 +4,7 @@ project(RayCastingGaem)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(EXECUTABLE_NAME RayCastingGaem.exe)
+set(EXECUTABLE_NAME RayCastingGaem)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -12,15 +12,9 @@ endif()
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math -march=native")
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-
-if(UNIX)
-  find_package(SDL2 REQUIRED)
-elseif(WIN32)
-endif()
-
 
 add_executable(${EXECUTABLE_NAME} 
         src/Main.cpp
@@ -30,10 +24,8 @@ add_executable(${EXECUTABLE_NAME}
         src/TextureLoader.h
         )
 
-if(UNIX)
-  target_link_libraries(${EXECUTABLE_NAME} -lm ${SDL2_LIBRARIES})
-elseif(WIN32)
-  target_link_libraries(${EXECUTABLE_NAME} -lmingw32 -lSDL2main -lSDL2 -static-libstdc++)
+if(WIN32)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libstdc++)
+elseif(UNIX)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE  -lSDL2main -lSDL2 -static-libstdc++)
 endif()
-
-

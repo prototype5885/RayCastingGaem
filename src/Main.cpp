@@ -11,6 +11,7 @@
 #include <thread>
 
 #include "Colors.h"
+#include "ConfigReader.h"
 #include "Display.h"
 #include "ExtraMath.h"
 #include "Map2D.h"
@@ -54,8 +55,15 @@ int CalculateAverageFps(int executionTime) {
 }
 
 int main(int, char **) {
-  int windowWidth = 1920;
-  int windowHeight = 1080;
+  Config cfg = ReadConfigFile();
+
+  int windowWidth = cfg.width;
+  int windowHeight = cfg.height;
+
+  int windowMode = SDL_WINDOW_SHOWN;
+  if (cfg.fullscreen) {
+    windowMode = SDL_WINDOW_FULLSCREEN;
+  }
 
   uint32_t *tileMap = LoadTexture("tilemap", 512, 512);
   if (tileMap == NULL) {
@@ -63,15 +71,11 @@ int main(int, char **) {
   }
   // uint32_t *skybox1 = LoadTexture("skybox1", 512, 256);
 
-  float resScale = 1;
-
-  int width = windowWidth / resScale;
-  int height = windowHeight / resScale;
+  float resScale = 1.0f / ((float)cfg.resolutionPercentage / 100.0f);
+  int width = round(windowWidth / resScale);
+  int height = round(windowHeight / resScale);
 
   int size = width * height;
-
-  // const int width = 1000;
-  // const int height = 1000;
 
   // clang-format off
   int8_t map[16 * 16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1,
@@ -99,7 +103,7 @@ int main(int, char **) {
     return EXIT_FAILURE;
   }
   // create window
-  SDL_Window *window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
+  SDL_Window *window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, windowMode);
   if (window == NULL) {
     SDL_Log("Window could not be created! SDL_Error: %s", SDL_GetError());
     SDL_Quit();
@@ -119,6 +123,9 @@ int main(int, char **) {
 
   // set resolution inside the window
   SDL_RenderSetLogicalSize(renderer, width, height);
+  if (cfg.linearFiltering) {
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
+  }
 
   // create the texture that will display content in the window
   SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);

@@ -55,5 +55,9 @@ dkms.conf
 /.idea
 *.sh
 /.vscode
+/.vs
+/out
+CmakeSettings.json
+/.idea
 
 /textureconverter/*.bin

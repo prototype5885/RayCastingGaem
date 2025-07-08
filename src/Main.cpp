@@ -1,17 +1,12 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <SDL2/SDL.h>
-#include <windows.h>
-
 #else
 #include <SDL2/SDL.h>
 #endif
 
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <iostream>
-#include <ostream>
 #include <string>
 #include <thread>
 

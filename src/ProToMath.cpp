@@ -1,5 +1,4 @@
 #include <cmath>
-#include <cstdlib>
 
 float lerpf(float from, float to, float percentage) { return from + (to - from) * percentage; }
 

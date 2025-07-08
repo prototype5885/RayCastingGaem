@@ -16,13 +16,14 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math -march=native")
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
-add_executable(${EXECUTABLE_NAME} 
-        src/Main.cpp
-        src/ProToMath.cpp
-        src/ProToMath.h
-        src/TextureLoader.cpp
-        src/TextureLoader.h
-        )
+file(GLOB_RECURSE SRC_FILES
+    "src/*.c"
+    "src/*.cpp"
+    "src/*.h"
+    "src/*.hpp"
+)
+
+add_executable(${EXECUTABLE_NAME} ${SRC_FILES})
 
 if(WIN32)
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libstdc++)

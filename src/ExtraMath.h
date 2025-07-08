@@ -1,5 +1,5 @@
-#ifndef PROTOMATH_H
-#define PROTOMATH_H
+#ifndef EXTRAMATH_H
+#define EXTRAMATH_H
 
 float lerpf(float from, float to, float percentage);
 float deg2rad(float num);

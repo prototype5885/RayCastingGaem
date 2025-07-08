@@ -160,21 +160,12 @@ void Quit() {
   SDL_Quit();
 }
 
-void GameLoop() {
-  if (!running) {
-    Quit();
-  }
-
-  // start time is used to calculate delta time
-  long startTime = GetMicroTime();
-
-  // handle events
+void HandleControls() {
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
     case SDL_QUIT:
       running = false;
       break;
-    // look for a keypress
     case SDL_KEYDOWN:
       if (event.key.keysym.sym == SDLK_ESCAPE) {
         running = false;
@@ -222,14 +213,6 @@ void GameLoop() {
       }
 
       player.rotDeg = player.rotRad * 57.29578;
-
-      // player.rot = -player.rot;
-
-      // mousePosition.x = event.motion.x;
-      // mousePosition.y = event.motion.y;
-
-      // printf("%.6f\n", player.rot);
-
       break;
     }
   }
@@ -257,7 +240,9 @@ void GameLoop() {
       player.pos.y += sinf(player.rotRad + player.moveDirRad) * speedMultiplier;
     }
   }
+}
 
+void HandleDrawing() {
   // lock the texture
   uint32_t *pixels;
   int pitch;
@@ -316,8 +301,9 @@ void GameLoop() {
   SDL_UnlockTexture(texture);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
   SDL_RenderPresent(renderer);
+}
 
-  // printf("execution time: %d\n", executionTime);
+void HandleTimings(long startTime) {
   if (limitSpeed) {
     int executionTime = GetMicroTime() - startTime;
     int timeToSleep = 16666 - executionTime;
@@ -339,6 +325,19 @@ void GameLoop() {
     SDL_SetWindowTitle(window, title.c_str());
     currentTime = GetMicroTime();
   }
+}
+
+void GameLoop() {
+  if (!running) {
+    Quit();
+  }
+
+  // start time is used to calculate delta time
+  long startTime = GetMicroTime();
+
+  HandleControls();
+  HandleDrawing();
+  HandleTimings(startTime);
 }
 
 int main(int, char **) {

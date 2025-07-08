@@ -28,7 +28,6 @@ uint32_t *LoadTexture(string name, int textureWidth, int textureHeight) {
   uint32_t *texture = new uint32_t[tSize];
 
   // opens the texture binary file for reading
-  cout << "opening file..." << endl;
   ifstream file(filePath, ios::binary);
   if (!file) {
     cerr << "Error opening file: " << filePath << endl;

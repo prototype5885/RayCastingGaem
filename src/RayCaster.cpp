@@ -44,7 +44,7 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
       sideDistY = ((float)mapY + 1.0f - player->pos.y) * deltaDistY;
     }
 
-    bool side;
+    bool side = false;
     int attempt = 0;
     while (attempt < 64) {
       attempt++;

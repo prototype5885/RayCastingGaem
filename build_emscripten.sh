@@ -29,12 +29,8 @@ EMCC_COMMAND="em++ -O3 ${FILES} -o ${BUILD_DIR}/${OUTPUT_NAME}.js -s USE_SDL=2 -
 echo "Running Emscripten compilation using Docker..."
 docker run --rm -v "$(pwd):/app" -w /app emscripten/emsdk bash -c "${EMCC_COMMAND}"
 
-if [ $? -ne 0 ]; then
-    echo ""
-    echo "ERROR: Emscripten compilation failed!"
-    read -p ${ERROR_TEXT}
-    exit 1
+if [ $? -eq 0 ]; then
+    echo "Build successful into folder: $BUILD_DIR"
 else
-    echo ""
-    echo "Success, results are in the '${BUILD_DIR}' folder, need to host a http server to serve the files."
+    echo "Build failed."
 fi

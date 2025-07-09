@@ -12,8 +12,8 @@ endif()
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-# set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math -march=native")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math -march=native -s")
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
@@ -25,7 +25,7 @@ file(GLOB_RECURSE SRC_FILES
 add_executable(${EXECUTABLE_NAME} ${SRC_FILES})
 
 if(WIN32)
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libstdc++)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++)
 elseif(UNIX)
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE  -lSDL2main -lSDL2 -static-libstdc++)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE  -lSDL2main -lSDL2 -static-libgcc -static-libstdc++)
 endif()

@@ -25,7 +25,7 @@ for %%f in (src\*.cpp) do (
 )
 
 echo Running compilation...
-docker run --rm -v "%cd%:/app" -w /app sdl-builder bash -c "%TARGET%-g++ -Wall -Wextra -O3 %FILES% -o %BUILD_DIR%/%OUTPUT% -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ && cp /usr/%TARGET%/bin/SDL2.dll %BUILD_DIR%"
+docker run --rm -v "%cd%:/app" -w /app sdl-builder bash -c "%TARGET%-g++ -s -Wall -Wextra -O3 %FILES% -o %BUILD_DIR%/%OUTPUT% -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ && cp /usr/%TARGET%/bin/SDL2.dll %BUILD_DIR%"
 
 if %ERRORLEVEL% EQU 0 (
     echo Build successful into folder: %BUILD_DIR%

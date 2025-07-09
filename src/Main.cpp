@@ -35,8 +35,6 @@ float resScale = 1.0f / ((float)cfg.resolutionPercentage / 100.0f);
 int width = round(windowWidth / resScale);
 int height = round(windowHeight / resScale);
 
-int size = width * height;
-
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_Texture *texture = NULL;
@@ -147,7 +145,7 @@ void InitSDL() {
 void InitValues() {
   dd.width = width;
   dd.height = height;
-  dd.size = size;
+  dd.size = width * height;
 
   // player values
   player.pos.x = 8.0f;
@@ -256,7 +254,7 @@ void HandleDrawing() {
   dd.pixels = pixels;
 
   // draw stuff before casting rays
-  for (int i = 0; i < size; i++) {
+  for (int i = 0; i < dd.size; i++) {
     // const int x = i % width;
     const int y = i / width;
 
@@ -289,7 +287,7 @@ void HandleDrawing() {
   // }
 
   if (noiseEnabled) {
-    for (int p = 0; p < size; p++) {
+    for (int p = 0; p < dd.size; p++) {
       pixels[p] = rand();
     }
   }

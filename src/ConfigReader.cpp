@@ -13,6 +13,8 @@ Config ReadConfigFile() {
   cfg.resolutionPercentage = 100;
   cfg.linearFiltering = false;
 
+#ifdef __EMSCRIPTEN__
+
   const char *filename = "config.txt";
 
   ifstream fileExists(filename);
@@ -52,6 +54,8 @@ Config ReadConfigFile() {
       }
     }
   }
+
+#endif
 
   return cfg;
 }

@@ -59,5 +59,7 @@ dkms.conf
 CmakeSettings.json
 /.idea
 /build_emscripten
+/build_windows
+/build_linux
 
 /textureconverter/*.bin

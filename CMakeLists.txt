@@ -20,8 +20,6 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 file(GLOB_RECURSE SRC_FILES
     "src/*.c"
     "src/*.cpp"
-    "src/*.h"
-    "src/*.hpp"
 )
 
 add_executable(${EXECUTABLE_NAME} ${SRC_FILES})

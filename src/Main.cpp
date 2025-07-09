@@ -2,6 +2,10 @@
 // #else
 // #endif
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <SDL2/SDL.h>
 
 #include <cmath>
@@ -315,7 +319,10 @@ void HandleTimings(long startTime) {
   long const executionTimeWithSleep = GetMicroTime() - startTime;
 
   int const avgFps = CalculateAverageFps(executionTimeWithSleep);
+
+#ifndef __EMSCRIPTEN__ // delta time just doesn't work in emscripten as expected
   deltaTime = (GetMicroTime() - startTime) * 60.0f / 1000000.0f;
+#endif
 
   // 1 million microsecond
   if (elapsedTime >= 1000000) {
@@ -342,9 +349,13 @@ int main(int, char **) {
   InitSDL();
   InitValues();
 
+#ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop(GameLoop, 0, 1);
+#else
   while (running) {
     GameLoop();
   }
+#endif
 
   return 0;
 }

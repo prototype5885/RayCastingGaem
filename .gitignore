@@ -53,11 +53,11 @@ dkms.conf
 /.cache
 /build
 /.idea
-*.sh
 /.vscode
 /.vs
 /out
 CmakeSettings.json
 /.idea
+/build_emscripten
 
 /textureconverter/*.bin

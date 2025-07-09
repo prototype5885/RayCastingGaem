@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Emscripten</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #222;
+        border: none;
+      }
+
+      canvas {
+        display: block;
+        height: 100%;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas
+      id="canvas"
+      oncontextmenu="event.preventDefault()"
+      tabindex="-1"
+    ></canvas>
+    <script type="text/javascript">
+      var canvasElement = document.getElementById("canvas");
+
+      var Module = {
+        canvas: canvasElement,
+        print: console.log,
+        printErr: console.error,
+        setStatus: function (text) {
+          console.log("[Emscripten Status] " + text);
+        },
+      };
+    </script>
+    <script async type="text/javascript" src="emscripten.js"></script>
+  </body>
+</html>

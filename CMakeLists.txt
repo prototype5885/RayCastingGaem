@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.10)
 project(RayCastingGaem)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -10,10 +10,17 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+if(WIN32)
+  # set(CMAKE_CXX_FLAGS_RELEASE "-mwindows")
+elseif(UNIX)
+  # set(CMAKE_CXX_FLAGS_RELEASE "")
+endif()
+
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-mwindows -O3 -s")
-# set(CMAKE_CXX_FLAGS_RELEASE "-mwindows -O3 -ffast-math -march=native -s")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -s")
+
+# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math -march=native")
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 

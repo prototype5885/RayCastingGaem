@@ -25,14 +25,14 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -s")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 file(GLOB_RECURSE SRC_FILES
-    "src/*.c"
-    "src/*.cpp"
+  "src/*.c"
+  "src/*.cpp"
 )
 
 add_executable(${EXECUTABLE_NAME} ${SRC_FILES})
 
 if(WIN32)
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)
+  target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)
 elseif(UNIX)
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE  -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)
+  target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)
 endif()

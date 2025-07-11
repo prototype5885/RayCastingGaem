@@ -1,5 +1,5 @@
-#include <cstdint>
 #include "Structs.h"
+#include <cstdint>
 
 void AddPixelToBuffer(DisplayData *dd, int x, int y, uint32_t color) {
   int i = y * dd->width + x;

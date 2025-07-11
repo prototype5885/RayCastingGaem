@@ -1,8 +1,8 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include <cstdint>
 #include "Structs.h"
+#include <cstdint>
 
 void AddPixelToBuffer(DisplayData *dd, int x, int y, uint32_t color);
 

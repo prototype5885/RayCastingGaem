@@ -68,7 +68,7 @@ def build_emscripten(files, OUTPUT, BUILD_DIR, ASSETS_FOLDER):
     emcc_command = f'em++ {EMSCRIPTEN_COMPILE_ARGS} {files} -o {BUILD_DIR}/{OUTPUT}.js -s USE_SDL=2 --preload-file {ASSETS_FOLDER}'
 
     print("Compiling...")
-    result = subprocess.run(f'docker run --rm -v "{os.getcwd()}:/app" -w /app emscripten/emsdk:{EMSCRIPTEN_VERSION} bash -c "{emcc_command}"', shell=True)
+    result = subprocess.run(f'docker run --rm -v "{os.getcwd()}:/app" -w /app emscripten/emsdk:{EMSCRIPTEN_VERSION} sh -c "{emcc_command}"', shell=True)
     if result.returncode == 0:
         print(f"Build successful into folder: {BUILD_DIR}")
 
@@ -130,7 +130,7 @@ def main():
     if chosen_docker == "1":
         IMAGE = f"alpine:{ALPINE_VERSION}"
 
-        COMMAND = "apk update && apk upgrade && apk add --no-cache bash wget unzip "
+        COMMAND = "apk update && apk upgrade && apk add --no-cache wget unzip "
         if chosen_os == "1":
             COMMAND += "mingw-w64-gcc"
             DOCKER_NAME = "alpine_builder_windows"
@@ -204,7 +204,7 @@ def main():
         "-v", f"{os.getcwd()}:/app",
         "-w", "/app",
         DOCKER_NAME,
-        "bash", "-c", docker_run_command
+        "sh", "-c", docker_run_command
         ]  
     try:
         compile_result = subprocess.run(docker_run_full_command, check=False)

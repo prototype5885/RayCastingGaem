@@ -3,12 +3,7 @@
 #include <iostream>
 #include <string>
 
-using std::cerr;
-using std::cout;
-using std::endl;
-using std::ifstream;
-using std::ios;
-using std::string;
+using namespace std;
 
 #if defined(_WIN32) || defined(_WIN64)
 const string PATH_SEPARATOR = "\\";
@@ -39,9 +34,9 @@ uint32_t *LoadTexture(string name, int textureWidth, int textureHeight) {
   file.read(reinterpret_cast<char *>(buffer), tSize);
 
   // read the content into a vector
-  // std::istreambuf_iterator<char> start(file);
-  // std::istreambuf_iterator<char> end;
-  // std::vector<uint8_t> buffer(start, end);
+  // istreambuf_iterator<char> start(file);
+  // istreambuf_iterator<char> end;
+  // vector<uint8_t> buffer(start, end);
 
   // closes the file
   file.close();

@@ -1,10 +1,7 @@
 #ifndef SHAPES_H
 #define SHAPES_H
 
-#include "Display.h"
-#include "ExtraMath.h"
 #include "Structs.h"
-#include <cmath>
 #include <cstdint>
 
 void AddCircle(DisplayData *dd, float radius, Vector2i circlePos, uint32_t color);

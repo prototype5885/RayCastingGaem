@@ -1,7 +1,8 @@
 #include "Display.h"
 #include "ExtraMath.h"
 #include "Structs.h"
-#include "cmath"
+#include <cmath>
+#include <cstdint>
 
 void AddCircle(DisplayData *dd, float const radius, Vector2i const circlePos, uint32_t const color) {
   int x = static_cast<int>(radius);

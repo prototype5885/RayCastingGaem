@@ -50,7 +50,7 @@ Config ReadConfigFile() {
         } else if (key == "linearFiltering") {
           cfg.linearFiltering = (value == "true");
         }
-      } catch (const std::exception &e) {
+      } catch (const exception &e) {
       }
     }
   }

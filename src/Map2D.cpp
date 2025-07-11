@@ -1,7 +1,9 @@
+#include <cstdint>
 #include "Colors.h"
 #include "Display.h"
 #include "Player.h"
 #include "Shapes.h"
+#include "Structs.h"
 
 void DrawMap(DisplayData *dd, int8_t *map, Player *player) {
   const int mapWidth = 16;

@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string>
 
-uint32_t *LoadTexture(std::string name, int textureWidth, int textureHeight);
+using namespace std;
+
+uint32_t *LoadTexture(string name, int textureWidth, int textureHeight);
 
 #endif

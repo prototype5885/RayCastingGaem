@@ -1,6 +1,7 @@
 #ifndef RAYCASTER_H
 #define RAYCASTER_H
 
+#include <cstdint>
 #include "Player.h"
 #include "Structs.h"
 

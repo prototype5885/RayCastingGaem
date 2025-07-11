@@ -1,14 +1,16 @@
 #include <cstdint>
 #include <thread>
 
+using namespace std;
+
 long GetMicroTime() {
-  auto const now = std::chrono::steady_clock::now();
+  auto const now = chrono::steady_clock::now();
 
   auto const duration = now.time_since_epoch();
-  return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+  return chrono::duration_cast<chrono::microseconds>(duration).count();
 }
 
-void Sleep(int duration) { std::this_thread::sleep_for(std::chrono::microseconds(duration)); }
+void Sleep(int duration) { this_thread::sleep_for(chrono::microseconds(duration)); }
 
 int CalculateAverageFps(int executionTime) {
   const int FPS_HISTORY_SIZE = 8;

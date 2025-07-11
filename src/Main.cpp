@@ -10,25 +10,19 @@
 
 #include <cmath>
 #include <cstdint>
-#include <iostream>
 #include <string>
 
 #include "Colors.h"
 #include "ConfigReader.h"
-#include "Display.h"
 #include "ExtraMath.h"
 #include "Map2D.h"
 #include "Player.h"
 #include "RayCaster.h"
-#include "Shapes.h"
 #include "Structs.h"
 #include "TextureLoader.h"
 #include "Utils.h"
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::to_string;
+using namespace std;
 
 Config cfg = ReadConfigFile();
 

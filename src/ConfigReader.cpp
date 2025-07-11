@@ -13,7 +13,7 @@ Config ReadConfigFile() {
   cfg.resolutionPercentage = 100;
   cfg.linearFiltering = false;
 
-#ifdef __EMSCRIPTEN__
+#ifndef __EMSCRIPTEN__
 
   const char *filename = "config.txt";
 

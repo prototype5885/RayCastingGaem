@@ -8,19 +8,19 @@
 
 #include <SDL2/SDL.h>
 
+#include "colors.h"
+#include "config.h"
+#include "extra_math.h"
+#include "map_view.h"
+#include "player.h"
+#include "ray_caster.h"
+#include "structs.h"
+#include "texture_loader.h"
+#include "utils.h"
+
 #include <cmath>
 #include <cstdint>
 #include <string>
-
-#include "Colors.h"
-#include "Config.h"
-#include "ExtraMath.h"
-#include "MapView.h"
-#include "Player.h"
-#include "RayCaster.h"
-#include "Structs.h"
-#include "TextureLoader.h"
-#include "Utils.h"
 
 using namespace std;
 

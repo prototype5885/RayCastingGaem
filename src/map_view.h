@@ -1,8 +1,9 @@
 #ifndef MAPVIEW_H
 #define MAPVIEW_H
 
-#include "Player.h"
-#include "Structs.h"
+#include "player.h"
+#include "structs.h"
+
 #include <cstdint>
 
 void DrawMap(DisplayData *dd, int8_t *map, Player *player);

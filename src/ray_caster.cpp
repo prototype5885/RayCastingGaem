@@ -1,7 +1,8 @@
-#include "Colors.h"
-#include "ExtraMath.h"
-#include "Player.h"
-#include "Structs.h"
+#include "colors.h"
+#include "extra_math.h"
+#include "player.h"
+#include "structs.h"
+
 #include <cmath>
 #include <cstdint>
 

@@ -1,6 +1,7 @@
-#include "Display.h"
-#include "ExtraMath.h"
-#include "Structs.h"
+#include "display.h"
+#include "extra_math.h"
+#include "structs.h"
+
 #include <cmath>
 #include <cstdint>
 

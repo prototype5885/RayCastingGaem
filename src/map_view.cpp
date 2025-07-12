@@ -1,8 +1,9 @@
-#include "Colors.h"
-#include "Display.h"
-#include "Player.h"
-#include "Shapes.h"
-#include "Structs.h"
+#include "colors.h"
+#include "display.h"
+#include "player.h"
+#include "shapes.h"
+#include "structs.h"
+
 #include <cstdint>
 
 void DrawMap(DisplayData *dd, int8_t *map, Player *player) {

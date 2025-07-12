@@ -1,8 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "ExtraMath.h"
-#include "Structs.h"
+#include "extra_math.h"
+
+#include "structs.h"
 
 class Player {
 public:

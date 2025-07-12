@@ -1,7 +1,8 @@
 #ifndef SHAPES_H
 #define SHAPES_H
 
-#include "Structs.h"
+#include "structs.h"
+
 #include <cstdint>
 
 void AddCircle(DisplayData *dd, float radius, Vector2i circlePos, uint32_t color);

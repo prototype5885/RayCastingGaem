@@ -24,15 +24,6 @@
 
 using namespace std;
 
-Config cfg = ReadConfigFile();
-
-int windowWidth = cfg.width;
-int windowHeight = cfg.height;
-
-float resScale = 1.0f / ((float)cfg.resolutionPercentage / 100.0f);
-int width = round(windowWidth / resScale);
-int height = round(windowHeight / resScale);
-
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_Texture *texture = NULL;
@@ -42,6 +33,9 @@ DisplayData dd;
 Player player(8.0, 8.0, 0.0);
 
 uint32_t *tileMap = NULL;
+
+int width, height;
+float resScale;
 
 // clang-format off
 int8_t map[16 * 16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1,
@@ -89,7 +83,7 @@ long currentTime = GetMicroTime();
 
 bool running = true;
 
-void InitSDL() {
+void InitSDL(Config cfg) {
   int windowMode = SDL_WINDOW_SHOWN;
   if (cfg.fullscreen) {
     windowMode = SDL_WINDOW_FULLSCREEN;
@@ -106,7 +100,7 @@ void InitSDL() {
     throw(SDL_GetError());
   }
   // create window
-  window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, windowMode);
+  window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, cfg.width, cfg.height, windowMode);
   if (window == NULL) {
     SDL_Quit();
     throw(SDL_GetError());
@@ -138,16 +132,6 @@ void InitSDL() {
   }
 
   SDL_SetRelativeMouseMode(SDL_TRUE);
-}
-
-void InitValues() {
-  dd.width = width;
-  dd.height = height;
-  dd.size = width * height;
-
-  // player values
-  player.pos.x = 8.0f;
-  player.pos.y = 8.0f;
 }
 
 void Quit() {
@@ -338,8 +322,20 @@ void GameLoop() {
 }
 
 int main(int, char **) {
-  InitSDL();
-  InitValues();
+  Config cfg = ReadConfigFile();
+
+  int windowWidth = cfg.width;
+  int windowHeight = cfg.height;
+
+  resScale = 1.0f / (cfg.resolutionPercentage / 100.0f);
+  width = round(windowWidth / resScale);
+  height = round(windowHeight / resScale);
+
+  dd.width = width;
+  dd.height = height;
+  dd.size = width * height;
+
+  InitSDL(cfg);
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(GameLoop, 0, 1);

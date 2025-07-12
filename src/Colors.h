@@ -17,7 +17,7 @@ private:
   uint8_t r, g, b;
 
 public:
-  void CreateRGB(uint32_t rgb) {
+  RGB(uint32_t rgb) {
     r = (rgb >> 16) & 0xFF;
     g = (rgb >> 8) & 0xFF;
     b = (rgb) & 0xFF;

@@ -126,8 +126,7 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
 
       const int hpi = (int)horizontalSegment * 64 + verticalSegment; // horizontal pixel index
       horizontalSegment += stepBetweenHorizontalSegments;
-      RGB rgb;
-      rgb.CreateRGB(tileMap[hpi + tOffset]);
+      RGB rgb(tileMap[hpi + tOffset]);
       rgb.Multiply(percentage);
       const uint32_t reColor = rgb.ReturnRGB();
 

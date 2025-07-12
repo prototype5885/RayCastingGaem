@@ -3,7 +3,7 @@
 #include "Player.h"
 #include "Shapes.h"
 #include "Structs.h"
-#include <cstdint>
+#include "stdint.h"
 
 void DrawMap(DisplayData *dd, int8_t *map, Player *player) {
   const int mapWidth = 16;
@@ -29,4 +29,4 @@ void DrawMap(DisplayData *dd, int8_t *map, Player *player) {
   }
 }
 
-void ToggleMap(bool *mapEnabled) { *mapEnabled = !(*mapEnabled); }
+void ToggleMap(char *mapEnabled) { *mapEnabled = !(*mapEnabled); }

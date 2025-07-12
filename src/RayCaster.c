@@ -2,12 +2,12 @@
 #include "ExtraMath.h"
 #include "Player.h"
 #include "Structs.h"
-#include <cmath>
-#include <cstdint>
+#include "math.h"
+#include "stdint.h"
 
 void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, uint32_t const *tileMap) {
   for (int ray = 0; ray < dd->width; ray++) {
-    const float aspectRatio = static_cast<float>(dd->width) / static_cast<float>(dd->height);
+    const float aspectRatio = (float)(dd->width) / (float)(dd->height);
     float rayAngle = player->rotRad - (aspectRatio / 2.0f);        // start angle of leftmost ray relative to player rotation
     rayAngle += (deg2rad(ray) / deg2rad(dd->width)) * aspectRatio; // then increment each ray in radian by this amount to the right
 
@@ -45,7 +45,7 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
       sideDistY = ((float)mapY + 1.0f - player->pos.y) * deltaDistY;
     }
 
-    bool side = false;
+    char side = 0;
     int attempt = 0;
     while (attempt < 64) {
       attempt++;
@@ -53,11 +53,11 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
       if (sideDistX < sideDistY) {
         sideDistX += deltaDistX;
         mapX += stepX;
-        side = false;
+        side = 0;
       } else {
         sideDistY += deltaDistY;
         mapY += stepY;
-        side = true;
+        side = 1;
       }
 
       const int i = mapY * 16 + mapX;
@@ -126,10 +126,8 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
 
       const int hpi = (int)horizontalSegment * 64 + verticalSegment; // horizontal pixel index
       horizontalSegment += stepBetweenHorizontalSegments;
-      RGB rgb;
-      rgb.CreateRGB(tileMap[hpi + tOffset]);
-      rgb.Multiply(percentage);
-      const uint32_t reColor = rgb.ReturnRGB();
+      uint32_t rgb = Multiply(tileMap[hpi + tOffset], percentage);
+      const uint32_t reColor = rgb;
 
       dd->pixels[pixel * dd->width + ray] = reColor;
     }

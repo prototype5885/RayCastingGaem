@@ -65,7 +65,7 @@ def build_emscripten(files, OUTPUT, BUILD_DIR, ASSETS_FOLDER):
     os.makedirs(BUILD_DIR, exist_ok=True)
     subprocess.run(["copy", os.path.join("emscripten", "index.html"), BUILD_DIR], shell=True, check=True)
 
-    emcc_command = f'em++ {EMSCRIPTEN_COMPILE_ARGS} {files} -o {BUILD_DIR}/{OUTPUT}.js -s USE_SDL=2 --preload-file {ASSETS_FOLDER}'
+    emcc_command = f'emcc {EMSCRIPTEN_COMPILE_ARGS} {files} -o {BUILD_DIR}/{OUTPUT}.js -s USE_SDL=2 --preload-file {ASSETS_FOLDER}'
 
     print("Compiling...")
     result = subprocess.run(f'docker run --rm -v "{os.getcwd()}:/app" -w /app emscripten/emsdk:{EMSCRIPTEN_VERSION} sh -c "{emcc_command}"', shell=True)
@@ -91,7 +91,7 @@ def build_emscripten(files, OUTPUT, BUILD_DIR, ASSETS_FOLDER):
         error("Build failed")
 
 def main():
-    files = " ".join([f"/app/{f}" for f in [os.path.join("src/", f) for f in os.listdir("src/") if f.endswith(".cpp")]])
+    files = " ".join([f"/app/{f}" for f in [os.path.join("src/", f) for f in os.listdir("src/") if f.endswith(".c")]])
 
     print("Which target you want to build for?")
     print("1. Windows, 2. Linux, 3. Browser")
@@ -103,7 +103,7 @@ def main():
         OUTPUT = "game.exe"
         BUILD_DIR = "build_windows"
         
-        COMPILER = "x86_64-w64-mingw32-g++"
+        COMPILER = "x86_64-w64-mingw32-gcc"
         COMPILE_ARGS = WINDOWS_COMPILE_ARGS
         LINKING_ARGS = WINDOWS_LINKING_ARGS
     elif chosen_os == "2":
@@ -111,7 +111,7 @@ def main():
         OUTPUT = "game"
         BUILD_DIR = "build_linux"
 
-        COMPILER = "g++"
+        COMPILER = "gcc"
         COMPILE_ARGS = LINUX_COMPILE_ARGS
         LINKING_ARGS = LINUX_LINKING_ARGS
     elif chosen_os == "3":

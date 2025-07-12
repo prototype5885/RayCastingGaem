@@ -1,11 +1,12 @@
 #include "Display.h"
 #include "ExtraMath.h"
 #include "Structs.h"
-#include <cmath>
-#include <cstdint>
+#include "math.h"
+#include "stdint.h"
+#include "stdlib.h"
 
 void AddCircle(DisplayData *dd, float const radius, Vector2i const circlePos, uint32_t const color) {
-  int x = static_cast<int>(radius);
+  int x = (int)(radius);
   int y = 0;
 
   AddPixelToBuffer(dd, circlePos.x + x, circlePos.y + y, color);

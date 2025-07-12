@@ -1,7 +1,7 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
-#include <cstdint>
+#include "stdint.h"
 
 typedef struct {
   int width, height, size;

@@ -61,5 +61,7 @@ CmakeSettings.json
 /build_emscripten
 /build_windows
 /build_linux
+/build_local
+config.txt
 
 /textureconverter/*.bin

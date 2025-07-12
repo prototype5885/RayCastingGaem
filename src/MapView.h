@@ -3,9 +3,9 @@
 
 #include "Player.h"
 #include "Structs.h"
-#include <cstdint>
+#include "stdint.h"
 
 void DrawMap(DisplayData *dd, int8_t *map, Player *player);
-void ToggleMap(bool *mapEnabled);
+void ToggleMap(char *mapEnabled);
 
 #endif

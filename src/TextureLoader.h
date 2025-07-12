@@ -1,11 +1,8 @@
 #ifndef TEXTURELOADER_H
 #define TEXTURELOADER_H
 
-#include <cstdint>
-#include <string>
+#include "stdint.h"
 
-using namespace std;
-
-uint32_t *LoadTexture(string name, int textureWidth, int textureHeight);
+uint32_t *LoadTexture(char *name, int textureWidth, int textureHeight);
 
 #endif

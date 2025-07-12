@@ -1,7 +1,7 @@
 #ifndef COLORS_H
 #define COLORS_H
 
-#include <cstdint>
+#include "stdint.h"
 
 #define WHITE_COLOR ((0 << 24) | (255 << 16) | (255 << 8) | 255)
 #define GREY_COLOR ((0 << 24) | (50 << 16) | (50 << 8) | 50)
@@ -12,32 +12,14 @@
 #define BLUE_COLOR ((0 << 24) | (0 << 16) | (0 << 8) | 255)
 #define YELLOW_COLOR ((0 << 24) | (255 << 16) | (255 << 8) | 0)
 
-class RGB {
-private:
-  uint8_t r, g, b;
+typedef struct {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+} RGB;
 
-public:
-  void CreateRGB(uint32_t rgb) {
-    r = (rgb >> 16) & 0xFF;
-    g = (rgb >> 8) & 0xFF;
-    b = (rgb) & 0xFF;
-  }
-
-  uint32_t ReturnRGB() {
-    uint32_t rgb = 0;
-    rgb |= 0 << 24;
-    rgb |= r << 16;
-    rgb |= g << 8;
-    rgb |= b;
-
-    return rgb;
-  }
-
-  void Multiply(float multiplier) {
-    r *= multiplier;
-    g *= multiplier;
-    b *= multiplier;
-  }
-};
+uint32_t CreateRGB(uint8_t r, uint8_t g, uint8_t b);
+RGB SplitRGB(uint32_t rgb);
+uint32_t Multiply(uint32_t rgb, float multiplier);
 
 #endif

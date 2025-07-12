@@ -8,9 +8,9 @@
 
 #include <SDL2/SDL.h>
 
-#include <cmath>
-#include <cstdint>
-#include <string>
+#include "math.h"
+#include "stdint.h"
+#include "stdio.h"
 
 #include "Colors.h"
 #include "ConfigReader.h"
@@ -22,26 +22,18 @@
 #include "TextureLoader.h"
 #include "Utils.h"
 
-using namespace std;
-
-Config cfg = ReadConfigFile();
-
-int windowWidth = cfg.width;
-int windowHeight = cfg.height;
-
-float resScale = 1.0f / ((float)cfg.resolutionPercentage / 100.0f);
-int width = round(windowWidth / resScale);
-int height = round(windowHeight / resScale);
-
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
-SDL_Texture *texture = NULL;
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture *texture;
 SDL_Event event;
 
 DisplayData dd;
 Player player;
 
-uint32_t *tileMap = NULL;
+uint32_t *tileMap;
+
+int width, height;
+float resScale;
 
 // clang-format off
 int8_t map[16 * 16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1,
@@ -63,33 +55,26 @@ int8_t map[16 * 16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1,
                       };
 // clang-format on
 
-float playerSpeedDefault = 4.0f;
-
 // key pressed values
 int8_t wKeyPressed = 0;
 int8_t sKeyPressed = 0;
 int8_t aKeyPressed = 0;
 int8_t dKeyPressed = 0;
 
-// bool tabKeyPressed = false;
-
-// bool nKeyPressed = false;
-// bool hKeyPressed = false;
-
 // map
-bool mapEnabled = false;
+char mapEnabled = 0;
 
 // extra debug stuff
-bool limitSpeed = false;
-bool noiseEnabled = false;
+char limitSpeed = 0;
+char noiseEnabled = 0;
 
 // needed for calculations inside the loop
 float deltaTime = 1.0f;
-long currentTime = GetMicroTime();
+long currentTime;
 
-bool running = true;
+char running = 1;
 
-void InitSDL() {
+int InitSDL(Config cfg) {
   int windowMode = SDL_WINDOW_SHOWN;
   if (cfg.fullscreen) {
     windowMode = SDL_WINDOW_FULLSCREEN;
@@ -97,19 +82,22 @@ void InitSDL() {
 
   tileMap = LoadTexture("tilemap", 512, 512);
   if (tileMap == NULL) {
-    throw("Tilemap texture coulnd't be loaded");
+    printf("Tilemap texture coulnd't be loaded\n");
+    return 1;
   }
   // uint32_t *skybox1 = LoadTexture("skybox1", 512, 256);
 
   // initialize sdl
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    throw(SDL_GetError());
+    printf("%s\n", SDL_GetError());
+    return 1;
   }
   // create window
-  window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, windowMode);
+  window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, cfg.width, cfg.height, windowMode);
   if (window == NULL) {
     SDL_Quit();
-    throw(SDL_GetError());
+    printf("%s\n", SDL_GetError());
+    return 1;
   }
 
   // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
@@ -119,7 +107,8 @@ void InitSDL() {
   if (renderer == NULL) {
     SDL_DestroyWindow(window);
     SDL_Quit();
-    throw(SDL_GetError());
+    printf("%s\n", SDL_GetError());
+    return 1;
   }
 
   // set resolution inside the window
@@ -134,20 +123,13 @@ void InitSDL() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    throw(SDL_GetError());
+    printf("%s\n", SDL_GetError());
+    return 1;
   }
 
   SDL_SetRelativeMouseMode(SDL_TRUE);
-}
 
-void InitValues() {
-  dd.width = width;
-  dd.height = height;
-  dd.size = width * height;
-
-  // player values
-  player.pos.x = 8.0f;
-  player.pos.y = 8.0f;
+  return 0;
 }
 
 void Quit() {
@@ -160,11 +142,11 @@ void HandleControls() {
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
     case SDL_QUIT:
-      running = false;
+      running = 0;
       break;
     case SDL_KEYDOWN:
       if (event.key.keysym.sym == SDLK_ESCAPE) {
-        running = false;
+        running = 0;
       }
       if (event.key.keysym.sym == SDLK_w) {
         wKeyPressed = 1;
@@ -207,8 +189,6 @@ void HandleControls() {
       } else if (player.rotRad > M_PI) {
         player.rotRad -= 2 * M_PI;
       }
-
-      player.rotDeg = player.rotRad * 57.29578;
       break;
     }
   }
@@ -217,7 +197,7 @@ void HandleControls() {
   const int8_t forwards = wKeyPressed - sKeyPressed;
 
   if (sideways != 0 || forwards != 0) {
-    player.speed = playerSpeedDefault;
+    player.speed = PLAYER_SPEED_DEFAULT;
   } else {
     player.speed = 0;
   }
@@ -305,7 +285,7 @@ void HandleTimings(long startTime) {
     int timeToSleep = 16666 - executionTime;
 
     if (timeToSleep > 0) {
-      Sleep(timeToSleep);
+      Wait(timeToSleep);
     }
   }
 
@@ -317,11 +297,11 @@ void HandleTimings(long startTime) {
 #ifndef __EMSCRIPTEN__ // delta time just doesn't work in emscripten as expected
   deltaTime = (GetMicroTime() - startTime) * 60.0f / 1000000.0f;
 #endif
-
   // 1 million microsecond
   if (elapsedTime >= 1000000) {
-    const string title = to_string(width) + "x" + to_string(height) + " - " + to_string(avgFps) + " fps";
-    SDL_SetWindowTitle(window, title.c_str());
+    char windowTitle[32];
+    snprintf(windowTitle, 32, "%d x %d - %d fps", width, height, avgFps);
+    SDL_SetWindowTitle(window, windowTitle);
     currentTime = GetMicroTime();
   }
 }
@@ -339,9 +319,26 @@ void GameLoop() {
   HandleTimings(startTime);
 }
 
-int main(int, char **) {
-  InitSDL();
-  InitValues();
+int main(int arg, char **args) {
+  Config cfg = ReadConfigFile();
+
+  resScale = 1.0f / ((float)cfg.resolutionPercentage / 100.0f);
+  width = round(cfg.width / resScale);
+  height = round(cfg.height / resScale);
+
+  dd.width = width;
+  dd.height = height;
+  dd.size = width * height;
+
+  // player values
+  player = NewPlayer(8.0, 8.0, 0.0);
+
+  currentTime = GetMicroTime();
+
+  int result = InitSDL(cfg);
+  if (result != 0) {
+    return result;
+  }
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(GameLoop, 0, 1);

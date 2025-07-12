@@ -2,7 +2,7 @@
 #define SHAPES_H
 
 #include "Structs.h"
-#include <cstdint>
+#include "stdint.h"
 
 void AddCircle(DisplayData *dd, float radius, Vector2i circlePos, uint32_t color);
 void PlotLineLow(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color);

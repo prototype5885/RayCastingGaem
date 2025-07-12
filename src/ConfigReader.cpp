@@ -54,7 +54,7 @@ Config ReadConfigFile() {
           } else if (key == "height") {
             cfg.height = stoi(value);
           } else if (key == "resolutionPercentage") {
-            cfg.resolutionPercentage = stoi(value);
+            cfg.resolutionPercentage = stof(value);
           } else if (key == "linearFiltering") {
             cfg.linearFiltering = (value == "true");
           }

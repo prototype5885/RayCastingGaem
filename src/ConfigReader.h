@@ -3,7 +3,8 @@
 
 typedef struct {
   bool fullscreen, linearFiltering;
-  int width, height, resolutionPercentage;
+  int width, height;
+  float resolutionPercentage;
 } Config;
 
 Config ReadConfigFile();

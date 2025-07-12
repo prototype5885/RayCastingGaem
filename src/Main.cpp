@@ -13,7 +13,7 @@
 #include <string>
 
 #include "Colors.h"
-#include "ConfigReader.h"
+#include "Config.h"
 #include "ExtraMath.h"
 #include "MapView.h"
 #include "Player.h"

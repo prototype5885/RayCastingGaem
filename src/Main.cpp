@@ -39,7 +39,7 @@ SDL_Texture *texture = NULL;
 SDL_Event event;
 
 DisplayData dd;
-Player player;
+Player player(8.0, 8.0, 0.0);
 
 uint32_t *tileMap = NULL;
 

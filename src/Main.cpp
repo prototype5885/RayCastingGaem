@@ -15,7 +15,7 @@
 #include "Colors.h"
 #include "ConfigReader.h"
 #include "ExtraMath.h"
-#include "Map2D.h"
+#include "MapView.h"
 #include "Player.h"
 #include "RayCaster.h"
 #include "Structs.h"

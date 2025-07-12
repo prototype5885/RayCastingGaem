@@ -1,5 +1,5 @@
-#ifndef MAP2D_H
-#define MAP2D_H
+#ifndef MAPVIEW_H
+#define MAPVIEW_H
 
 #include "Player.h"
 #include "Structs.h"

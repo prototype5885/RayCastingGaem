@@ -9,7 +9,6 @@ public:
   float speed = 0.0f;
   Vector2 pos{0.0f, 0.0f};
   float rotRad = 0.0f;
-  float rotDeg = 0.0f;
   float fov = 90.0f;
 };
 

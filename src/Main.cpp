@@ -207,8 +207,6 @@ void HandleControls() {
       } else if (player.rotRad > M_PI) {
         player.rotRad -= 2 * M_PI;
       }
-
-      player.rotDeg = player.rotRad * 57.29578;
       break;
     }
   }

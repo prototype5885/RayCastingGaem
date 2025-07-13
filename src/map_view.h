@@ -5,8 +5,9 @@
 #include "structs.h"
 
 #include <cstdint>
+#include <vector>
 
-void DrawMap(DisplayData *dd, int8_t *map, Player *player);
+void DrawMap(DisplayData *dd, vector<uint8_t> map, Player *player);
 void ToggleMap(bool *mapEnabled);
 
 #endif

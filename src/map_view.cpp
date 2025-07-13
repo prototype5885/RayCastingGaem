@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-void DrawMap(DisplayData *dd, int8_t *map, Player *player) {
+void DrawMap(DisplayData *dd, vector<uint8_t> map, Player *player) {
   const int mapWidth = 16;
   const int mapHeight = 16;
 

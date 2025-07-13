@@ -5,7 +5,8 @@
 #include "structs.h"
 
 #include <cstdint>
+#include <vector>
 
-void CastRays(DisplayData const *dd, Player const *player, int8_t const *map);
+void CastRays(DisplayData const *dd, Player const *player, vector<uint8_t> map);
 
 #endif

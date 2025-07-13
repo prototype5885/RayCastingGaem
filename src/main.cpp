@@ -83,7 +83,7 @@ long currentTime = GetMicroTime();
 
 bool running = true;
 
-void InitSDL(Config cfg) {
+int InitSDL(Config cfg) {
   int windowMode = SDL_WINDOW_SHOWN;
   if (cfg.fullscreen) {
     windowMode = SDL_WINDOW_FULLSCREEN;
@@ -91,19 +91,22 @@ void InitSDL(Config cfg) {
 
   tileMap = LoadTexture("tilemap", 512, 512);
   if (tileMap == NULL) {
-    throw("Tilemap texture coulnd't be loaded");
+    cerr << ("Tilemap texture coulnd't be loaded");
+    return 1;
   }
   // uint32_t *skybox1 = LoadTexture("skybox1", 512, 256);
 
   // initialize sdl
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    throw(SDL_GetError());
+    cerr << SDL_GetError();
+    return 1;
   }
   // create window
   window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, cfg.width, cfg.height, windowMode);
   if (window == NULL) {
     SDL_Quit();
-    throw(SDL_GetError());
+    cerr << SDL_GetError();
+    return 1;
   }
 
   // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
@@ -113,7 +116,8 @@ void InitSDL(Config cfg) {
   if (renderer == NULL) {
     SDL_DestroyWindow(window);
     SDL_Quit();
-    throw(SDL_GetError());
+    cerr << SDL_GetError();
+    return 1;
   }
 
   // set resolution inside the window
@@ -128,10 +132,13 @@ void InitSDL(Config cfg) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    throw(SDL_GetError());
+    cerr << SDL_GetError();
+    return 1;
   }
 
   SDL_SetRelativeMouseMode(SDL_TRUE);
+
+  return 0;
 }
 
 void Quit() {
@@ -335,7 +342,10 @@ int main(int, char **) {
   dd.height = height;
   dd.size = width * height;
 
-  InitSDL(cfg);
+  int result = InitSDL(cfg);
+  if (result != 0) {
+    return 1;
+  }
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(GameLoop, 0, 1);

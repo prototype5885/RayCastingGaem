@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -15,7 +16,7 @@ using namespace filesystem;
 
 std::map<std::string, Texture> textureList;
 
-string GetTextureName(int wallType) {
+string GetTextureName(uint8_t wallType) {
   if (wallType == 1) {
     return "wall1";
   } else if (wallType == 2) {
@@ -39,7 +40,7 @@ bool CheckIfSupportedExtension(string extension) {
   return false;
 }
 
-void LoadTextures() {
+void LoadTextures(set<uint8_t> wallTypes) {
   // create a default texture as fallback
   uint32_t rgb = 0;
   rgb |= 0 << 24;
@@ -49,8 +50,23 @@ void LoadTextures() {
 
   textureList["fallback"].colors.push_back(rgb);
 
-  for (const directory_entry &file : directory_iterator("textures")) {
+  set<string> textureNames;
+
+  for (uint8_t value : wallTypes) {
+    string textureName = GetTextureName(value);
+    if (textureName != "missing") {
+      textureNames.insert(GetTextureName(value));
+    }
+  }
+
+  for (const directory_entry &file : directory_iterator("assets/textures")) {
     if (file.is_regular_file() && CheckIfSupportedExtension(file.path().extension().string())) {
+
+      if (!textureNames.count(file.path().stem().string()))
+        continue;
+
+      cout << "Loading " << file.path().stem() << "..." << endl;
+
       string filePath = file.path().string();
 
       int width, height, n;

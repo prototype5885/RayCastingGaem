@@ -7,6 +7,6 @@
 #include <cstdint>
 #include <vector>
 
-void CastRays(DisplayData const *dd, Player const *player, vector<uint8_t> map);
+void CastRays(DisplayData const *dd, Player const *player);
 
 #endif

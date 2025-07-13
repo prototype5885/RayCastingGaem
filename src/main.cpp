@@ -11,6 +11,7 @@
 #include "colors.h"
 #include "config.h"
 #include "extra_math.h"
+#include "level.h"
 #include "map_view.h"
 #include "player.h"
 #include "ray_caster.h"
@@ -34,26 +35,6 @@ Player player(8.0, 8.0, 0.0);
 
 int width, height;
 float resScale;
-
-// clang-format off
-vector<uint8_t> gameMap = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 1,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-                          };
-// clang-format on
 
 float playerSpeedDefault = 4.0f;
 
@@ -211,7 +192,7 @@ void HandleControls() {
 
   const int i = colY * 16 + colX;
   if (i < 256) {
-    if (gameMap[i] == 0) {
+    if (currentLevel[i] == 0) {
       player.pos.x += cosf(player.rotRad + player.moveDirRad) * speedMultiplier;
       player.pos.y += sinf(player.rotRad + player.moveDirRad) * speedMultiplier;
     }
@@ -269,9 +250,9 @@ void HandleDrawing() {
       pixels[p] = rand();
     }
   }
-  CastRays(&dd, &player, gameMap);
+  CastRays(&dd, &player);
   if (mapEnabled)
-    DrawMap(&dd, gameMap, &player);
+    DrawMap(&dd, &player);
 
   // unlock the texture and render the scene
   SDL_UnlockTexture(sdlTexture);
@@ -322,7 +303,7 @@ void GameLoop() {
 int main(int, char **) {
   Config cfg = ReadConfigFile();
 
-  LoadTextures();
+  LoadLevel("level1");
 
   int windowWidth = cfg.width;
   int windowHeight = cfg.height;
@@ -335,18 +316,22 @@ int main(int, char **) {
   dd.height = height;
   dd.size = width * height;
 
+  cout << "Initializing SDL..." << endl;
   int result = InitSDL(cfg);
   if (result != 0) {
     return 1;
   }
 
 #ifdef __EMSCRIPTEN__
+  cout << "Starting emscripten main loop..." << endl;
   emscripten_set_main_loop(GameLoop, 0, 1);
 #else
+  cout << "Starting main loop..." << endl;
   while (running) {
     GameLoop();
   }
 #endif
 
+  cout << "Closing game..." << endl;
   return 0;
 }

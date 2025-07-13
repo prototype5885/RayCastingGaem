@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -20,7 +21,7 @@ public:
 extern map<string, Texture> textureList;
 
 bool CheckIfSupportedExtension(string extension);
-string GetTextureName(int wallType);
-void LoadTextures();
+string GetTextureName(uint8_t wallType);
+void LoadTextures(set<uint8_t> texturesToLoad);
 
 #endif

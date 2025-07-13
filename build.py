@@ -12,7 +12,7 @@ ALPINE_VERSION  = "3.22"
 EMSCRIPTEN_VERSION = "4.0.10"
 
 SDL2_VERSION = "2.32.8"
-ASSETS_FOLDER = "textures"
+ASSETS_FOLDER = "assets"
 # user options end
 
 # compiler options

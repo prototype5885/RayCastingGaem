@@ -1,5 +1,6 @@
 #include "colors.h"
 #include "extra_math.h"
+#include "level.h"
 #include "player.h"
 #include "structs.h"
 #include "texture.h"
@@ -8,7 +9,7 @@
 #include <cstdint>
 #include <vector>
 
-void CastRays(DisplayData const *dd, Player const *player, vector<uint8_t> map) {
+void CastRays(DisplayData const *dd, Player const *player) {
   for (int ray = 0; ray < dd->width; ray++) {
     const float aspectRatio = static_cast<float>(dd->width) / static_cast<float>(dd->height);
     float rayAngle = player->rotRad - (aspectRatio / 2.0f);        // start angle of leftmost ray relative to player rotation
@@ -69,8 +70,8 @@ void CastRays(DisplayData const *dd, Player const *player, vector<uint8_t> map) 
         return;
       }
 
-      if (map[i] != 0) {
-        string textureName = GetTextureName(map[i]);
+      if (currentLevel[i] != 0) {
+        string textureName = GetTextureName(currentLevel[i]);
         try {
           texture = &textureList.at(textureName);
           break;

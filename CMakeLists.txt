@@ -34,7 +34,7 @@ file(GLOB_RECURSE SRC_FILES
 add_executable(${EXECUTABLE_NAME} ${SRC_FILES})
 
 if(WIN32)
-  target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -flto)
+  target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)
 elseif(UNIX)
-  target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -flto)
+  target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)
 endif()

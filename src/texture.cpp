@@ -21,7 +21,7 @@ string GetTextureName(int wallType) {
   } else if (wallType == 2) {
     return "wall2";
   }
-  return "";
+  return "missing";
 }
 
 bool CheckIfSupportedExtension(string extension) {
@@ -40,6 +40,15 @@ bool CheckIfSupportedExtension(string extension) {
 }
 
 void LoadTextures() {
+  // create a default texture as fallback
+  uint32_t rgb = 0;
+  rgb |= 0 << 24;
+  rgb |= 255 << 16;
+  rgb |= 0 << 8;
+  rgb |= 255;
+
+  textureList["fallback"].colors.push_back(rgb);
+
   for (const directory_entry &file : directory_iterator("textures")) {
     if (file.is_regular_file() && CheckIfSupportedExtension(file.path().extension().string())) {
       string filePath = file.path().string();
@@ -69,6 +78,7 @@ void LoadTextures() {
 
         textureList[fileName].colors.push_back(rgb);
       }
+      cout << "Loaded: " << file.path().string() << ", bytes: " << textureList[fileName].colors.size() << endl;
       stbi_image_free(data);
     }
   }

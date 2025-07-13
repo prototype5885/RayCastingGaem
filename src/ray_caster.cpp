@@ -74,8 +74,8 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map) {
           texture = &textureList.at(textureName);
           break;
         } catch (const out_of_range &exception) {
-          cerr << "Texture '" << textureName << "' was not found, exception type: '" << exception.what() << "'" << endl;
-          exit(1);
+          texture = &textureList.at("fallback");
+          break;
         }
       }
     }
@@ -115,24 +115,37 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map) {
     if (percentage < 0.25f)
       percentage = 0.25f;
 
-    const float stepBetweenHorizontalSegments = (float)texture->height / (float)wallHeight;
+    // scales down texture if its wider or taller
+    const float textureDimension = fminf(texture->width, texture->height);
+
+    // calculates which pixels should be drawn vertically on each ray, like if wall segment is 400 pixel tall on the screen
+    // and texture is 64 pixels tall, it will increment by 0,16 pixels from 0 to 6 drawing the nearest pixel to the value,
+    // downwards direction
+    const float pixelColumnOnEachRay = textureDimension / (float)wallHeight;
 
     // offset is needed for walls that are very close to the player so they wont stick to the top of the screen
     // it stays 0 if wall height is smaller than the screen height
-    const float offset = (wallHeight > dd->height) ? (wallHeight - dd->height) / 2.0f : 0;
+    const float pixelColumnOffset = (wallHeight > dd->height) ? (wallHeight - dd->height) / 2.0f : 0;
 
-    float horizontalSegment = offset * stepBetweenHorizontalSegments;
+    float horizontalSegment = pixelColumnOffset * pixelColumnOnEachRay;
 
-    const float c = side ? hitPointX - floorf(hitPointX) : hitPointY - floorf(hitPointY);
+    // this calculates on a scale from 0.0 to 1.0 which part of the wall the ray hit
+    const float horizontalHitPoint = side ? hitPointX - floorf(hitPointX) : 1.0f - (hitPointY - floorf(hitPointY));
 
     for (int pixel = startPos; pixel < endPos; pixel++) {
-      const int verticalSegment = texture->height * c;
+      const int verticalSegment = (int)(textureDimension * horizontalHitPoint);
 
       const int hpi = (int)horizontalSegment * texture->height + verticalSegment; // horizontal pixel index
-      horizontalSegment += stepBetweenHorizontalSegments;
-      RGB rgb(texture->colors[hpi]);
-      rgb.Multiply(percentage);
-      dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
+
+      horizontalSegment += pixelColumnOnEachRay;
+      try {
+        RGB rgb(texture->colors[hpi]);
+        rgb.Multiply(percentage);
+        dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
+      } catch (const out_of_range &exception) {
+        dd->pixels[pixel * dd->width + ray] = vga_palette[0x00];
+        cerr << "Tried to read pixel index " << hpi << " of texture length " << texture->colors.size() << endl;
+      }
     }
   }
 }

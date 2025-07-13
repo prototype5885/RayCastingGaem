@@ -240,9 +240,9 @@ void HandleDrawing() {
 
     // add ceiling/floor color
     if (y > height / 2) {
-      pixels[i] = GREY_COLOR;
+      pixels[i] = vga_palette[0x13];
     } else {
-      pixels[i] = DARKER_GREY_COLOR;
+      pixels[i] = vga_palette[0x12];
     }
 
     // draw sky

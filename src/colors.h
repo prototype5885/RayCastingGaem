@@ -2,6 +2,9 @@
 #define COLORS_H
 
 #include <cstdint>
+#include <iostream>
+
+using namespace std;
 
 #define WHITE_COLOR ((0 << 24) | (255 << 16) | (255 << 8) | 255)
 #define GREY_COLOR ((0 << 24) | (50 << 16) | (50 << 8) | 50)
@@ -38,6 +41,8 @@ public:
     g *= multiplier;
     b *= multiplier;
   }
+
+  void Print() { cout << "0x" << hex << ReturnRGB() << ": " << r << ", " << g << ", " << b << endl; }
 };
 
 #endif

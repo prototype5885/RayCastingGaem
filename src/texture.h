@@ -19,6 +19,7 @@ public:
 
 extern map<string, Texture> textureList;
 
+bool CheckIfSupportedExtension(string extension);
 string GetTextureName(int wallType);
 void LoadTextures();
 

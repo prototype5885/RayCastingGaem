@@ -17,26 +17,41 @@ std::map<std::string, Texture> textureList;
 
 string GetTextureName(int wallType) {
   if (wallType == 1) {
-    return "wall1.png";
+    return "wall1";
   } else if (wallType == 2) {
-    return "wall2.png";
+    return "wall2";
   }
   return "";
 }
 
+bool CheckIfSupportedExtension(string extension) {
+  if (extension == ".jpg")
+    return true;
+  if (extension == ".jpeg")
+    return true;
+  if (extension == ".png")
+    return true;
+  if (extension == ".bmp")
+    return true;
+  if (extension == ".tga")
+    return true;
+
+  return false;
+}
+
 void LoadTextures() {
   for (const directory_entry &file : directory_iterator("textures")) {
-    if (file.is_regular_file() && file.path().extension() == ".png") {
-      const char *filePath = file.path().string().c_str();
+    if (file.is_regular_file() && CheckIfSupportedExtension(file.path().extension().string())) {
+      string filePath = file.path().string();
 
       int width, height, n;
-      uint8_t *data = stbi_load(filePath, &width, &height, &n, 0);
+      uint8_t *data = stbi_load(filePath.c_str(), &width, &height, &n, 0);
       if (data == NULL) {
         cerr << "Failed to load: " << filePath << endl;
         exit(1);
       }
 
-      string fileName = file.path().filename().string();
+      string fileName = file.path().stem().string();
       textureList[fileName].width = width;
       textureList[fileName].height = height;
 

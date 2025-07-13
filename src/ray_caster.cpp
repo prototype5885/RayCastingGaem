@@ -132,9 +132,7 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map) {
       horizontalSegment += stepBetweenHorizontalSegments;
       RGB rgb(texture->colors[hpi]);
       rgb.Multiply(percentage);
-      const uint32_t reColor = rgb.ReturnRGB();
-
-      dd->pixels[pixel * dd->width + ray] = reColor;
+      dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
     }
   }
 }

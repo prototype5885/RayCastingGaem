@@ -2,11 +2,12 @@
 #include "extra_math.h"
 #include "player.h"
 #include "structs.h"
+#include "texture.h"
 
 #include <cmath>
 #include <cstdint>
 
-void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, uint32_t const *tileMap) {
+void CastRays(DisplayData const *dd, Player const *player, int8_t const *map) {
   for (int ray = 0; ray < dd->width; ray++) {
     const float aspectRatio = static_cast<float>(dd->width) / static_cast<float>(dd->height);
     float rayAngle = player->rotRad - (aspectRatio / 2.0f);        // start angle of leftmost ray relative to player rotation
@@ -29,7 +30,7 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
 
     float hitPointX, hitPointY;
 
-    int tOffset = 0; // texture offset
+    Texture *texture;
 
     if (dx < 0.0f) {
       stepX = -1;
@@ -67,13 +68,15 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
         return;
       }
 
-      int wallType = map[i];
-      if (wallType == 1) {
-        tOffset = 0 * 4096;
-        break;
-      } else if (wallType == 2) {
-        tOffset = 1 * 4096;
-        break;
+      if (map[i] != 0) {
+        string textureName = GetTextureName(map[i]);
+        try {
+          texture = &textureList.at(textureName);
+          break;
+        } catch (const out_of_range &exception) {
+          cerr << "Texture '" << textureName << "' was not found, exception type: '" << exception.what() << "'" << endl;
+          exit(1);
+        }
       }
     }
 
@@ -112,7 +115,7 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
     if (percentage < 0.25f)
       percentage = 0.25f;
 
-    const float stepBetweenHorizontalSegments = 64.0f / (float)wallHeight;
+    const float stepBetweenHorizontalSegments = (float)texture->height / (float)wallHeight;
 
     // offset is needed for walls that are very close to the player so they wont stick to the top of the screen
     // it stays 0 if wall height is smaller than the screen height
@@ -123,11 +126,11 @@ void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, ui
     const float c = side ? hitPointX - floorf(hitPointX) : hitPointY - floorf(hitPointY);
 
     for (int pixel = startPos; pixel < endPos; pixel++) {
-      const int verticalSegment = 64 * c;
+      const int verticalSegment = texture->height * c;
 
-      const int hpi = (int)horizontalSegment * 64 + verticalSegment; // horizontal pixel index
+      const int hpi = (int)horizontalSegment * texture->height + verticalSegment; // horizontal pixel index
       horizontalSegment += stepBetweenHorizontalSegments;
-      RGB rgb(tileMap[hpi + tOffset]);
+      RGB rgb(texture->colors[hpi]);
       rgb.Multiply(percentage);
       const uint32_t reColor = rgb.ReturnRGB();
 

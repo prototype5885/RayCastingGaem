@@ -6,6 +6,6 @@
 
 #include <cstdint>
 
-void CastRays(DisplayData const *dd, Player const *player, int8_t const *map, uint32_t const *tileMap);
+void CastRays(DisplayData const *dd, Player const *player, int8_t const *map);
 
 #endif

@@ -15,7 +15,7 @@
 #include "player.h"
 #include "ray_caster.h"
 #include "structs.h"
-#include "texture_loader.h"
+#include "texture.h"
 #include "utils.h"
 
 #include <cmath>
@@ -26,19 +26,17 @@ using namespace std;
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
-SDL_Texture *texture = NULL;
+SDL_Texture *sdlTexture = NULL;
 SDL_Event event;
 
 DisplayData dd;
 Player player(8.0, 8.0, 0.0);
 
-uint32_t *tileMap = NULL;
-
 int width, height;
 float resScale;
 
 // clang-format off
-int8_t map[16 * 16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1,
+int8_t gameMap[16 * 16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1,
                         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
                         1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
                         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
@@ -89,13 +87,6 @@ int InitSDL(Config cfg) {
     windowMode = SDL_WINDOW_FULLSCREEN;
   }
 
-  tileMap = LoadTexture("tilemap", 512, 512);
-  if (tileMap == NULL) {
-    cerr << ("Tilemap texture coulnd't be loaded");
-    return 1;
-  }
-  // uint32_t *skybox1 = LoadTexture("skybox1", 512, 256);
-
   // initialize sdl
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     cerr << SDL_GetError();
@@ -127,8 +118,8 @@ int InitSDL(Config cfg) {
   }
 
   // create the texture that will display content in the window
-  texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
-  if (texture == NULL) {
+  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
+  if (sdlTexture == NULL) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -220,7 +211,7 @@ void HandleControls() {
 
   const int i = colY * 16 + colX;
   if (i < 256) {
-    if (map[i] == 0) {
+    if (gameMap[i] == 0) {
       player.pos.x += cosf(player.rotRad + player.moveDirRad) * speedMultiplier;
       player.pos.y += sinf(player.rotRad + player.moveDirRad) * speedMultiplier;
     }
@@ -231,8 +222,8 @@ void HandleDrawing() {
   // lock the texture
   uint32_t *pixels;
   int pitch;
-  if (SDL_LockTexture(texture, NULL, (void **)&pixels, &pitch) != 0) {
-    SDL_DestroyTexture(texture);
+  if (SDL_LockTexture(sdlTexture, NULL, (void **)&pixels, &pitch) != 0) {
+    SDL_DestroyTexture(sdlTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     printf("SDL_LockTexture Error: %s\n", SDL_GetError());
@@ -278,13 +269,13 @@ void HandleDrawing() {
       pixels[p] = rand();
     }
   }
-  CastRays(&dd, &player, map, tileMap);
+  CastRays(&dd, &player, gameMap);
   if (mapEnabled)
-    DrawMap(&dd, map, &player);
+    DrawMap(&dd, gameMap, &player);
 
   // unlock the texture and render the scene
-  SDL_UnlockTexture(texture);
-  SDL_RenderCopy(renderer, texture, NULL, NULL);
+  SDL_UnlockTexture(sdlTexture);
+  SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
   SDL_RenderPresent(renderer);
 }
 
@@ -330,6 +321,8 @@ void GameLoop() {
 
 int main(int, char **) {
   Config cfg = ReadConfigFile();
+
+  LoadTextures();
 
   int windowWidth = cfg.width;
   int windowHeight = cfg.height;

@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <format>
 #include <iostream>
 #include <set>
 #include <string>
@@ -65,9 +66,9 @@ void LoadTextures(set<uint8_t> wallTypes) {
       if (!textureNames.count(file.path().stem().string()))
         continue;
 
-      cout << "Loading " << file.path().stem() << "..." << endl;
-
       string filePath = file.path().string();
+
+      cout << format("Loading texture {}...\n", filePath);
 
       int width, height, n;
       uint8_t *data = stbi_load(filePath.c_str(), &width, &height, &n, 0);
@@ -94,7 +95,7 @@ void LoadTextures(set<uint8_t> wallTypes) {
 
         textureList[fileName].colors.push_back(rgb);
       }
-      cout << "Loaded: " << file.path().string() << ", bytes: " << textureList[fileName].colors.size() << endl;
+      cout << format("Loaded {}, bytes: {}\n", filePath, textureList[fileName].colors.size());
       stbi_image_free(data);
     }
   }

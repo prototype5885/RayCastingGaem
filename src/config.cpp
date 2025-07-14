@@ -63,7 +63,7 @@ Config ReadConfigFile() {
       }
     }
   } catch (const char *ex) {
-    std::cout << ex << endl;
+    cout << ex << endl;
     exit(1);
   }
 #endif

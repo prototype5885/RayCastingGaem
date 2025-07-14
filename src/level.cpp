@@ -2,6 +2,7 @@
 #include "texture.h"
 
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -15,7 +16,7 @@ using namespace filesystem;
 vector<uint8_t> currentLevel;
 
 int LoadLevel(string name) {
-  cout << "Loading level " << name << "..." << endl;
+  cout << format("Loading level {}...\n", name);
 
   const path filePath = "assets/levels/" + name + ".txt";
   ifstream file(filePath);
@@ -38,7 +39,7 @@ int LoadLevel(string name) {
     }
   }
 
-  cout << "Loaded level " << name << ", bytes: " << currentLevel.size() << endl;
+  cout << format("Loaded level {}, bytes: {}\n", name, currentLevel.size());
   LoadTextures(wallTypes);
 
   return 0;

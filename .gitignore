@@ -65,3 +65,4 @@ CmakeSettings.json
 config.txt
 
 /textureconverter/*.bin
+build_local.bat

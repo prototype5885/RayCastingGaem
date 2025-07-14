@@ -31,9 +31,7 @@ file(GLOB_RECURSE SRC_FILES
         "src/*.cpp"
 )
 
-add_executable(${EXECUTABLE_NAME} ${SRC_FILES}
-        src/controls.cpp
-        src/controls.h)
+add_executable(${EXECUTABLE_NAME} ${SRC_FILES})
 
 if (WIN32)
     target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)

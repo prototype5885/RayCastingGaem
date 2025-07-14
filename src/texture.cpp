@@ -43,6 +43,8 @@ bool CheckIfSupportedExtension(const string &extension) {
 }
 
 void LoadTextures(const set<uint8_t> &texturesToLoad) {
+  textureList.clear();
+
   // create a default texture as fallback
   uint32_t fallbackRgb = 0;
   fallbackRgb |= 0 << 24;

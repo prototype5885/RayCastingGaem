@@ -2,9 +2,6 @@
 #define COLORS_H
 
 #include <cstdint>
-#include <iostream>
-
-using namespace std;
 
 constexpr int VGA_PALETTE_LENGTH = 256;
 static const uint32_t vga_palette[VGA_PALETTE_LENGTH] = {

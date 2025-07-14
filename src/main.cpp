@@ -149,8 +149,8 @@ void HandleDrawing() {
   //   }
   // }
   CastRays();
-  // if (map_view::mapEnabled)
-  // map_view::DrawMap();
+  if (map_view::mapEnabled)
+    map_view::DrawMap();
 
   // unlock the texture and render the scene
   SDL_UnlockTexture(sdlTexture);

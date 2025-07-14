@@ -1,12 +1,15 @@
 #include "controls.h"
 
 #include "display.h"
+#include "level.h"
 #include "map_view.h"
 #include "player.h"
 #include "utils.h"
 
 #include <SDL2/SDL_events.h>
 #include <cstdint>
+#include <iostream>
+#include <ostream>
 
 namespace key {
 int8_t W = 0;
@@ -41,7 +44,7 @@ void HandleControls() {
         key::D = 1;
       }
       if (event.key.keysym.sym == SDLK_TAB) {
-        map_view::ToggleMap(&map_view::mapEnabled);
+        map_view::ToggleMap();
       }
       // if (event.key.keysym.sym == SDLK_n) {
       //   noiseEnabled = !noiseEnabled;
@@ -70,6 +73,10 @@ void HandleControls() {
         player::rotRad -= 2 * M_PI;
       }
       break;
+    case SDL_MOUSEWHEEL:
+      if (map_view::mapEnabled) {
+        map_view::ZoomMap(event.wheel.y);
+      }
     default:;
     }
   }
@@ -87,16 +94,16 @@ void HandleControls() {
 
   player::moveDirRad = atan2f(sideways, forwards);
 
-  // const int colX = static_cast<int>(player::pos.x + cosf(player::rotRad + player::moveDirRad) / 2.0f);
-  // const int colY = static_cast<int>(player::pos.y + sinf(player::rotRad + player::moveDirRad) / 2.0f);
+  const int colX = static_cast<int>(player::pos.x + cosf(player::rotRad + player::moveDirRad) / 2.0f);
+  const int colY = static_cast<int>(player::pos.y + sinf(player::rotRad + player::moveDirRad) / 2.0f);
 
-  // const int i = colY * 16 + colX;
-  // if (i < 256) {
-  // if (currentLevel[i] == 0) {
-  player::pos.x += cosf(player::rotRad + player::moveDirRad) * speedMultiplier;
-  player::pos.y += sinf(player::rotRad + player::moveDirRad) * speedMultiplier;
-  // }
-  // }
+  const int i = colY * 16 + colX;
+  if (i < 256) {
+    if (currentLevel[i] == 0) {
+      player::pos.x += cosf(player::rotRad + player::moveDirRad) * speedMultiplier;
+      player::pos.y += sinf(player::rotRad + player::moveDirRad) * speedMultiplier;
+    }
+  }
 }
 
 } // namespace controls

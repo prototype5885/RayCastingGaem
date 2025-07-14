@@ -2,8 +2,8 @@
 #include "display.h"
 #include "extra_math.h"
 #include "level.h"
+#include "map_view.h"
 #include "player.h"
-#include "structs.h"
 #include "texture.h"
 
 #include <cmath>
@@ -102,9 +102,15 @@ void CastRays() {
       hitPointY = static_cast<float>(mapY) + static_cast<float>(stepY) / 2.0f;
     }
 
+    if (map_view::mapEnabled) {
+      map_view::DrawRays(rayAngle, distance);
+      continue;
+    }
+
     distance = distance * cosf(rayAngle - player::rotRad); // fisheye fix
 
-    // const int wallHeight = height / distance * (100.0f / player.fov); // this is how tall the wall will be based on ray distance
+    // at this point the hit point and distance are calculated, now continuing with rendering
+
     const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray distance
     const int middle = display::height / 2;                                                  // middle of the screen
 

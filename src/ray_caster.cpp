@@ -1,4 +1,5 @@
 #include "colors.h"
+#include "display.h"
 #include "extra_math.h"
 #include "level.h"
 #include "player.h"
@@ -144,7 +145,8 @@ void CastRays(DisplayData *dd, Player const *player) {
 
       RGB rgb(texture->colors.at(hpi));
       rgb.Multiply(percentage);
-      dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
+      // dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
+      AddPixelToBuffer(dd, ray, pixel, rgb.ReturnRGB());
     }
   }
 }

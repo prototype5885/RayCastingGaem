@@ -14,17 +14,17 @@
 
 using namespace std;
 
-void CastRays(Player const *player) {
+void CastRays() {
   for (int ray = 0; ray < display::width; ray++) {
     const float aspectRatio = static_cast<float>(display::width) / static_cast<float>(display::height);
-    float rayAngle = player->rotRad - aspectRatio / 2.0f;                                                     // start angle of leftmost ray relative to player rotation
+    float rayAngle = player::rotRad - aspectRatio / 2.0f;                                                     // start angle of leftmost ray relative to player rotation
     rayAngle += deg2rad(static_cast<float>(ray)) / deg2rad(static_cast<float>(display::width)) * aspectRatio; // then increment each ray in radian by this amount to the right
 
     const float dx = cosf(rayAngle);
     const float dy = sinf(rayAngle);
 
-    int mapX = static_cast<int>(player->pos.x);
-    int mapY = static_cast<int>(player->pos.y);
+    int mapX = static_cast<int>(player::pos.x);
+    int mapY = static_cast<int>(player::pos.y);
 
     float sideDistX, sideDistY;
 
@@ -41,17 +41,17 @@ void CastRays(Player const *player) {
 
     if (dx < 0.0f) {
       stepX = -1;
-      sideDistX = (player->pos.x - static_cast<float>(mapX)) * deltaDistX;
+      sideDistX = (player::pos.x - static_cast<float>(mapX)) * deltaDistX;
     } else {
       stepX = 1;
-      sideDistX = (static_cast<float>(mapX) + 1.0f - player->pos.x) * deltaDistX;
+      sideDistX = (static_cast<float>(mapX) + 1.0f - player::pos.x) * deltaDistX;
     }
     if (dy < 0.0f) {
       stepY = -1;
-      sideDistY = (player->pos.y - static_cast<float>(mapY)) * deltaDistY;
+      sideDistY = (player::pos.y - static_cast<float>(mapY)) * deltaDistY;
     } else {
       stepY = 1;
-      sideDistY = (static_cast<float>(mapY) + 1.0f - player->pos.y) * deltaDistY;
+      sideDistY = (static_cast<float>(mapY) + 1.0f - player::pos.y) * deltaDistY;
     }
 
     bool side = false;
@@ -93,16 +93,16 @@ void CastRays(Player const *player) {
     }
 
     if (!side) { // if hit a horizontal wall
-      distance = (static_cast<float>(mapX) - player->pos.x + (1.0f - static_cast<float>(stepX)) / 2.0f) / dx;
+      distance = (static_cast<float>(mapX) - player::pos.x + (1.0f - static_cast<float>(stepX)) / 2.0f) / dx;
       hitPointX = static_cast<float>(mapX) + static_cast<float>(stepX) / 2.0f;
-      hitPointY = player->pos.y + distance * dy;
+      hitPointY = player::pos.y + distance * dy;
     } else { // if hit a vertical wall
-      distance = (static_cast<float>(mapY) - player->pos.y + (1.0f - static_cast<float>(stepY)) / 2.0f) / dy;
-      hitPointX = player->pos.x + distance * dx;
+      distance = (static_cast<float>(mapY) - player::pos.y + (1.0f - static_cast<float>(stepY)) / 2.0f) / dy;
+      hitPointX = player::pos.x + distance * dx;
       hitPointY = static_cast<float>(mapY) + static_cast<float>(stepY) / 2.0f;
     }
 
-    distance = distance * cosf(rayAngle - player->rotRad); // fisheye fix
+    distance = distance * cosf(rayAngle - player::rotRad); // fisheye fix
 
     // const int wallHeight = height / distance * (100.0f / player.fov); // this is how tall the wall will be based on ray distance
     const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray distance

@@ -3,7 +3,7 @@
 #include "shapes.h"
 #include "structs.h"
 
-void DrawMap(const Player *player) {
+void DrawMap() {
   constexpr int mapWidth = 16;
   constexpr int mapHeight = 16;
 
@@ -15,15 +15,15 @@ void DrawMap(const Player *player) {
   }
 
   Vector2i playerPosOnMap;
-  playerPosOnMap.x = static_cast<int>(player->pos.x + player->pos.x * 8);
-  playerPosOnMap.y = static_cast<int>(player->pos.y + player->pos.y * 8);
+  playerPosOnMap.x = static_cast<int>(player::pos.x + player::pos.x * 8);
+  playerPosOnMap.y = static_cast<int>(player::pos.y + player::pos.y * 8);
 
   // // draw player arrow in center
-  AddLineInDirectionWithArrow(playerPosOnMap, 12.0f, player->rotRad, 0x28);
+  AddLineInDirectionWithArrow(playerPosOnMap, 12.0f, player::rotRad, 0x28);
 
   // direction arrow for player
-  if (player->speed != 0) {
-    AddLineInDirectionWithArrow(playerPosOnMap, 8.0f, player->rotRad + player->moveDirRad, 0x2f);
+  if (player::speed != 0) {
+    AddLineInDirectionWithArrow(playerPosOnMap, 8.0f, player::rotRad + player::moveDirRad, 0x2f);
   }
 }
 

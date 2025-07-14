@@ -17,7 +17,6 @@
 #include "map_view.h"
 #include "player.h"
 #include "ray_caster.h"
-#include "structs.h"
 #include "utils.h"
 
 #include <cmath>
@@ -33,12 +32,8 @@ SDL_Renderer *renderer = nullptr;
 SDL_Texture *sdlTexture = nullptr;
 SDL_Event event;
 
-Player player(8.0, 8.0, 0.0);
-
 int logicalWidth, logicalHeight;
 float resScale;
-
-float playerSpeedDefault = 4.0f;
 
 // map
 bool mapEnabled = false;
@@ -154,12 +149,12 @@ void HandleControls() {
       }
       break;
     case SDL_MOUSEMOTION:
-      player.rotRad += deg2rad(static_cast<float>(event.motion.xrel)) * resScale / 8;
+      player::rotRad += deg2rad(static_cast<float>(event.motion.xrel)) * resScale / 8;
 
-      if (player.rotRad < -M_PI) {
-        player.rotRad += 2 * M_PI;
-      } else if (player.rotRad > M_PI) {
-        player.rotRad -= 2 * M_PI;
+      if (player::rotRad < -M_PI) {
+        player::rotRad += 2 * M_PI;
+      } else if (player::rotRad > M_PI) {
+        player::rotRad -= 2 * M_PI;
       }
       break;
     default:;
@@ -170,23 +165,23 @@ void HandleControls() {
   const auto forwards = static_cast<int8_t>(key::W - key::S);
 
   if (sideways != 0 || forwards != 0) {
-    player.speed = playerSpeedDefault;
+    player::speed = player::playerSpeedDefault;
   } else {
-    player.speed = 0;
+    player::speed = 0;
   }
 
-  const auto speedMultiplier = static_cast<float>(0.0166 * static_cast<double>(player.speed) * deltaTime);
+  const auto speedMultiplier = static_cast<float>(0.0166 * static_cast<double>(player::speed) * deltaTime);
 
-  player.moveDirRad = atan2f(sideways, forwards);
+  player::moveDirRad = atan2f(sideways, forwards);
 
-  const int colX = static_cast<int>(player.pos.x + cosf(player.rotRad + player.moveDirRad) / 2.0f);
-  const int colY = static_cast<int>(player.pos.y + sinf(player.rotRad + player.moveDirRad) / 2.0f);
+  const int colX = static_cast<int>(player::pos.x + cosf(player::rotRad + player::moveDirRad) / 2.0f);
+  const int colY = static_cast<int>(player::pos.y + sinf(player::rotRad + player::moveDirRad) / 2.0f);
 
   const int i = colY * 16 + colX;
   if (i < 256) {
     if (currentLevel[i] == 0) {
-      player.pos.x += cosf(player.rotRad + player.moveDirRad) * speedMultiplier;
-      player.pos.y += sinf(player.rotRad + player.moveDirRad) * speedMultiplier;
+      player::pos.x += cosf(player::rotRad + player::moveDirRad) * speedMultiplier;
+      player::pos.y += sinf(player::rotRad + player::moveDirRad) * speedMultiplier;
     }
   }
 }
@@ -219,7 +214,7 @@ void HandleDrawing() {
     // draw sky
     // const float skyboxScale = 256.0f / (height / 2.0f);
 
-    // const int skyboxX = x * skyboxScale + player.rotRad * (player.rotRad * 57.29578f);
+    // const int skyboxX = x * skyboxScale + player::rotRad * (player::rotRad * 57.29578f);
     // const int skyboxY = y * skyboxScale;
     // pixels[i] = skybox1[skyboxY * 512 + skyboxX];
 
@@ -242,9 +237,9 @@ void HandleDrawing() {
       pixels[p] = rand_uint32_t();
     }
   }
-  CastRays(&player);
+  CastRays();
   if (mapEnabled)
-    DrawMap(&player);
+    DrawMap();
 
   // unlock the texture and render the scene
   SDL_UnlockTexture(sdlTexture);

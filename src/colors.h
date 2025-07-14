@@ -22,34 +22,12 @@ static const uint32_t vga_palette[VGA_PALETTE_LENGTH] = {
 #define BLUE_COLOR ((0 << 24) | (0 << 16) | (0 << 8) | 255)
 #define YELLOW_COLOR ((0 << 24) | (255 << 16) | (255 << 8) | 0)
 
-class RGB {
-private:
+typedef struct {
   uint8_t r, g, b;
+} RGB;
 
-public:
-  RGB(uint32_t rgb) {
-    r = (rgb >> 16) & 0xFF;
-    g = (rgb >> 8) & 0xFF;
-    b = (rgb) & 0xFF;
-  }
-
-  uint32_t ReturnRGB() {
-    uint32_t rgb = 0;
-    rgb |= 0 << 24;
-    rgb |= r << 16;
-    rgb |= g << 8;
-    rgb |= b;
-
-    return rgb;
-  }
-
-  void Multiply(float multiplier) {
-    r *= multiplier;
-    g *= multiplier;
-    b *= multiplier;
-  }
-
-  void Print() { cout << "0x" << hex << ReturnRGB() << ": " << r << ", " << g << ", " << b << endl; }
-};
+RGB SplitRGB(uint32_t color);
+uint32_t MergeRGB(RGB rgb);
+uint32_t MultiplyRGB(uint32_t color, float multiplier);
 
 #endif

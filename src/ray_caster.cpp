@@ -143,10 +143,10 @@ void CastRays(DisplayData *dd, Player const *player) {
 
       horizontalSegment += pixelColumnOnEachRay;
 
-      RGB rgb(texture->colors.at(hpi));
-      rgb.Multiply(percentage);
-      // dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
-      AddPixelToBuffer(dd, ray, y, rgb.ReturnRGB());
+      uint32_t color = texture->colors.at(hpi);
+      color = MultiplyRGB(color, percentage);
+      // dd->pixels[y * dd->width + ray] = color;
+      AddPixelToBuffer(dd, ray, y, color);
     }
   }
 }

@@ -16,7 +16,6 @@
 #include "player.h"
 #include "ray_caster.h"
 #include "structs.h"
-#include "texture.h"
 #include "utils.h"
 
 #include <cmath>
@@ -27,9 +26,11 @@
 
 using namespace std;
 
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
-SDL_Texture *sdlTexture = NULL;
+
+
+SDL_Window *window = nullptr;
+SDL_Renderer *renderer = nullptr;
+SDL_Texture *sdlTexture = nullptr;
 SDL_Event event;
 
 DisplayData dd;
@@ -59,12 +60,12 @@ bool limitSpeed = false;
 bool noiseEnabled = false;
 
 // needed for calculations inside the loop
-float deltaTime = 1.0f;
-long currentTime = GetMicroTime();
+double deltaTime = 1.0f;
+int64_t currentTime = GetMicroTime();
 
 bool running = true;
 
-int InitSDL(Config cfg) {
+int InitSDL(const Config cfg) {
   int windowMode = SDL_WINDOW_SHOWN;
   if (cfg.fullscreen) {
     windowMode = SDL_WINDOW_FULLSCREEN;
@@ -77,7 +78,7 @@ int InitSDL(Config cfg) {
   }
   // create window
   window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, cfg.width, cfg.height, windowMode);
-  if (window == NULL) {
+  if (window == nullptr) {
     SDL_Quit();
     cerr << SDL_GetError();
     return 1;
@@ -87,7 +88,7 @@ int InitSDL(Config cfg) {
 
   // create renderer
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  if (renderer == NULL) {
+  if (renderer == nullptr) {
     SDL_DestroyWindow(window);
     SDL_Quit();
     cerr << SDL_GetError();
@@ -102,7 +103,7 @@ int InitSDL(Config cfg) {
 
   // create the texture that will display content in the window
   sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, logicalWidth, logicalHeight);
-  if (sdlTexture == NULL) {
+  if (sdlTexture == nullptr) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -165,7 +166,7 @@ void HandleControls() {
       }
       break;
     case SDL_MOUSEMOTION:
-      player.rotRad += deg2rad(event.motion.xrel) * resScale / 8;
+      player.rotRad += deg2rad(static_cast<float>(event.motion.xrel)) * resScale / 8;
 
       if (player.rotRad < -M_PI) {
         player.rotRad += 2 * M_PI;
@@ -173,11 +174,12 @@ void HandleControls() {
         player.rotRad -= 2 * M_PI;
       }
       break;
+    default:;
     }
   }
 
-  const int8_t sideways = dKeyPressed - aKeyPressed;
-  const int8_t forwards = wKeyPressed - sKeyPressed;
+  const auto sideways = static_cast<int8_t>(dKeyPressed - aKeyPressed);
+  const auto forwards = static_cast<int8_t>(wKeyPressed - sKeyPressed);
 
   if (sideways != 0 || forwards != 0) {
     player.speed = playerSpeedDefault;
@@ -185,12 +187,12 @@ void HandleControls() {
     player.speed = 0;
   }
 
-  const float speedMultiplier = 0.0166f * player.speed * deltaTime;
+  const auto speedMultiplier = static_cast<float>(0.0166 * static_cast<double>(player.speed) * deltaTime);
 
   player.moveDirRad = atan2f(sideways, forwards);
 
-  const int colX = player.pos.x + cosf(player.rotRad + player.moveDirRad) / 2.0f;
-  const int colY = player.pos.y + sinf(player.rotRad + player.moveDirRad) / 2.0f;
+  const int colX = static_cast<int>(player.pos.x + cosf(player.rotRad + player.moveDirRad) / 2.0f);
+  const int colY = static_cast<int>(player.pos.y + sinf(player.rotRad + player.moveDirRad) / 2.0f);
 
   const int i = colY * 16 + colX;
   if (i < 256) {
@@ -205,7 +207,7 @@ void HandleDrawing() {
   // lock the texture
   uint32_t *pixels;
   int pitch;
-  if (SDL_LockTexture(sdlTexture, NULL, (void **)&pixels, &pitch) != 0) {
+  if (SDL_LockTexture(sdlTexture, nullptr, reinterpret_cast<void **>(&pixels), &pitch) != 0) {
     SDL_DestroyTexture(sdlTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -249,7 +251,7 @@ void HandleDrawing() {
 
   if (noiseEnabled) {
     for (int p = 0; p < dd.size; p++) {
-      pixels[p] = rand();
+      pixels[p] = rand_uint32_t();
     }
   }
   CastRays(&dd, &player);
@@ -258,27 +260,27 @@ void HandleDrawing() {
 
   // unlock the texture and render the scene
   SDL_UnlockTexture(sdlTexture);
-  SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+  SDL_RenderCopy(renderer, sdlTexture, nullptr, nullptr);
   SDL_RenderPresent(renderer);
 }
 
-void HandleTimings(long startTime) {
+void HandleTimings(const int64_t startTime) {
   if (limitSpeed) {
-    int executionTime = GetMicroTime() - startTime;
-    int timeToSleep = 16666 - executionTime;
+    const int executionTime = static_cast<int>(GetMicroTime() - startTime);
+    const int timeToSleep = 16666 - executionTime;
 
     if (timeToSleep > 0) {
       Sleep(timeToSleep);
     }
   }
 
-  long const elapsedTime = GetMicroTime() - currentTime;
-  long const executionTimeWithSleep = GetMicroTime() - startTime;
+  const int elapsedTime = static_cast<int>(GetMicroTime() - currentTime);
+  const int executionTimeWithSleep = static_cast<int>(GetMicroTime() - startTime);
 
   int const avgFps = CalculateAverageFps(executionTimeWithSleep);
 
 #ifndef __EMSCRIPTEN__ // delta time just doesn't work in emscripten as expected
-  deltaTime = (GetMicroTime() - startTime) * 60.0f / 1000000.0f;
+  deltaTime = static_cast<double>(GetMicroTime() - startTime) * 60.0 / 1000000.0;
 #endif
 
   // 1 million microsecond
@@ -295,7 +297,7 @@ void GameLoop() {
   }
 
   // start time is used to calculate delta time
-  long startTime = GetMicroTime();
+  const int64_t startTime = GetMicroTime();
 
   HandleControls();
   HandleDrawing();
@@ -303,7 +305,7 @@ void GameLoop() {
 }
 
 int main(int, char **) {
-  Config cfg = ReadConfigFile();
+  const Config cfg = ReadConfigFile();
 
   LoadLevel("level1");
 
@@ -313,8 +315,8 @@ int main(int, char **) {
     logicalHeight = 480;
   } else {
     resScale = 1.0f / (cfg.resolutionPercentage / 100.0f);
-    logicalWidth = round(cfg.width / resScale);
-    logicalHeight = round(cfg.height / resScale);
+    logicalWidth = static_cast<int>(round(static_cast<float>(cfg.width) / resScale));
+    logicalHeight = static_cast<int>(round(static_cast<float>(cfg.height) / resScale));
   }
 
   dd.width = logicalWidth;
@@ -322,7 +324,7 @@ int main(int, char **) {
   dd.size = logicalWidth * logicalHeight;
 
   cout << "Initializing SDL..." << endl;
-  int result = InitSDL(cfg);
+  const int result = InitSDL(cfg);
   if (result != 0) {
     return 1;
   }

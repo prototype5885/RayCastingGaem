@@ -4,12 +4,9 @@
 #include "shapes.h"
 #include "structs.h"
 
-#include <cstdint>
-#include <vector>
-
-void DrawMap(DisplayData *dd, Player *player) {
-  const int mapWidth = 16;
-  const int mapHeight = 16;
+void DrawMap(const DisplayData *dd, const Player *player) {
+  constexpr int mapWidth = 16;
+  constexpr int mapHeight = 16;
 
   for (int s = 0; s < mapWidth * mapHeight; s++) {
     const int x = s % mapWidth;
@@ -19,8 +16,8 @@ void DrawMap(DisplayData *dd, Player *player) {
   }
 
   Vector2i playerPosOnMap;
-  playerPosOnMap.x = player->pos.x + player->pos.x * 8;
-  playerPosOnMap.y = player->pos.y + player->pos.y * 8;
+  playerPosOnMap.x =  static_cast<int>(player->pos.x + player->pos.x * 8);
+  playerPosOnMap.y = static_cast<int>(player->pos.y + player->pos.y * 8);
 
   // // draw player arrow in center
   AddLineInDirectionWithArrow(dd, playerPosOnMap, 12.0f, player->rotRad, RED_COLOR);
@@ -31,4 +28,4 @@ void DrawMap(DisplayData *dd, Player *player) {
   }
 }
 
-void ToggleMap(bool *mapEnabled) { *mapEnabled = !(*mapEnabled); }
+void ToggleMap(bool *mapEnabled) { *mapEnabled = !*mapEnabled; }

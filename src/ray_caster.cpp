@@ -8,19 +8,23 @@
 
 #include <cmath>
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
+#include <iostream>
 
-void CastRays(DisplayData *dd, Player const *player) {
+using namespace std;
+
+void CastRays(const DisplayData *dd, Player const *player) {
   for (int ray = 0; ray < dd->width; ray++) {
     const float aspectRatio = static_cast<float>(dd->width) / static_cast<float>(dd->height);
-    float rayAngle = player->rotRad - (aspectRatio / 2.0f);        // start angle of leftmost ray relative to player rotation
-    rayAngle += (deg2rad(ray) / deg2rad(dd->width)) * aspectRatio; // then increment each ray in radian by this amount to the right
+    float rayAngle = player->rotRad - aspectRatio / 2.0f;        // start angle of leftmost ray relative to player rotation
+    rayAngle += deg2rad(static_cast<float>(ray)) / deg2rad(static_cast<float>(dd->width)) * aspectRatio; // then increment each ray in radian by this amount to the right
 
     const float dx = cosf(rayAngle);
     const float dy = sinf(rayAngle);
 
-    int mapX = player->pos.x;
-    int mapY = player->pos.y;
+    int mapX = static_cast<int>(player->pos.x);
+    int mapY = static_cast<int>(player->pos.y);
 
     float sideDistX, sideDistY;
 
@@ -33,21 +37,21 @@ void CastRays(DisplayData *dd, Player const *player) {
 
     float hitPointX, hitPointY;
 
-    Texture *texture = NULL;
+    const Texture *texture = nullptr;
 
     if (dx < 0.0f) {
       stepX = -1;
-      sideDistX = (player->pos.x - (float)mapX) * deltaDistX;
+      sideDistX = (player->pos.x - static_cast<float>(mapX)) * deltaDistX;
     } else {
       stepX = 1;
-      sideDistX = ((float)mapX + 1.0f - player->pos.x) * deltaDistX;
+      sideDistX = (static_cast<float>(mapX) + 1.0f - player->pos.x) * deltaDistX;
     }
     if (dy < 0.0f) {
       stepY = -1;
-      sideDistY = (player->pos.y - (float)mapY) * deltaDistY;
+      sideDistY = (player->pos.y - static_cast<float>(mapY)) * deltaDistY;
     } else {
       stepY = 1;
-      sideDistY = ((float)mapY + 1.0f - player->pos.y) * deltaDistY;
+      sideDistY = (static_cast<float>(mapY) + 1.0f - player->pos.y) * deltaDistY;
     }
 
     bool side = false;
@@ -76,27 +80,32 @@ void CastRays(DisplayData *dd, Player const *player) {
         try {
           texture = &textureList.at(textureName);
           break;
-        } catch (const out_of_range &exception) {
+        } catch ([[maybe_unused]] const out_of_range &exception) {
           texture = &textureList.at("fallback");
           break;
         }
       }
     }
 
+    if (texture == nullptr) {
+      cerr << "Texture has no reason to be null at this point" << endl;
+      exit(1);
+    }
+
     if (!side) { // if hit a horizontal wall
-      distance = ((float)mapX - player->pos.x + (1.0f - (float)stepX) / 2.0f) / dx;
-      hitPointX = (float)mapX + ((float)stepX / 2.0f);
+      distance = (static_cast<float>(mapX) - player->pos.x + (1.0f - static_cast<float>(stepX)) / 2.0f) / dx;
+      hitPointX = static_cast<float>(mapX) + static_cast<float>(stepX) / 2.0f;
       hitPointY = player->pos.y + distance * dy;
     } else { // if hit a vertical wall
-      distance = (mapY - player->pos.y + (1.0f - stepY) / 2.0f) / dy;
+      distance = (static_cast<float>(mapY) - player->pos.y + (1.0f - static_cast<float>(stepY)) / 2.0f) / dy;
       hitPointX = player->pos.x + distance * dx;
-      hitPointY = mapY + ((float)stepY / 2.0f);
+      hitPointY = static_cast<float>(mapY) + static_cast<float>(stepY) / 2.0f;
     }
 
     distance = distance * cosf(rayAngle - player->rotRad); // fisheye fix
 
     // const int wallHeight = height / distance * (100.0f / player.fov); // this is how tall the wall will be based on ray distance
-    const int wallHeight = dd->height / distance; // this is how tall the wall will be based on ray distance
+    const int wallHeight = static_cast<int>(static_cast<float>(dd->height) / distance); // this is how tall the wall will be based on ray distance
     const int middle = dd->height / 2;            // middle of the screen
 
     int startPos = middle - wallHeight / 2; // wall starts at this height
@@ -107,7 +116,7 @@ void CastRays(DisplayData *dd, Player const *player) {
     if (endPos > dd->height)              // prevent it from starting from below the screen
       endPos = dd->height;
 
-    float percentage = 1.0 - (distance - 4.0f) / (16.0f - 4.0f);
+    float percentage = 1.0f - (distance - 4.0f) / (16.0f - 4.0f);
 
     if (distance < 4.0f) {
       percentage = 1.0f;
@@ -124,11 +133,11 @@ void CastRays(DisplayData *dd, Player const *player) {
     // calculates which pixels should be drawn vertically on each ray, like if wall segment is 400 pixel tall on the screen
     // and texture is 64 pixels tall, it will increment by 0,16 pixels from 0 to 6 drawing the nearest pixel to the value,
     // downwards direction
-    const float pixelColumnOnEachRay = textureDimension / (float)wallHeight;
+    const float pixelColumnOnEachRay = textureDimension / static_cast<float>(wallHeight);
 
-    // offset is needed for walls that are very close to the player so they wont stick to the top of the screen
+    // offset is needed for walls that are very close to the player so they won't stick to the top of the screen
     // it stays 0 if wall height is smaller than the screen height
-    const float pixelColumnOffset = (wallHeight > dd->height) ? (wallHeight - dd->height) / 2.0f : 0;
+    const float pixelColumnOffset = wallHeight > dd->height ? static_cast<float>(wallHeight - dd->height) / 2.0f : 0;
 
     float horizontalSegment = pixelColumnOffset * pixelColumnOnEachRay;
 
@@ -136,9 +145,9 @@ void CastRays(DisplayData *dd, Player const *player) {
     const float horizontalHitPoint = side ? hitPointX - floorf(hitPointX) : 1.0f - (hitPointY - floorf(hitPointY));
 
     for (int y = startPos; y < endPos; y++) {
-      const int verticalSegment = (int)(textureDimension * horizontalHitPoint);
+      const int verticalSegment = static_cast<int>(textureDimension * horizontalHitPoint);
 
-      int hpi = (int)horizontalSegment * texture->height + verticalSegment;
+      int hpi = static_cast<int>(horizontalSegment) * texture->height + verticalSegment;
       hpi = clampi(hpi, 0, texture->width * texture->height - 1);
 
       horizontalSegment += pixelColumnOnEachRay;

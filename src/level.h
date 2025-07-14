@@ -2,8 +2,6 @@
 #define LEVEL_H
 
 #include <cstdint>
-#include <map>
-#include <memory>
 #include <string>
 #include <vector>
 

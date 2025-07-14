@@ -20,8 +20,8 @@ public:
 
 extern map<string, Texture> textureList;
 
-bool CheckIfSupportedExtension(string extension);
+bool CheckIfSupportedExtension(const string &extension);
 string GetTextureName(uint8_t wallType);
-void LoadTextures(set<uint8_t> texturesToLoad);
+void LoadTextures(const set<uint8_t>& texturesToLoad);
 
 #endif

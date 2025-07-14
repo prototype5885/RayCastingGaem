@@ -13,7 +13,7 @@ public:
   float rotRad = 0.0f;
   float fov = 90.0f;
 
-  Player(float x, float y, float rotation) {
+  Player(const float x, const float y, const float rotation) {
     pos.x = x;
     pos.y = y;
     rotRad = deg2rad(rotation);

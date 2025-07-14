@@ -4,9 +4,6 @@
 #include "player.h"
 #include "structs.h"
 
-#include <cstdint>
-#include <vector>
-
-void CastRays(DisplayData *dd, Player const *player);
+void CastRays(const DisplayData *dd, Player const *player);
 
 #endif

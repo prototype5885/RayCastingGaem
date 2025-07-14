@@ -5,7 +5,6 @@
 #include <format>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -31,7 +30,7 @@ int LoadLevel(string name) {
   uint8_t ch;
   while (file >> ch) {
     if (ch != '\n') {
-      uint8_t wallType = static_cast<uint8_t>(ch - '0');
+      auto wallType = static_cast<uint8_t>(ch - '0');
       currentLevel.push_back(wallType);
       if (wallType != 0) {
         wallTypes.insert(wallType);

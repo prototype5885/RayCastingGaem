@@ -5,14 +5,14 @@
 #include <cmath>
 #include <cstdint>
 
-void AddCircle(DisplayData *dd, float const radius, Vector2i const circlePos, uint32_t const color) {
+void AddCircle(const DisplayData *dd, float const radius, Vector2i const circlePos, uint32_t const color) {
   int x = static_cast<int>(radius);
   int y = 0;
 
   AddPixelToBuffer(dd, circlePos.x + x, circlePos.y + y, color);
   AddPixelToBuffer(dd, circlePos.x - x, circlePos.y + y, color);
 
-  int p = 1 - radius;
+  int p = static_cast<int>(1.0f - radius);
   while (x > y) {
     y++;
 
@@ -28,7 +28,7 @@ void AddCircle(DisplayData *dd, float const radius, Vector2i const circlePos, ui
   }
 }
 
-void PlotLineLow(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
+void PlotLineLow(const DisplayData *dd, const Vector2i from, const Vector2i to, const uint32_t color) {
   const int dx = to.x - from.x;
   int dy = to.y - from.y;
 
@@ -46,14 +46,14 @@ void PlotLineLow(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
     AddPixelToBuffer(dd, x, y, color);
     if (d > 0) {
       y = y + yi;
-      d = d + (2 * (dy - dx));
+      d = d + 2 * (dy - dx);
     } else {
       d = d + 2 * dy;
     }
   }
 }
 
-void PlotLineHigh(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
+void PlotLineHigh(const DisplayData *dd, const Vector2i from, const Vector2i to, const uint32_t color) {
   int dx = to.x - from.x;
   const int dy = to.y - from.y;
 
@@ -71,14 +71,14 @@ void PlotLineHigh(DisplayData *dd, Vector2i from, Vector2i to, uint32_t color) {
     AddPixelToBuffer(dd, x, y, color);
     if (d > 0) {
       x = x + xi;
-      d = d + (2 * (dx - dy));
+      d = d + 2 * (dx - dy);
     } else {
       d = d + 2 * dx;
     }
   }
 }
 
-void AddLine(DisplayData *dd, Vector2i const from, Vector2i const to, uint32_t const color) {
+void AddLine(const DisplayData *dd, Vector2i const from, Vector2i const to, uint32_t const color) {
   if (abs(to.y - from.y) < abs(to.x - from.x)) {
     if (from.x > to.x)
       PlotLineLow(dd, to, from, color);
@@ -97,28 +97,28 @@ void AddLine(DisplayData *dd, Vector2i const from, Vector2i const to, uint32_t c
 
 Vector2i CalculateLineEndpoint(Vector2i const from, float const length, float const angle) {
   Vector2i arrowEndPoint;
-  arrowEndPoint.x = from.x + cosf(angle) * length;
-  arrowEndPoint.y = from.y + sinf(angle) * length;
+  arrowEndPoint.x = static_cast<int>(static_cast<float>(from.x) + cosf(angle) * length);
+  arrowEndPoint.y = static_cast<int>(static_cast<float>(from.y) + sinf(angle) * length);
   return arrowEndPoint;
 }
 
-void AddLineWithArrow(DisplayData *dd, Vector2i const from, Vector2i const to, float const rot, uint32_t const color) {
+void AddLineWithArrow(const DisplayData *dd, Vector2i const from, Vector2i const to, float const rot, uint32_t const color) {
   AddLine(dd, from, to, color);
 
   float arrowHeadAngle = deg2rad(135);
   for (int i = 0; i < 2; i++) {
-    Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0f, rot - arrowHeadAngle);
+    const Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0f, rot - arrowHeadAngle);
     AddLine(dd, to, arrowheadEndPoint, color);
     arrowHeadAngle += M_PI_2;
   }
 }
 
-void AddLineInDirectionWithArrow(DisplayData *dd, Vector2i const from, float const length, float const rot, uint32_t const color) {
+void AddLineInDirectionWithArrow(const DisplayData *dd, Vector2i const from, float const length, float const rot, uint32_t const color) {
   const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLineWithArrow(dd, from, lineEndpoint, rot, color);
 }
 
-void AddLineInDirection(DisplayData *dd, Vector2i const from, float const length, float const rot, uint32_t const color) {
+void AddLineInDirection(const DisplayData *dd, Vector2i const from, float const length, float const rot, uint32_t const color) {
   const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLine(dd, from, lineEndpoint, color);
 }

@@ -17,13 +17,13 @@ Config ReadConfigFile() {
 
 #ifndef __EMSCRIPTEN__
   try {
-    const char *filename = "config.txt";
+    auto filename = "config.txt";
     {
       ifstream fileExists(filename);
       if (!fileExists.good()) {
         ofstream fileWrite(filename);
         if (!fileWrite.good()) {
-          throw("Couldn't create config file");
+          throw runtime_error("Can't write config file");
         }
 
         fileWrite << "fullscreen=false\n";
@@ -37,7 +37,7 @@ Config ReadConfigFile() {
     {
       ifstream fileRead(filename);
       if (!fileRead.good()) {
-        throw("Can't read config file");
+        throw runtime_error("Can't read config file");
       }
 
       string line;
@@ -50,23 +50,23 @@ Config ReadConfigFile() {
 
         if (getline(iss, key, '=') && getline(iss, value)) {
           if (key == "fullscreen") {
-            cfg.fullscreen = (value == "true");
+            cfg.fullscreen = value == "true";
           } else if (key == "width") {
             cfg.width = stoi(value);
           } else if (key == "height") {
             cfg.height = stoi(value);
           } else if (key == "retroResolution") {
-            cfg.retroResolution = (value == "true");
+            cfg.retroResolution = value == "true";
           } else if (key == "resolutionPercentage") {
             cfg.resolutionPercentage = stof(value);
           } else if (key == "linearFiltering") {
-            cfg.linearFiltering = (value == "true");
+            cfg.linearFiltering = value == "true";
           }
         }
       }
     }
-  } catch (const char *ex) {
-    cout << ex << endl;
+  } catch (const std::runtime_error& e) {
+    cout << e.what() << endl;
     exit(1);
   }
 #endif

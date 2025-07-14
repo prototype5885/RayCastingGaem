@@ -1,12 +1,12 @@
 #include <cmath>
 
-float lerpf(float from, float to, float percentage) { return from + (to - from) * percentage; }
+float lerpf(const float from, const float to, const float percentage) { return from + (to - from) * percentage; }
 
-float deg2rad(float num) { return num * (M_PI / 180.0); }
+float deg2rad(const float num) { return num * (static_cast<float>(M_PI) / 180.0f); }
 
-float rad2deg(float num) { return num * 57.29578; }
+float rad2deg(const float num) { return num * 57.29578f; }
 
-int clampi(int d, int min, int max) {
+int clampi(const int d,const  int min,const  int max) {
   const int t = d < min ? min : d;
   return t > max ? max : t;
 }

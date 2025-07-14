@@ -135,7 +135,7 @@ void CastRays(DisplayData *dd, Player const *player) {
     // this calculates on a scale from 0.0 to 1.0 which part of the wall the ray hit
     const float horizontalHitPoint = side ? hitPointX - floorf(hitPointX) : 1.0f - (hitPointY - floorf(hitPointY));
 
-    for (int pixel = startPos; pixel < endPos; pixel++) {
+    for (int y = startPos; y < endPos; y++) {
       const int verticalSegment = (int)(textureDimension * horizontalHitPoint);
 
       int hpi = (int)horizontalSegment * texture->height + verticalSegment;
@@ -146,7 +146,7 @@ void CastRays(DisplayData *dd, Player const *player) {
       RGB rgb(texture->colors.at(hpi));
       rgb.Multiply(percentage);
       // dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
-      AddPixelToBuffer(dd, ray, pixel, rgb.ReturnRGB());
+      AddPixelToBuffer(dd, ray, y, rgb.ReturnRGB());
     }
   }
 }

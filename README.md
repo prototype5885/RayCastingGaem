@@ -7,4 +7,4 @@ cd build
 cmake ..
 make
 
-then copy the textures folder into the build folder
+then copy the assets folder into the build folder

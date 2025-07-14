@@ -21,6 +21,8 @@
 
 #include <cmath>
 #include <cstdint>
+#include <format>
+#include <iostream>
 #include <string>
 
 using namespace std;
@@ -281,7 +283,7 @@ void HandleTimings(long startTime) {
 
   // 1 million microsecond
   if (elapsedTime >= 1000000) {
-    const string title = to_string(logicalWidth) + "x" + to_string(logicalHeight) + " - " + to_string(avgFps) + " fps";
+    const string title = format("{}x{} - {} fps", logicalWidth, logicalHeight, avgFps);
     SDL_SetWindowTitle(window, title.c_str());
     currentTime = GetMicroTime();
   }
@@ -310,7 +312,7 @@ int main(int, char **) {
     logicalWidth = 640;
     logicalHeight = 480;
   } else {
-  resScale = 1.0f / (cfg.resolutionPercentage / 100.0f);
+    resScale = 1.0f / (cfg.resolutionPercentage / 100.0f);
     logicalWidth = round(cfg.width / resScale);
     logicalHeight = round(cfg.height / resScale);
   }

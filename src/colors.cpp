@@ -22,10 +22,10 @@ uint32_t MergeRGB(const RGB rgb) {
 }
 
 uint32_t MultiplyRGB(const uint32_t color, const float multiplier) {
-  RGB rgb = SplitRGB(color);
-  rgb.r = static_cast<uint8_t>(static_cast<float>(rgb.r) * multiplier);
-  rgb.g = static_cast<uint8_t>(static_cast<float>(rgb.g) * multiplier);
-  rgb.b = static_cast<uint8_t>(static_cast<float>(rgb.b) * multiplier);
+  auto [r, g, b] = SplitRGB(color);
+  r = static_cast<uint8_t>(static_cast<float>(r) * multiplier);
+  g = static_cast<uint8_t>(static_cast<float>(g) * multiplier);
+  b = static_cast<uint8_t>(static_cast<float>(b) * multiplier);
 
   return MergeRGB(rgb);
 }

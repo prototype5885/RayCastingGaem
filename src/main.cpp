@@ -33,7 +33,7 @@ SDL_Event event;
 DisplayData dd;
 Player player(8.0, 8.0, 0.0);
 
-int width, height;
+int logicalWidth, logicalHeight;
 float resScale;
 
 float playerSpeedDefault = 4.0f;
@@ -93,13 +93,13 @@ int InitSDL(Config cfg) {
   }
 
   // set resolution inside the window
-  SDL_RenderSetLogicalSize(renderer, width, height);
+  SDL_RenderSetLogicalSize(renderer, logicalWidth, logicalHeight);
   if (cfg.linearFiltering) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
   }
 
   // create the texture that will display content in the window
-  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
+  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, logicalWidth, logicalHeight);
   if (sdlTexture == NULL) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -215,10 +215,10 @@ void HandleDrawing() {
   // draw stuff before casting rays
   for (int i = 0; i < dd.size; i++) {
     // const int x = i % width;
-    const int y = i / width;
+    const int y = i / logicalWidth;
 
     // add ceiling/floor color
-    if (y > height / 2) {
+    if (y > logicalHeight / 2) {
       pixels[i] = vga_palette[0x13];
     } else {
       pixels[i] = vga_palette[0x12];
@@ -281,7 +281,7 @@ void HandleTimings(long startTime) {
 
   // 1 million microsecond
   if (elapsedTime >= 1000000) {
-    const string title = to_string(width) + "x" + to_string(height) + " - " + to_string(avgFps) + " fps";
+    const string title = to_string(logicalWidth) + "x" + to_string(logicalHeight) + " - " + to_string(avgFps) + " fps";
     SDL_SetWindowTitle(window, title.c_str());
     currentTime = GetMicroTime();
   }
@@ -305,16 +305,19 @@ int main(int, char **) {
 
   LoadLevel("level1");
 
-  int windowWidth = cfg.width;
-  int windowHeight = cfg.height;
-
+  if (cfg.retroResolution) {
+    resScale = 1.0f / (480.0f / static_cast<float>(cfg.height));
+    logicalWidth = 640;
+    logicalHeight = 480;
+  } else {
   resScale = 1.0f / (cfg.resolutionPercentage / 100.0f);
-  width = round(windowWidth / resScale);
-  height = round(windowHeight / resScale);
+    logicalWidth = round(cfg.width / resScale);
+    logicalHeight = round(cfg.height / resScale);
+  }
 
-  dd.width = width;
-  dd.height = height;
-  dd.size = width * height;
+  dd.width = logicalWidth;
+  dd.height = logicalHeight;
+  dd.size = logicalWidth * logicalHeight;
 
   cout << "Initializing SDL..." << endl;
   int result = InitSDL(cfg);

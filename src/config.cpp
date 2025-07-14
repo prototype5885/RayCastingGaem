@@ -29,6 +29,7 @@ Config ReadConfigFile() {
         fileWrite << "fullscreen=false\n";
         fileWrite << "width=1920\n";
         fileWrite << "height=1080\n";
+        fileWrite << "retroResolution=false\n";
         fileWrite << "resolutionPercentage=100\n";
         fileWrite << "linearFiltering=false\n";
       }
@@ -54,6 +55,8 @@ Config ReadConfigFile() {
             cfg.width = stoi(value);
           } else if (key == "height") {
             cfg.height = stoi(value);
+          } else if (key == "retroResolution") {
+            cfg.retroResolution = (value == "true");
           } else if (key == "resolutionPercentage") {
             cfg.resolutionPercentage = stof(value);
           } else if (key == "linearFiltering") {

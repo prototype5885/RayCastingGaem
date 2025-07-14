@@ -2,7 +2,7 @@
 #define CONFIG_READER_H
 
 typedef struct {
-  bool fullscreen, linearFiltering;
+  bool fullscreen, linearFiltering, retroResolution;
   int width, height;
   float resolutionPercentage;
 } Config;

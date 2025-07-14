@@ -15,13 +15,13 @@ class Texture {
 public:
   uint16_t width;
   uint16_t height;
-  vector<uint32_t> colors;
+  vector<uint8_t> colors;
 };
 
 extern map<string, Texture> textureList;
 
 bool CheckIfSupportedExtension(const string &extension);
 string GetTextureName(uint8_t wallType);
-void LoadTextures(const set<uint8_t>& texturesToLoad);
+void LoadTextures(const set<uint8_t> &texturesToLoad);
 
 #endif

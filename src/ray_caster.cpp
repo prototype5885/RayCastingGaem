@@ -8,16 +8,16 @@
 
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
-#include <iostream>
 
 using namespace std;
 
 void CastRays(const DisplayData *dd, Player const *player) {
   for (int ray = 0; ray < dd->width; ray++) {
     const float aspectRatio = static_cast<float>(dd->width) / static_cast<float>(dd->height);
-    float rayAngle = player->rotRad - aspectRatio / 2.0f;        // start angle of leftmost ray relative to player rotation
+    float rayAngle = player->rotRad - aspectRatio / 2.0f;                                                // start angle of leftmost ray relative to player rotation
     rayAngle += deg2rad(static_cast<float>(ray)) / deg2rad(static_cast<float>(dd->width)) * aspectRatio; // then increment each ray in radian by this amount to the right
 
     const float dx = cosf(rayAngle);
@@ -106,7 +106,7 @@ void CastRays(const DisplayData *dd, Player const *player) {
 
     // const int wallHeight = height / distance * (100.0f / player.fov); // this is how tall the wall will be based on ray distance
     const int wallHeight = static_cast<int>(static_cast<float>(dd->height) / distance); // this is how tall the wall will be based on ray distance
-    const int middle = dd->height / 2;            // middle of the screen
+    const int middle = dd->height / 2;                                                  // middle of the screen
 
     int startPos = middle - wallHeight / 2; // wall starts at this height
     if (startPos < 0)                       // prevent it from starting from above the screen
@@ -152,9 +152,9 @@ void CastRays(const DisplayData *dd, Player const *player) {
 
       horizontalSegment += pixelColumnOnEachRay;
 
-      uint32_t color = texture->colors.at(hpi);
-      color = MultiplyRGB(color, percentage);
-      // dd->pixels[y * dd->width + ray] = color;
+      const uint8_t color = texture->colors.at(hpi);
+      // dd->pixels[y * dd->width + ray] = vga_palette[color];
+      // color = MultiplyRGB(color, percentage);
       AddPixelToBuffer(dd, ray, y, color);
     }
   }

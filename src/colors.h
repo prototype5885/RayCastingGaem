@@ -26,5 +26,8 @@ typedef struct {
 RGB SplitRGB(uint32_t color);
 uint32_t MergeRGB(RGB rgb);
 uint32_t MultiplyRGB(uint32_t color, float multiplier);
+uint16_t ColorDifference(uint32_t color1, uint32_t color2);
+uint8_t ColorToVGA(uint32_t color);
+void PrintRGB(uint32_t color);
 
 #endif

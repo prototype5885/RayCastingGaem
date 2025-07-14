@@ -1,3 +1,4 @@
+#include "colors.h"
 #include "structs.h"
 
 #include <cstdint>
@@ -5,10 +6,10 @@
 
 using namespace std;
 
-void AddPixelToBuffer(const DisplayData *dd, const int x, const int y, const uint32_t color) {
+void AddPixelToBuffer(const DisplayData *dd, const int x, const int y, const uint8_t color) {
   int i = y * dd->width + x;
   if (0 <= i && i < dd->size) {
-    dd->pixels[i] = color;
+    dd->pixels[i] = vga_palette[color];
   } else {
     cerr << "Tried to put pixel out of display bounds at index: " << i << endl;
   }

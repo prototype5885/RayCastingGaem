@@ -5,6 +5,6 @@
 
 #include <cstdint>
 
-void AddPixelToBuffer(const DisplayData *dd, int x, int y, uint32_t color);
+void AddPixelToBuffer(const DisplayData *dd, int x, int y, uint8_t color);
 
 #endif

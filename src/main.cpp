@@ -26,8 +26,6 @@
 
 using namespace std;
 
-
-
 SDL_Window *window = nullptr;
 SDL_Renderer *renderer = nullptr;
 SDL_Texture *sdlTexture = nullptr;

@@ -2,6 +2,7 @@
 
 #include "stb/stb_image.h"
 
+#include "colors.h"
 #include "texture.h"
 
 #include <cstdint>
@@ -46,13 +47,13 @@ void LoadTextures(const set<uint8_t> &texturesToLoad) {
   textureList.clear();
 
   // create a default texture as fallback
-  uint32_t fallbackRgb = 0;
-  fallbackRgb |= 0 << 24;
-  fallbackRgb |= 255 << 16;
-  fallbackRgb |= 0 << 8;
-  fallbackRgb |= 255;
+  // uint32_t fallbackRgb = 0;
+  // fallbackRgb |= 0 << 24;
+  // fallbackRgb |= 255 << 16;
+  // fallbackRgb |= 0 << 8;
+  // fallbackRgb |= 255;
 
-  textureList["fallback"].colors.push_back(fallbackRgb);
+  textureList["fallback"].colors.push_back(0x24);
 
   set<string> textureNames;
 
@@ -100,7 +101,8 @@ void LoadTextures(const set<uint8_t> &texturesToLoad) {
       rgb |= data[index + 1] << 8;
       rgb |= data[index + 2];
 
-      textureList[fileName].colors.push_back(rgb);
+      uint8_t vgaColor = ColorToVGA(rgb);
+      textureList[fileName].colors.push_back(vgaColor);
     }
     cout << format("Loaded {}, bytes: {}\n", filePath, textureList[fileName].colors.size());
     stbi_image_free(data);

@@ -12,19 +12,19 @@ void DrawMap(const DisplayData *dd, const Player *player) {
     const int x = s % mapWidth;
     const int y = s / mapWidth;
 
-    AddPixelToBuffer(dd, x + x * 8, y + y * 8, RED_COLOR);
+    AddPixelToBuffer(dd, x + x * 8, y + y * 8, 0x28);
   }
 
   Vector2i playerPosOnMap;
-  playerPosOnMap.x =  static_cast<int>(player->pos.x + player->pos.x * 8);
+  playerPosOnMap.x = static_cast<int>(player->pos.x + player->pos.x * 8);
   playerPosOnMap.y = static_cast<int>(player->pos.y + player->pos.y * 8);
 
   // // draw player arrow in center
-  AddLineInDirectionWithArrow(dd, playerPosOnMap, 12.0f, player->rotRad, RED_COLOR);
+  AddLineInDirectionWithArrow(dd, playerPosOnMap, 12.0f, player->rotRad, 0x28);
 
   // direction arrow for player
   if (player->speed != 0) {
-    AddLineInDirectionWithArrow(dd, playerPosOnMap, 8.0f, player->rotRad + player->moveDirRad, GREEN_COLOR);
+    AddLineInDirectionWithArrow(dd, playerPosOnMap, 8.0f, player->rotRad + player->moveDirRad, 0x2f);
   }
 }
 

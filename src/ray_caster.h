@@ -7,6 +7,6 @@
 #include <cstdint>
 #include <vector>
 
-void CastRays(DisplayData const *dd, Player const *player);
+void CastRays(DisplayData *dd, Player const *player);
 
 #endif

@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <vector>
 
-void CastRays(DisplayData const *dd, Player const *player) {
+void CastRays(DisplayData *dd, Player const *player) {
   for (int ray = 0; ray < dd->width; ray++) {
     const float aspectRatio = static_cast<float>(dd->width) / static_cast<float>(dd->height);
     float rayAngle = player->rotRad - (aspectRatio / 2.0f);        // start angle of leftmost ray relative to player rotation

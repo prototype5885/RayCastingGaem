@@ -40,11 +40,6 @@ float resScale;
 
 float playerSpeedDefault = 4.0f;
 
-// bool tabKeyPressed = false;
-
-// bool nKeyPressed = false;
-// bool hKeyPressed = false;
-
 // map
 bool mapEnabled = false;
 

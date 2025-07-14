@@ -9,5 +9,6 @@ extern uint32_t *pixels;
 } // namespace display
 
 void AddPixelToBuffer(int x, int y, uint8_t color);
+void AddPixelToBufferUnsafe(int x, int y, uint8_t color);
 
 #endif

@@ -18,3 +18,5 @@ void AddPixelToBuffer(const int x, const int y, const uint8_t color) {
     cerr << "Tried to put pixel out of display bounds at index: " << i << endl;
   }
 }
+
+void AddPixelToBufferUnsafe(const int x, const int y, const uint8_t color) { display::pixels[y * display::width + x] = vga_palette[color]; }

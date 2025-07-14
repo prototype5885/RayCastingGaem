@@ -153,9 +153,8 @@ void CastRays(Player const *player) {
       horizontalSegment += pixelColumnOnEachRay;
 
       const uint8_t color = texture->colors.at(hpi);
-      // display::pixels[y * display::width + ray] = vga_palette[color];
       // color = MultiplyRGB(color, percentage);
-      AddPixelToBuffer(ray, y, color);
+      AddPixelToBufferUnsafe(ray, y, color);
     }
   }
 }

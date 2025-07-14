@@ -1,17 +1,20 @@
 #include "utils.h"
+#include "SDL2/sdl.h"
 
 #include <cstdint>
+#include <format>
 #include <thread>
 
 using namespace std;
+
+double deltaTime = 1.0;
+bool running = true;
 
 // float rand_float() {
 //   return gen_rand_float(gen);
 // }
 
-uint32_t rand_uint32_t() {
-  return gen_rand_uint32_t(gen);
-}
+uint32_t rand_uint32_t() { return gen_rand_uint32_t(gen); }
 
 int64_t GetMicroTime() {
   auto const now = chrono::steady_clock::now();

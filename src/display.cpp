@@ -6,6 +6,7 @@
 using namespace std;
 
 namespace display {
+float resScale = 1.0f;
 int width, height, size;
 uint32_t *pixels;
 } // namespace display
@@ -15,7 +16,7 @@ void AddPixelToBuffer(const int x, const int y, const uint8_t color) {
   if (0 <= i && i < display::size) {
     display::pixels[i] = vga_palette[color];
   } else {
-    cerr << "Tried to put pixel out of display bounds at index: " << i << endl;
+    // cerr << "Tried to put pixel out of display bounds at index: " << i << endl;
   }
 }
 

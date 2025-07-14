@@ -1,7 +1,7 @@
 #ifndef SHAPES_H
 #define SHAPES_H
 
-#include "structs.h"
+#include "extra_math.h"
 
 #include <cstdint>
 

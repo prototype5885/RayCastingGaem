@@ -4,6 +4,7 @@
 #include <cstdint>
 
 namespace display {
+extern float resScale;
 extern int width, height, size;
 extern uint32_t *pixels;
 } // namespace display

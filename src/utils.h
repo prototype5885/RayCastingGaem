@@ -1,10 +1,13 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <random>
 #include <cstdint>
+#include <random>
 
 using namespace std;
+
+extern double deltaTime;
+extern bool running;
 
 inline random_device rd;
 inline mt19937 gen(rd());

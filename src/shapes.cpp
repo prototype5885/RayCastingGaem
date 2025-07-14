@@ -1,6 +1,5 @@
 #include "display.h"
 #include "extra_math.h"
-#include "structs.h"
 
 #include <cmath>
 #include <cstdint>

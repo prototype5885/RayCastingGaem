@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "structs.h"
+#include "extra_math.h"
 
 namespace player {
 constexpr float playerSpeedDefault = 4.0f;

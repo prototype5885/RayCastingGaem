@@ -12,10 +12,8 @@
 #include "config.h"
 #include "controls.h"
 #include "display.h"
-#include "extra_math.h"
 #include "level.h"
 #include "map_view.h"
-#include "player.h"
 #include "ray_caster.h"
 #include "utils.h"
 
@@ -30,23 +28,17 @@ using namespace std;
 SDL_Window *window = nullptr;
 SDL_Renderer *renderer = nullptr;
 SDL_Texture *sdlTexture = nullptr;
-SDL_Event event;
 
 int logicalWidth, logicalHeight;
 float resScale;
 
-// map
-bool mapEnabled = false;
-
 // extra debug stuff
 bool limitSpeed = false;
-bool noiseEnabled = false;
+// bool noiseEnabled = false;
 
 // needed for calculations inside the loop
-double deltaTime = 1.0f;
-int64_t currentTime = GetMicroTime();
 
-bool running = true;
+int64_t currentTime = GetMicroTime();
 
 int InitSDL(const Config cfg) {
   int windowMode = SDL_WINDOW_SHOWN;
@@ -105,87 +97,6 @@ void Quit() {
   SDL_Quit();
 }
 
-void HandleControls() {
-  while (SDL_PollEvent(&event)) {
-    switch (event.type) {
-    case SDL_QUIT:
-      running = false;
-      break;
-    case SDL_KEYDOWN:
-      if (event.key.keysym.sym == SDLK_ESCAPE) {
-        running = false;
-      }
-      if (event.key.keysym.sym == SDLK_w) {
-        key::W = 1;
-      }
-      if (event.key.keysym.sym == SDLK_s) {
-        key::S = 1;
-      }
-      if (event.key.keysym.sym == SDLK_a) {
-        key::A = 1;
-      }
-      if (event.key.keysym.sym == SDLK_d) {
-        key::D = 1;
-      }
-      if (event.key.keysym.sym == SDLK_TAB) {
-        ToggleMap(&mapEnabled);
-      }
-      if (event.key.keysym.sym == SDLK_n) {
-        noiseEnabled = !noiseEnabled;
-      }
-      break;
-    case SDL_KEYUP:
-      if (event.key.keysym.sym == SDLK_w) {
-        key::W = 0;
-      }
-      if (event.key.keysym.sym == SDLK_s) {
-        key::S = 0;
-      }
-      if (event.key.keysym.sym == SDLK_a) {
-        key::A = 0;
-      }
-      if (event.key.keysym.sym == SDLK_d) {
-        key::D = 0;
-      }
-      break;
-    case SDL_MOUSEMOTION:
-      player::rotRad += deg2rad(static_cast<float>(event.motion.xrel)) * resScale / 8;
-
-      if (player::rotRad < -M_PI) {
-        player::rotRad += 2 * M_PI;
-      } else if (player::rotRad > M_PI) {
-        player::rotRad -= 2 * M_PI;
-      }
-      break;
-    default:;
-    }
-  }
-
-  const auto sideways = static_cast<int8_t>(key::D - key::A);
-  const auto forwards = static_cast<int8_t>(key::W - key::S);
-
-  if (sideways != 0 || forwards != 0) {
-    player::speed = player::playerSpeedDefault;
-  } else {
-    player::speed = 0;
-  }
-
-  const auto speedMultiplier = static_cast<float>(0.0166 * static_cast<double>(player::speed) * deltaTime);
-
-  player::moveDirRad = atan2f(sideways, forwards);
-
-  const int colX = static_cast<int>(player::pos.x + cosf(player::rotRad + player::moveDirRad) / 2.0f);
-  const int colY = static_cast<int>(player::pos.y + sinf(player::rotRad + player::moveDirRad) / 2.0f);
-
-  const int i = colY * 16 + colX;
-  if (i < 256) {
-    if (currentLevel[i] == 0) {
-      player::pos.x += cosf(player::rotRad + player::moveDirRad) * speedMultiplier;
-      player::pos.y += sinf(player::rotRad + player::moveDirRad) * speedMultiplier;
-    }
-  }
-}
-
 void HandleDrawing() {
   // lock the texture
   uint32_t *pixels;
@@ -232,14 +143,14 @@ void HandleDrawing() {
   //   pixels[y * width + x] = skybox1[i];
   // }
 
-  if (noiseEnabled) {
-    for (int p = 0; p < display::size; p++) {
-      pixels[p] = rand_uint32_t();
-    }
-  }
+  // if (noiseEnabled) {
+  //   for (int p = 0; p < display::size; p++) {
+  //     pixels[p] = rand_uint32_t();
+  //   }
+  // }
   CastRays();
-  if (mapEnabled)
-    DrawMap();
+  // if (map_view::mapEnabled)
+  // map_view::DrawMap();
 
   // unlock the texture and render the scene
   SDL_UnlockTexture(sdlTexture);
@@ -282,7 +193,7 @@ void GameLoop() {
   // start time is used to calculate delta time
   const int64_t startTime = GetMicroTime();
 
-  HandleControls();
+  controls::HandleControls();
   HandleDrawing();
   HandleTimings(startTime);
 }

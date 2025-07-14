@@ -8,7 +8,7 @@ import webbrowser
 import threading
 
 # user options
-ALPINE_VERSION  = "3.22"
+ALPINE_VERSION = "3.22"
 EMSCRIPTEN_VERSION = "4.0.10"
 
 SDL2_VERSION = "2.32.8"
@@ -25,11 +25,12 @@ WINDOWS_LINKING_ARGS = f"-lmingw32 {DEFAULT_LINKING_ARGS}"
 LINUX_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS}"
 LINUX_LINKING_ARGS = f"{DEFAULT_LINKING_ARGS}"
 
-EMSCRIPTEN_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS} -sNO_DISABLE_EXCEPTION_CATCHING"
+EMSCRIPTEN_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS} -std=c++20 -sNO_DISABLE_EXCEPTION_CATCHING"
 EMSCRIPTEN_LINKING_ARGS = ""
 # compiler options end
 
 DEFAULT_TEXT = "Type a number (Default = 1)"
+
 
 def error(error):
     print()
@@ -37,6 +38,7 @@ def error(error):
     print()
     input("Press any key to exit...")
     exit(1)
+
 
 def make_docker_file(IMAGE, COMMAND, SDL2_VERSION, OS):
     if OS == "1":
@@ -58,17 +60,20 @@ def make_docker_file(IMAGE, COMMAND, SDL2_VERSION, OS):
             WORKDIR /app
         """)
 
+
 def build_emscripten(files, OUTPUT, BUILD_DIR, ASSETS_FOLDER):
     if not os.path.exists(os.path.join("emscripten", "index.html")):
         error("index.html was not found in the emscripten folder")
-            
+
     os.makedirs(BUILD_DIR, exist_ok=True)
     subprocess.run(["copy", os.path.join("emscripten", "index.html"), BUILD_DIR], shell=True, check=True)
 
     emcc_command = f'em++ {EMSCRIPTEN_COMPILE_ARGS} {files} -o {BUILD_DIR}/{OUTPUT}.js -s USE_SDL=2 --preload-file {ASSETS_FOLDER}'
 
     print("Compiling...")
-    result = subprocess.run(f'docker run --rm -v "{os.getcwd()}:/app" -w /app emscripten/emsdk:{EMSCRIPTEN_VERSION} sh -c "{emcc_command}"', shell=True)
+    result = subprocess.run(
+        f'docker run --rm -v "{os.getcwd()}:/app" -w /app emscripten/emsdk:{EMSCRIPTEN_VERSION} sh -c "{emcc_command}"',
+        shell=True)
     if result.returncode == 0:
         print(f"Build successful into folder: {BUILD_DIR}")
 
@@ -90,6 +95,7 @@ def build_emscripten(files, OUTPUT, BUILD_DIR, ASSETS_FOLDER):
     else:
         error("Build failed")
 
+
 def main():
     files = " ".join([f"/app/{f}" for f in [os.path.join("src/", f) for f in os.listdir("src/") if f.endswith(".cpp")]])
 
@@ -102,7 +108,7 @@ def main():
         print("Building for windows...")
         OUTPUT = "game.exe"
         BUILD_DIR = "build_windows"
-        
+
         COMPILER = "x86_64-w64-mingw32-g++"
         COMPILE_ARGS = WINDOWS_COMPILE_ARGS
         LINKING_ARGS = WINDOWS_LINKING_ARGS
@@ -121,7 +127,6 @@ def main():
     else:
         error("Incorrect target selection")
 
-
     print("What you want your Docker image to be?")
     print("1. Alpine, 2. Arch")
     print(DEFAULT_TEXT)
@@ -137,7 +142,7 @@ def main():
         elif chosen_os == "2":
             COMMAND += "build-base sdl2-dev"
             DOCKER_NAME = "alpine_builder_linux"
-        
+
     elif chosen_docker == "2":
         IMAGE = "archlinux:latest"
 
@@ -172,7 +177,7 @@ def main():
         dest_assets_path = os.path.join(BUILD_DIR, ASSETS_FOLDER)
         if os.path.exists(ASSETS_FOLDER):
             if os.path.exists(dest_assets_path):
-                shutil.rmtree(dest_assets_path) # remove previous
+                shutil.rmtree(dest_assets_path)  # remove previous
             shutil.copytree(ASSETS_FOLDER, dest_assets_path)
         else:
             print(f"'{ASSETS_FOLDER}' folder was not found, ignoring...")
@@ -193,7 +198,7 @@ def main():
         error(e)
 
     docker_run_command = f"{COMPILER} {COMPILE_ARGS} {files} -o {BUILD_DIR}/{OUTPUT} {LINKING_ARGS}"
-    
+
     print("Compiling...")
     if chosen_os == "1":
         docker_run_command += f" && cp /usr/x86_64-w64-mingw32/bin/SDL2.dll {BUILD_DIR}"
@@ -205,7 +210,7 @@ def main():
         "-w", "/app",
         DOCKER_NAME,
         "sh", "-c", docker_run_command
-        ]  
+    ]
     try:
         compile_result = subprocess.run(docker_run_full_command, check=False)
         if compile_result.returncode == 0:
@@ -220,6 +225,7 @@ def main():
     if chosen_os == "1" and os.name == "nt" or chosen_os == "2" and os.name == "posix":
         print("Starting the game...")
         subprocess.run(os.path.join(BUILD_DIR, OUTPUT))
+
 
 if __name__ == "__main__":
     main()

@@ -10,6 +10,8 @@
 
 #include "colors.h"
 #include "config.h"
+#include "controls.h"
+#include "display.h"
 #include "extra_math.h"
 #include "level.h"
 #include "map_view.h"
@@ -31,19 +33,12 @@ SDL_Renderer *renderer = nullptr;
 SDL_Texture *sdlTexture = nullptr;
 SDL_Event event;
 
-DisplayData dd;
 Player player(8.0, 8.0, 0.0);
 
 int logicalWidth, logicalHeight;
 float resScale;
 
 float playerSpeedDefault = 4.0f;
-
-// key pressed values
-int8_t wKeyPressed = 0;
-int8_t sKeyPressed = 0;
-int8_t aKeyPressed = 0;
-int8_t dKeyPressed = 0;
 
 // bool tabKeyPressed = false;
 
@@ -131,16 +126,16 @@ void HandleControls() {
         running = false;
       }
       if (event.key.keysym.sym == SDLK_w) {
-        wKeyPressed = 1;
+        key::W = 1;
       }
       if (event.key.keysym.sym == SDLK_s) {
-        sKeyPressed = 1;
+        key::S = 1;
       }
       if (event.key.keysym.sym == SDLK_a) {
-        aKeyPressed = 1;
+        key::A = 1;
       }
       if (event.key.keysym.sym == SDLK_d) {
-        dKeyPressed = 1;
+        key::D = 1;
       }
       if (event.key.keysym.sym == SDLK_TAB) {
         ToggleMap(&mapEnabled);
@@ -151,16 +146,16 @@ void HandleControls() {
       break;
     case SDL_KEYUP:
       if (event.key.keysym.sym == SDLK_w) {
-        wKeyPressed = 0;
+        key::W = 0;
       }
       if (event.key.keysym.sym == SDLK_s) {
-        sKeyPressed = 0;
+        key::S = 0;
       }
       if (event.key.keysym.sym == SDLK_a) {
-        aKeyPressed = 0;
+        key::A = 0;
       }
       if (event.key.keysym.sym == SDLK_d) {
-        dKeyPressed = 0;
+        key::D = 0;
       }
       break;
     case SDL_MOUSEMOTION:
@@ -176,8 +171,8 @@ void HandleControls() {
     }
   }
 
-  const auto sideways = static_cast<int8_t>(dKeyPressed - aKeyPressed);
-  const auto forwards = static_cast<int8_t>(wKeyPressed - sKeyPressed);
+  const auto sideways = static_cast<int8_t>(key::D - key::A);
+  const auto forwards = static_cast<int8_t>(key::W - key::S);
 
   if (sideways != 0 || forwards != 0) {
     player.speed = playerSpeedDefault;
@@ -212,10 +207,10 @@ void HandleDrawing() {
     printf("SDL_LockTexture Error: %s\n", SDL_GetError());
     SDL_Quit();
   }
-  dd.pixels = pixels;
+  display::pixels = pixels;
 
   // draw stuff before casting rays
-  for (int i = 0; i < dd.size; i++) {
+  for (int i = 0; i < display::size; i++) {
     // const int x = i % width;
     const int y = i / logicalWidth;
 
@@ -248,13 +243,13 @@ void HandleDrawing() {
   // }
 
   if (noiseEnabled) {
-    for (int p = 0; p < dd.size; p++) {
+    for (int p = 0; p < display::size; p++) {
       pixels[p] = rand_uint32_t();
     }
   }
-  CastRays(&dd, &player);
+  CastRays(&player);
   if (mapEnabled)
-    DrawMap(&dd, &player);
+    DrawMap(&player);
 
   // unlock the texture and render the scene
   SDL_UnlockTexture(sdlTexture);
@@ -317,9 +312,9 @@ int main(int, char **) {
     logicalHeight = static_cast<int>(round(static_cast<float>(cfg.height) / resScale));
   }
 
-  dd.width = logicalWidth;
-  dd.height = logicalHeight;
-  dd.size = logicalWidth * logicalHeight;
+  display::width = logicalWidth;
+  display::height = logicalHeight;
+  display::size = logicalWidth * logicalHeight;
 
   cout << "Initializing SDL..." << endl;
   const int result = InitSDL(cfg);

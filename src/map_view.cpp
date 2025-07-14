@@ -1,10 +1,9 @@
-#include "colors.h"
 #include "display.h"
 #include "player.h"
 #include "shapes.h"
 #include "structs.h"
 
-void DrawMap(const DisplayData *dd, const Player *player) {
+void DrawMap(const Player *player) {
   constexpr int mapWidth = 16;
   constexpr int mapHeight = 16;
 
@@ -12,7 +11,7 @@ void DrawMap(const DisplayData *dd, const Player *player) {
     const int x = s % mapWidth;
     const int y = s / mapWidth;
 
-    AddPixelToBuffer(dd, x + x * 8, y + y * 8, 0x28);
+    AddPixelToBuffer(x + x * 8, y + y * 8, 0x28);
   }
 
   Vector2i playerPosOnMap;
@@ -20,11 +19,11 @@ void DrawMap(const DisplayData *dd, const Player *player) {
   playerPosOnMap.y = static_cast<int>(player->pos.y + player->pos.y * 8);
 
   // // draw player arrow in center
-  AddLineInDirectionWithArrow(dd, playerPosOnMap, 12.0f, player->rotRad, 0x28);
+  AddLineInDirectionWithArrow(playerPosOnMap, 12.0f, player->rotRad, 0x28);
 
   // direction arrow for player
   if (player->speed != 0) {
-    AddLineInDirectionWithArrow(dd, playerPosOnMap, 8.0f, player->rotRad + player->moveDirRad, 0x2f);
+    AddLineInDirectionWithArrow(playerPosOnMap, 8.0f, player->rotRad + player->moveDirRad, 0x2f);
   }
 }
 

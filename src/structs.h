@@ -4,11 +4,6 @@
 #include <cstdint>
 
 typedef struct {
-  int width, height, size;
-  uint32_t *pixels;
-} DisplayData;
-
-typedef struct {
   float x, y;
 } Vector2;
 

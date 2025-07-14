@@ -14,11 +14,11 @@
 
 using namespace std;
 
-void CastRays(const DisplayData *dd, Player const *player) {
-  for (int ray = 0; ray < dd->width; ray++) {
-    const float aspectRatio = static_cast<float>(dd->width) / static_cast<float>(dd->height);
-    float rayAngle = player->rotRad - aspectRatio / 2.0f;                                                // start angle of leftmost ray relative to player rotation
-    rayAngle += deg2rad(static_cast<float>(ray)) / deg2rad(static_cast<float>(dd->width)) * aspectRatio; // then increment each ray in radian by this amount to the right
+void CastRays(Player const *player) {
+  for (int ray = 0; ray < display::width; ray++) {
+    const float aspectRatio = static_cast<float>(display::width) / static_cast<float>(display::height);
+    float rayAngle = player->rotRad - aspectRatio / 2.0f;                                                     // start angle of leftmost ray relative to player rotation
+    rayAngle += deg2rad(static_cast<float>(ray)) / deg2rad(static_cast<float>(display::width)) * aspectRatio; // then increment each ray in radian by this amount to the right
 
     const float dx = cosf(rayAngle);
     const float dy = sinf(rayAngle);
@@ -105,16 +105,16 @@ void CastRays(const DisplayData *dd, Player const *player) {
     distance = distance * cosf(rayAngle - player->rotRad); // fisheye fix
 
     // const int wallHeight = height / distance * (100.0f / player.fov); // this is how tall the wall will be based on ray distance
-    const int wallHeight = static_cast<int>(static_cast<float>(dd->height) / distance); // this is how tall the wall will be based on ray distance
-    const int middle = dd->height / 2;                                                  // middle of the screen
+    const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray distance
+    const int middle = display::height / 2;                                                  // middle of the screen
 
     int startPos = middle - wallHeight / 2; // wall starts at this height
     if (startPos < 0)                       // prevent it from starting from above the screen
       startPos = 0;
 
     int endPos = middle + wallHeight / 2; // wall ends here
-    if (endPos > dd->height)              // prevent it from starting from below the screen
-      endPos = dd->height;
+    if (endPos > display::height)         // prevent it from starting from below the screen
+      endPos = display::height;
 
     float percentage = 1.0f - (distance - 4.0f) / (16.0f - 4.0f);
 
@@ -137,7 +137,7 @@ void CastRays(const DisplayData *dd, Player const *player) {
 
     // offset is needed for walls that are very close to the player so they won't stick to the top of the screen
     // it stays 0 if wall height is smaller than the screen height
-    const float pixelColumnOffset = wallHeight > dd->height ? static_cast<float>(wallHeight - dd->height) / 2.0f : 0;
+    const float pixelColumnOffset = wallHeight > display::height ? static_cast<float>(wallHeight - display::height) / 2.0f : 0;
 
     float horizontalSegment = pixelColumnOffset * pixelColumnOnEachRay;
 
@@ -153,9 +153,9 @@ void CastRays(const DisplayData *dd, Player const *player) {
       horizontalSegment += pixelColumnOnEachRay;
 
       const uint8_t color = texture->colors.at(hpi);
-      // dd->pixels[y * dd->width + ray] = vga_palette[color];
+      // display::pixels[y * display::width + ray] = vga_palette[color];
       // color = MultiplyRGB(color, percentage);
-      AddPixelToBuffer(dd, ray, y, color);
+      AddPixelToBuffer(ray, y, color);
     }
   }
 }

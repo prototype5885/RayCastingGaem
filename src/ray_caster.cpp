@@ -32,7 +32,7 @@ void CastRays(DisplayData const *dd, Player const *player) {
 
     float hitPointX, hitPointY;
 
-    Texture *texture;
+    Texture *texture = NULL;
 
     if (dx < 0.0f) {
       stepX = -1;
@@ -137,17 +137,14 @@ void CastRays(DisplayData const *dd, Player const *player) {
     for (int pixel = startPos; pixel < endPos; pixel++) {
       const int verticalSegment = (int)(textureDimension * horizontalHitPoint);
 
-      const int hpi = (int)horizontalSegment * texture->height + verticalSegment; // horizontal pixel index
+      int hpi = (int)horizontalSegment * texture->height + verticalSegment;
+      hpi = clampi(hpi, 0, texture->width * texture->height - 1);
 
       horizontalSegment += pixelColumnOnEachRay;
-      try {
-        RGB rgb(texture->colors[hpi]);
-        rgb.Multiply(percentage);
-        dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
-      } catch (const out_of_range &exception) {
-        dd->pixels[pixel * dd->width + ray] = vga_palette[0x00];
-        cerr << "Tried to read pixel index " << hpi << " of texture length " << texture->colors.size() << endl;
-      }
+
+      RGB rgb(texture->colors.at(hpi));
+      rgb.Multiply(percentage);
+      dd->pixels[pixel * dd->width + ray] = rgb.ReturnRGB();
     }
   }
 }

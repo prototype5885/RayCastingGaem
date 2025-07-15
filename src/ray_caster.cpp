@@ -158,8 +158,9 @@ void CastRays() {
 
       horizontalSegment += pixelColumnOnEachRay;
 
-      const uint8_t color = texture->colors.at(hpi);
-      // color = MultiplyRGB(color, percentage);
+      // const uint8_t color = texture->colors.at(hpi);
+      uint32_t color = texture->colors.at(hpi);
+      color = MultiplyRGB(color, percentage);
       AddPixelToBufferUnsafe(ray, y, color);
     }
   }

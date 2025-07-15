@@ -15,7 +15,7 @@ class Texture {
 public:
   uint16_t width;
   uint16_t height;
-  vector<uint8_t> colors;
+  vector<uint32_t> colors;
 };
 
 extern map<string, Texture> textureList;

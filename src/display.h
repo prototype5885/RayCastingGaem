@@ -9,7 +9,7 @@ extern int width, height, size;
 extern uint32_t *pixels;
 } // namespace display
 
-void AddPixelToBuffer(int x, int y, uint8_t color);
-void AddPixelToBufferUnsafe(int x, int y, uint8_t color);
+void AddPixelToBuffer(int x, int y, uint32_t color);
+void AddPixelToBufferUnsafe(int x, int y, uint32_t color);
 
 #endif

@@ -45,19 +45,19 @@ uint16_t ColorDifference(const uint32_t color1, const uint32_t color2) {
   return rDif + gDiff + bDiff;
 }
 
-uint8_t ColorToVGA(const uint32_t color) {
-  uint8_t nearest = 0;
-  uint16_t lastDiff = UINT16_MAX;
-  for (int i = 0; i < VGA_PALETTE_LENGTH; i++) {
-    const uint16_t diff = ColorDifference(color, vga_palette[i]);
-    if (diff < lastDiff) {
-      nearest = static_cast<uint8_t>(i);
-      lastDiff = diff;
-    }
-  }
-
-  return nearest;
-}
+// uint8_t ColorToVGA(const uint32_t color) {
+//   uint8_t nearest = 0;
+//   uint16_t lastDiff = UINT16_MAX;
+//   for (int i = 0; i < VGA_PALETTE_LENGTH; i++) {
+//     const uint16_t diff = ColorDifference(color, vga_palette[i]);
+//     if (diff < lastDiff) {
+//       nearest = static_cast<uint8_t>(i);
+//       lastDiff = diff;
+//     }
+//   }
+//
+//   return nearest;
+// }
 
 void PrintRGB(const uint32_t color) {
   auto [r, g, b] = SplitRGB(color);

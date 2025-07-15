@@ -10,16 +10,11 @@
 
 #include <SDL2/SDL_events.h>
 #include <algorithm>
+#include <format>
 #include <iostream>
 
-namespace key {
-int8_t W = 0;
-int8_t S = 0;
-int8_t A = 0;
-int8_t D = 0;
-} // namespace key
-
 SDL_Event event;
+const uint8_t *keyStates = SDL_GetKeyboardState(nullptr);
 
 void controls::HandleControls() {
   while (SDL_PollEvent(&event)) {
@@ -31,38 +26,14 @@ void controls::HandleControls() {
       if (event.key.keysym.sym == SDLK_ESCAPE) {
         utils::running = false;
       }
-      if (event.key.keysym.sym == SDLK_w) {
-        key::W = 1;
-      }
-      if (event.key.keysym.sym == SDLK_s) {
-        key::S = 1;
-      }
-      if (event.key.keysym.sym == SDLK_a) {
-        key::A = 1;
-      }
-      if (event.key.keysym.sym == SDLK_d) {
-        key::D = 1;
-      }
       if (event.key.keysym.sym == SDLK_TAB) {
         map_view::ToggleMap();
       }
+
       // if (event.key.keysym.sym == SDLK_n) {
       //   noiseEnabled = !noiseEnabled;
       // }
-      break;
-    case SDL_KEYUP:
-      if (event.key.keysym.sym == SDLK_w) {
-        key::W = 0;
-      }
-      if (event.key.keysym.sym == SDLK_s) {
-        key::S = 0;
-      }
-      if (event.key.keysym.sym == SDLK_a) {
-        key::A = 0;
-      }
-      if (event.key.keysym.sym == SDLK_d) {
-        key::D = 0;
-      }
+
       break;
     case SDL_MOUSEMOTION:
       player::rotRad += geometry::deg2rad(static_cast<float>(event.motion.xrel)) * display::resScale / 8;
@@ -72,6 +43,10 @@ void controls::HandleControls() {
       } else if (player::rotRad > M_PI) {
         player::rotRad -= 2 * M_PI;
       }
+
+      player::rotVerticalRad -= geometry::deg2rad(static_cast<float>(event.motion.yrel)) * display::resScale * 96;
+      player::rotVerticalRad = clamp(player::rotVerticalRad, -500.0f, 500.0f);
+
       break;
     case SDL_MOUSEWHEEL:
       if (map_view::mapView) {
@@ -81,8 +56,19 @@ void controls::HandleControls() {
     }
   }
 
-  const auto sideways = static_cast<int8_t>(key::D - key::A);
-  const auto forwards = static_cast<int8_t>(key::W - key::S);
+  const int8_t w = keyStates[SDL_SCANCODE_W] ? 1 : 0;
+  const int8_t a = keyStates[SDL_SCANCODE_A] ? 1 : 0;
+  const int8_t s = keyStates[SDL_SCANCODE_S] ? 1 : 0;
+  const int8_t d = keyStates[SDL_SCANCODE_D] ? 1 : 0;
+
+  const uint8_t up = keyStates[SDL_SCANCODE_SPACE] ? 1 : 0;
+  const uint8_t down = keyStates[SDL_SCANCODE_LCTRL] ? 1 : 0;
+
+  const auto sideways = d - a;
+  const auto forwards = w - s;
+  const auto vertical = up - down;
+
+  player::z += static_cast<float>(static_cast<double>(vertical) * utils::deltaTime);
 
   if (sideways != 0 || forwards != 0) {
     player::speed = player::playerSpeedDefault;

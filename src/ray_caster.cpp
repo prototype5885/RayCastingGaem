@@ -7,6 +7,7 @@
 #include "player.h"
 #include "texture.h"
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdint>
@@ -83,20 +84,17 @@ RayHitPoint CastRay(const float rayAngle) {
 }
 
 void DrawWallSlice(const int x, const float distance) {
-  // const float wallHeight = 30000.0f / distance;
-  // const float top = max(0.0f, (static_cast<float>(display::height) - wallHeight) / 2.0f);
-  // const float height = clampf(wallHeight, 0.0f, static_cast<float>(display::height));
-  // const uint8_t shade = 255;
-
-  const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray distance
+  const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray
   const int middle = display::height / 2;
 
   int startPos = middle - wallHeight / 2; // wall starts at this height
-  if (startPos < 0)                       // prevent it from starting from above the screen
+  startPos = static_cast<int>(static_cast<float>(startPos) + player::rotVerticalRad);
+  if (startPos < 0) // prevent it from starting from above the screen
     startPos = 0;
 
   int endPos = middle + wallHeight / 2; // wall ends here
-  if (endPos > display::height)         // prevent it from starting from below the screen
+  endPos = static_cast<int>(static_cast<float>(endPos) + player::rotVerticalRad);
+  if (endPos > display::height) // prevent it from starting from below the screen
     endPos = display::height;
 
   constexpr float minPercentage = 1.0f;
@@ -114,6 +112,10 @@ void DrawWallSlice(const int x, const float distance) {
     percentage = 0.25f;
 
   for (int y = startPos; y < endPos; y++) {
+    // float t = static_cast<float>(y - startPos) / endPos - startPos;
+    // t = std::max(0.0f, std::min(1.0f, t));
+    // float currentBrightness = 0.2f + (1.0f - 0.2f) * t;
+
     // const int verticalSegment = static_cast<int>(textureDimension * horizontalHitPoint);
 
     // int hpi = static_cast<int>(horizontalSegment) * texture->height + verticalSegment;
@@ -125,6 +127,7 @@ void DrawWallSlice(const int x, const float distance) {
     uint32_t color = WHITE_COLOR;
     // uint32_t color = texture->colors.at(hpi);
     color = color::MultiplyRGB(color, percentage);
+    // color = color::MultiplyRGB(color, currentBrightness);
     // AddPixelToBufferUnsafe(ray, y, color);
     // AddPixelToBuffer(ray, y, color);
     display::AddPixelToBuffer(x, y, color);

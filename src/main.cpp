@@ -14,6 +14,7 @@
 #include "display.h"
 #include "level.h"
 #include "map_view.h"
+#include "player.h"
 #include "ray_caster.h"
 #include "utils.h"
 
@@ -119,10 +120,10 @@ void HandleDrawing() {
     }
   } else {
     for (int i = 0; i < display::size; i++) {
-      const int y = i / display::width;
+      const auto y = static_cast<float>(i / display::width);
 
       // add ceiling/floor color
-      if (y > display::height / 2) {
+      if (y > static_cast<float>(display::height) / 2.0f + player::rotVerticalRad) {
         // pixels[i] = vga_palette[0x13];
         pixels[i] = GREY_COLOR;
       } else {

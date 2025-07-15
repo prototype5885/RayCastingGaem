@@ -107,50 +107,37 @@ void HandleDrawing() {
   }
   display::pixels = pixels;
 
-  // draw stuff before casting rays
-  for (int i = 0; i < display::size; i++) {
-    // const int x = i % width;
-    const int y = i / display::width;
-
-    // add ceiling/floor color
-    if (y > display::height / 2) {
-      // pixels[i] = vga_palette[0x13];
-      pixels[i] = GREY_COLOR;
-    } else {
-      // pixels[i] = vga_palette[0x12];
-      pixels[i] = DARKER_GREY_COLOR;
-    }
-
-    // draw sky
-    // const float skyboxScale = 256.0f / (height / 2.0f);
-
-    // const int skyboxX = x * skyboxScale + player::rotRad * (player::rotRad * 57.29578f);
-    // const int skyboxY = y * skyboxScale;
-    // pixels[i] = skybox1[skyboxY * 512 + skyboxX];
-
-    // add floor
-    // if (y > height / 2) {
-    //   pixels[i] = GREY_COLOR;
-    // }
-  }
-
-  // draw sky
-  // for (int i = 0; i < 512 * 256; i++) {
-  //   const int x = i % 512;
-  //   const int y = i / 512;
-
-  //   pixels[y * width + x] = skybox1[i];
-  // }
-
   // if (noiseEnabled) {
   //   for (int p = 0; p < display::size; p++) {
   //     pixels[p] = rand_uint32_t();
   //   }
   // }
-  // CastRays();
-  ray_caster::CastRays();
-  if (map_view::mapEnabled)
+
+  if (map_view::mapViewMode != 2) {
+    for (int i = 0; i < display::size; i++) {
+      const int y = i / display::width;
+
+      // add ceiling/floor color
+      if (y > display::height / 2) {
+        // pixels[i] = vga_palette[0x13];
+        pixels[i] = GREY_COLOR;
+      } else {
+        // pixels[i] = vga_palette[0x12];
+        pixels[i] = DARKER_GREY_COLOR;
+      }
+    }
+
+    ray_caster::CastRays();
+  }
+
+  if (map_view::mapViewMode != 0) {
+    if (map_view::mapViewMode == 2) {
+      for (int i = 0; i < display::size; i++) {
+        pixels[i] = BLACK_COLOR;
+      }
+    }
     map_view::DrawMap();
+  }
 
   // unlock the texture and render the scene
   SDL_UnlockTexture(sdlTexture);
@@ -200,8 +187,6 @@ void GameLoop() {
 }
 
 int main(int, char **) {
-  level::GetMapDimension();
-
   const auto cfg = config::ReadConfigFile();
 
   level::LoadLevel("level1");

@@ -1,6 +1,7 @@
-#ifndef CONFIG_READER_H
-#define CONFIG_READER_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
+namespace config {
 typedef struct {
   bool fullscreen, linearFiltering, retroResolution;
   int width, height;
@@ -8,5 +9,6 @@ typedef struct {
 } Config;
 
 Config ReadConfigFile();
+} // namespace config
 
 #endif

@@ -1,15 +1,16 @@
 #include "controls.h"
 
 #include "display.h"
+#include "geometry.h"
 #include "level.h"
 #include "map_view.h"
+#include "physics.h"
 #include "player.h"
 #include "utils.h"
 
 #include <SDL2/SDL_events.h>
-#include <cstdint>
+#include <algorithm>
 #include <iostream>
-#include <ostream>
 
 namespace key {
 int8_t W = 0;
@@ -20,16 +21,15 @@ int8_t D = 0;
 
 SDL_Event event;
 
-namespace controls {
-void HandleControls() {
+void controls::HandleControls() {
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
     case SDL_QUIT:
-      running = false;
+      utils::running = false;
       break;
     case SDL_KEYDOWN:
       if (event.key.keysym.sym == SDLK_ESCAPE) {
-        running = false;
+        utils::running = false;
       }
       if (event.key.keysym.sym == SDLK_w) {
         key::W = 1;
@@ -65,7 +65,7 @@ void HandleControls() {
       }
       break;
     case SDL_MOUSEMOTION:
-      player::rotRad += deg2rad(static_cast<float>(event.motion.xrel)) * display::resScale / 8;
+      player::rotRad += geometry::deg2rad(static_cast<float>(event.motion.xrel)) * display::resScale / 8;
 
       if (player::rotRad < -M_PI) {
         player::rotRad += 2 * M_PI;
@@ -90,20 +90,12 @@ void HandleControls() {
     player::speed = 0;
   }
 
-  const auto speedMultiplier = static_cast<float>(0.0166 * static_cast<double>(player::speed) * deltaTime);
+  const auto speedMultiplier = static_cast<float>(0.0166 * static_cast<double>(player::speed) * utils::deltaTime);
 
   player::moveDirRad = atan2f(sideways, forwards);
 
-  const int colX = static_cast<int>(player::pos.x + cosf(player::rotRad + player::moveDirRad) / 2.0f);
-  const int colY = static_cast<int>(player::pos.y + sinf(player::rotRad + player::moveDirRad) / 2.0f);
+  const float futureX = player::pos.x + cosf(player::rotRad + player::moveDirRad) * speedMultiplier;
+  const float futureY = player::pos.y + sinf(player::rotRad + player::moveDirRad) * speedMultiplier;
 
-  const int i = colY * 16 + colX;
-  if (i < 256) {
-    if (currentLevel[i] == 0) {
-      player::pos.x += cosf(player::rotRad + player::moveDirRad) * speedMultiplier;
-      player::pos.y += sinf(player::rotRad + player::moveDirRad) * speedMultiplier;
-    }
-  }
+  physics::PlayerCollisionCheck({futureX, futureY});
 }
-
-} // namespace controls

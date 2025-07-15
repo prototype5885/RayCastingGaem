@@ -5,9 +5,10 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
-
+namespace config {
 Config ReadConfigFile() {
+  using namespace std;
+
   Config cfg;
   cfg.fullscreen = false;
   cfg.width = 1920;
@@ -65,7 +66,7 @@ Config ReadConfigFile() {
         }
       }
     }
-  } catch (const std::runtime_error& e) {
+  } catch (const runtime_error &e) {
     cout << e.what() << endl;
     exit(1);
   }
@@ -73,3 +74,4 @@ Config ReadConfigFile() {
 
   return cfg;
 }
+} // namespace config

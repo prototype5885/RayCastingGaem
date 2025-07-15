@@ -6,7 +6,7 @@ extern bool mapEnabled;
 
 void ZoomMap(int zoomValue);
 void DrawMap();
-void DrawRays(float range, float distance);
+void DrawRays(float angle, float distance);
 void ToggleMap();
 } // namespace map_view
 

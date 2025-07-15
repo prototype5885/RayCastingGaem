@@ -1,27 +1,24 @@
-#include "colors.h"
+#include "display.h"
 
 #include <cstdint>
-#include <iostream>
-
-using namespace std;
 
 namespace display {
 float resScale = 1.0f;
-int width, height, size;
+int width = 1920;
+int height = 1080;
+int size = width * height;
 uint32_t *pixels;
 } // namespace display
 
-void AddPixelToBuffer(const int x, const int y, const uint32_t color) {
-  int i = y * display::width + x;
-  if (0 <= i && i < display::size) {
-    // display::pixels[i] = vga_palette[color];
-    display::pixels[i] = color;
+void display::AddPixelToBuffer(const int x, const int y, const uint32_t color) {
+  if (0 <= x && x < width && 0 <= y && y < height) {
+    pixels[y * width + x] = color;
   } else {
     // cerr << "Tried to put pixel out of display bounds at index: " << i << endl;
   }
 }
 
-void AddPixelToBufferUnsafe(const int x, const int y, const uint32_t color) {
+void display::AddPixelToBufferUnsafe(const int x, const int y, const uint32_t color) {
   // display::pixels[y * display::width + x] = vga_palette[color];
-  display::pixels[y * display::width + x] = color;
+  pixels[y * width + x] = color;
 }

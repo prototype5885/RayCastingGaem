@@ -11,6 +11,7 @@
 
 using namespace std;
 
+namespace texture {
 class Texture {
 public:
   uint16_t width;
@@ -18,10 +19,7 @@ public:
   vector<uint32_t> colors;
 };
 
-extern map<string, Texture> textureList;
-
-bool CheckIfSupportedExtension(const string &extension);
-string GetTextureName(uint8_t wallType);
 void LoadTextures(const set<uint8_t> &texturesToLoad);
+} // namespace texture
 
 #endif

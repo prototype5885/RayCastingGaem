@@ -29,18 +29,15 @@ SDL_Window *window = nullptr;
 SDL_Renderer *renderer = nullptr;
 SDL_Texture *sdlTexture = nullptr;
 
-int logicalWidth, logicalHeight;
-float resScale;
-
 // extra debug stuff
 bool limitSpeed = false;
 // bool noiseEnabled = false;
 
 // needed for calculations inside the loop
 
-int64_t currentTime = GetMicroTime();
+int64_t currentTime = utils::GetMicroTime();
 
-int InitSDL(const Config cfg) {
+int InitSDL(const config::Config cfg) {
   int windowMode = SDL_WINDOW_SHOWN;
   if (cfg.fullscreen) {
     windowMode = SDL_WINDOW_FULLSCREEN;
@@ -71,13 +68,13 @@ int InitSDL(const Config cfg) {
   }
 
   // set resolution inside the window
-  SDL_RenderSetLogicalSize(renderer, logicalWidth, logicalHeight);
+  SDL_RenderSetLogicalSize(renderer, display::width, display::height);
   if (cfg.linearFiltering) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
   }
 
   // create the texture that will display content in the window
-  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, logicalWidth, logicalHeight);
+  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, display::width, display::height);
   if (sdlTexture == nullptr) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -113,13 +110,15 @@ void HandleDrawing() {
   // draw stuff before casting rays
   for (int i = 0; i < display::size; i++) {
     // const int x = i % width;
-    const int y = i / logicalWidth;
+    const int y = i / display::width;
 
     // add ceiling/floor color
-    if (y > logicalHeight / 2) {
-      pixels[i] = vga_palette[0x13];
+    if (y > display::height / 2) {
+      // pixels[i] = vga_palette[0x13];
+      pixels[i] = GREY_COLOR;
     } else {
-      pixels[i] = vga_palette[0x12];
+      // pixels[i] = vga_palette[0x12];
+      pixels[i] = DARKER_GREY_COLOR;
     }
 
     // draw sky
@@ -148,7 +147,8 @@ void HandleDrawing() {
   //     pixels[p] = rand_uint32_t();
   //   }
   // }
-  CastRays();
+  // CastRays();
+  ray_caster::CastRays();
   if (map_view::mapEnabled)
     map_view::DrawMap();
 
@@ -159,6 +159,7 @@ void HandleDrawing() {
 }
 
 void HandleTimings(const int64_t startTime) {
+  using namespace utils;
   if (limitSpeed) {
     const int executionTime = static_cast<int>(GetMicroTime() - startTime);
     const int timeToSleep = 16666 - executionTime;
@@ -179,19 +180,19 @@ void HandleTimings(const int64_t startTime) {
 
   // 1 million microsecond
   if (elapsedTime >= 1000000) {
-    const string title = format("{}x{} - {} fps", logicalWidth, logicalHeight, avgFps);
+    const string title = format("{}x{} - {} fps", display::width, display::height, avgFps);
     SDL_SetWindowTitle(window, title.c_str());
     currentTime = GetMicroTime();
   }
 }
 
 void GameLoop() {
-  if (!running) {
+  if (!utils::running) {
     Quit();
   }
 
   // start time is used to calculate delta time
-  const int64_t startTime = GetMicroTime();
+  const int64_t startTime = utils::GetMicroTime();
 
   controls::HandleControls();
   HandleDrawing();
@@ -199,23 +200,25 @@ void GameLoop() {
 }
 
 int main(int, char **) {
-  const Config cfg = ReadConfigFile();
+  level::GetMapDimension();
 
-  LoadLevel("level1");
+  const auto cfg = config::ReadConfigFile();
+
+  level::LoadLevel("level1");
 
   if (cfg.retroResolution) {
-    resScale = 1.0f / (480.0f / static_cast<float>(cfg.height));
-    logicalWidth = 640;
-    logicalHeight = 480;
+    display::resScale = 1.0f / (480.0f / static_cast<float>(cfg.height));
+    display::width = 640;
+    display::height = 480;
   } else {
-    resScale = 1.0f / (cfg.resolutionPercentage / 100.0f);
-    logicalWidth = static_cast<int>(round(static_cast<float>(cfg.width) / resScale));
-    logicalHeight = static_cast<int>(round(static_cast<float>(cfg.height) / resScale));
+    display::resScale = 1.0f / (cfg.resolutionPercentage / 100.0f);
+    display::width = static_cast<int>(round(static_cast<float>(cfg.width) / display::resScale));
+    display::height = static_cast<int>(round(static_cast<float>(cfg.height) / display::resScale));
   }
 
-  display::width = logicalWidth;
-  display::height = logicalHeight;
-  display::size = logicalWidth * logicalHeight;
+  display::width = display::width;
+  display::height = display::height;
+  display::size = display::width * display::height;
 
   cout << "Initializing SDL..." << endl;
   const int result = InitSDL(cfg);
@@ -228,7 +231,7 @@ int main(int, char **) {
   emscripten_set_main_loop(GameLoop, 0, 1);
 #else
   cout << "Starting main loop..." << endl;
-  while (running) {
+  while (utils::running) {
     GameLoop();
   }
 #endif

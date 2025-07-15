@@ -6,6 +6,7 @@
 
 using namespace std;
 
+namespace color {
 RGB SplitRGB(const uint32_t color) {
   RGB rgb;
   rgb.r = color >> 16 & 0xFF;
@@ -63,3 +64,4 @@ void PrintRGB(const uint32_t color) {
   auto [r, g, b] = SplitRGB(color);
   cout << format("r{}, g{}, b{}", r, g, b) << endl;
 }
+} // namespace color

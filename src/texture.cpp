@@ -12,9 +12,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-using namespace filesystem;
-
+namespace texture {
 std::map<std::string, Texture> textureList;
 
 string GetTextureName(const uint8_t wallType) {
@@ -43,6 +41,9 @@ bool CheckIfSupportedExtension(const string &extension) {
 }
 
 void LoadTextures(const set<uint8_t> &texturesToLoad) {
+  using namespace std;
+  using namespace filesystem;
+
   textureList.clear();
 
   // create a default texture as fallback
@@ -109,3 +110,4 @@ void LoadTextures(const set<uint8_t> &texturesToLoad) {
     stbi_image_free(data);
   }
 }
+} // namespace texture

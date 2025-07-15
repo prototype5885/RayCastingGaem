@@ -1,12 +1,12 @@
 #include "utils.h"
 #include "SDL2/sdl.h"
 
-#include <cstdint>
 #include <format>
 #include <thread>
 
 using namespace std;
 
+namespace utils {
 double deltaTime = 1.0;
 bool running = true;
 
@@ -45,3 +45,4 @@ int CalculateAverageFps(const int executionTime) {
   const int avgFps = sumFps / FPS_HISTORY_SIZE;
   return avgFps;
 }
+} // namespace utils

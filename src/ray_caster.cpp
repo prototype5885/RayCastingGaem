@@ -40,14 +40,12 @@ float PointToLineDistance(const float px, const float py, const float x1, const 
   const float dy = y2 - y1;
   const float lenSquared = powf(dx, 2) + powf(dy, 2);
   if (lenSquared == 0) {
-    // return sqrtf(powf(px - x1, 2) + powf(py - y1, 2));
     return CalculateRayDistance({px, py}, {x1, y1});
   }
   float t = ((px - x1) * dx + (py - y1) * dy) / lenSquared;
   t = max(0.0f, min(1.0f, t));
   const float projX = x1 + t * dx;
   const float projY = y1 + t * dy;
-  // return sqrtf(powf(px - projX, 2) + powf(py - projY, 2));
   return CalculateRayDistance({px, py}, {projX, projY});
 }
 
@@ -76,10 +74,6 @@ RayHitPoint CastRay(const float rayAngle) {
 
   // 2. If a wall was hit, apply fisheye correction ONCE to the final distance
   if (minEuclideanDistance != FLT_MAX) {
-    // if (map_view::mapEnabled) {
-    //   map_view::DrawRays(rayAngle, minEuclideanDistance);
-    // }
-
     const float correctedDistance = minEuclideanDistance * cosf(rayAngle - player::rotRad);
     return {correctedDistance, closestHitPoint};
   }
@@ -144,12 +138,11 @@ void ray_caster::CastRays() {
 
   for (int ray = 0; ray < display::width; ray++) {
     const float currentAngle = startAngle + static_cast<float>(ray) * angleStep;
-    // const float aspectRatio = static_cast<float>(display::width) / static_cast<float>(display::height);
-    // float rayAngle = player::rotRad - aspectRatio / 2.0f;                                                     // start angle of leftmost ray
-    // relative to player rotation rayAngle += deg2rad(static_cast<float>(ray)) / deg2rad(static_cast<float>(display::width)) * aspectRatio; // then
-    // increment each ray in radian by this amount to the right
+
     auto [distance, hitPoint] = CastRay(currentAngle);
-    if (hitPoint.x != FLT_MAX && hitPoint.y != FLT_MAX) {
+    if (map_view::mapView) {
+      map_view::DrawRay(hitPoint);
+    } else if (hitPoint.x != FLT_MAX && hitPoint.y != FLT_MAX) {
       DrawWallSlice(ray, distance);
     }
   }

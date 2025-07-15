@@ -113,7 +113,11 @@ void HandleDrawing() {
   //   }
   // }
 
-  if (map_view::mapViewMode != 2) {
+  if (map_view::mapView) {
+    for (int i = 0; i < display::size; i++) {
+      pixels[i] = BLACK_COLOR;
+    }
+  } else {
     for (int i = 0; i < display::size; i++) {
       const int y = i / display::width;
 
@@ -126,16 +130,10 @@ void HandleDrawing() {
         pixels[i] = DARKER_GREY_COLOR;
       }
     }
-
-    ray_caster::CastRays();
   }
 
-  if (map_view::mapViewMode != 0) {
-    if (map_view::mapViewMode == 2) {
-      for (int i = 0; i < display::size; i++) {
-        pixels[i] = BLACK_COLOR;
-      }
-    }
+  ray_caster::CastRays();
+  if (map_view::mapView) {
     map_view::DrawMap();
   }
 

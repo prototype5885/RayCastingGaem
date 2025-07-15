@@ -1,15 +1,13 @@
 #ifndef MAPVIEW_H
 #define MAPVIEW_H
 
-#include <cstdint>
-
 namespace map_view {
-extern uint8_t mapViewMode;
+extern bool mapView;
 
 void ZoomMap(int zoomValue);
 void DrawMap();
-void DrawRays(float angle, float distance);
-void ToggleMapMode();
+void DrawRay(geometry::Vector2 to);
+void ToggleMap();
 } // namespace map_view
 
 #endif

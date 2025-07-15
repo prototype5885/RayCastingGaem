@@ -44,7 +44,7 @@ void controls::HandleControls() {
         key::D = 1;
       }
       if (event.key.keysym.sym == SDLK_TAB) {
-        map_view::ToggleMapMode();
+        map_view::ToggleMap();
       }
       // if (event.key.keysym.sym == SDLK_n) {
       //   noiseEnabled = !noiseEnabled;
@@ -74,7 +74,7 @@ void controls::HandleControls() {
       }
       break;
     case SDL_MOUSEWHEEL:
-      if (map_view::mapViewMode != 0) {
+      if (map_view::mapView) {
         map_view::ZoomMap(event.wheel.y);
       }
     default:;

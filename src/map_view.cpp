@@ -7,11 +7,9 @@
 
 #include <algorithm>
 #include <format>
-#include <iostream>
-#include <ostream>
 
 namespace map_view {
-uint8_t mapViewMode = 0;
+bool mapView = false;
 float zoomLevel = 16.0f;
 constexpr float minZoomLevel = 8.0f;
 constexpr float maxZoomLevel = 32.0f;
@@ -40,7 +38,7 @@ void DrawMap() {
   // // draw player arrow in center
   // const Vector2 playerPos = Vector2{player::pos.x * zoomLevel, player::pos.y * zoomLevel} + Remap();
 
-  AddLineInDirectionWithArrow(static_cast<Vector2i>(GetCenter()), 1.0f * zoomLevel, player::rotRad, GREEN_COLOR);
+  AddLineInDirectionWithArrow(GetCenter(), 1.0f * zoomLevel, player::rotRad, GREEN_COLOR);
   // AddLineInDirectionWithArrow(static_cast<Vector2i>(playerPos), 12.0f * zoomLevel, player::rotRad, GREEN_COLOR);
 
   // direction arrow for player
@@ -59,12 +57,12 @@ void DrawMap() {
   }
 }
 
-void DrawRays(const float angle, const float distance) {
-  using namespace geometry;
-  const Vector2 from = {player::pos.x * zoomLevel, player::pos.y * zoomLevel};
-  AddLineInDirection(static_cast<Vector2i>(from), distance * zoomLevel * 8, angle, RED_COLOR);
+void DrawRay(geometry::Vector2 to) {
+  to.x *= zoomLevel;
+  to.y *= zoomLevel;
+  AddLine(GetCenter(), static_cast<Vector2i>(to + Remap()), YELLOW_COLOR);
 }
 
-void ToggleMapMode() { mapViewMode = mapViewMode >= 2 ? 0 : mapViewMode + 1; }
+void ToggleMap() { mapView = !mapView; }
 
 } // namespace map_view

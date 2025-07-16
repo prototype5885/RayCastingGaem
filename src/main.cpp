@@ -12,6 +12,7 @@
 #include "config.h"
 #include "controls.h"
 #include "display.h"
+#include "level.h"
 #include "map_view.h"
 #include "player.h"
 #include "ray_caster.h"
@@ -189,7 +190,7 @@ void GameLoop() {
 int main(int, char **) {
   const auto cfg = config::ReadConfigFile();
 
-  // level::LoadLevel("level1");
+  level::LoadLevel("level1");
 
   if (cfg.retroResolution) {
     display::resScale = 1.0f / (480.0f / static_cast<float>(cfg.height));

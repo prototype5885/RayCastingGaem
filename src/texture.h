@@ -1,8 +1,6 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#pragma once
-
 #include <cstdint>
 #include <set>
 #include <vector>

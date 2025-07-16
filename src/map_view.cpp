@@ -34,6 +34,7 @@ void ZoomMap(const int zoomDirection) {
 
 void DrawMap() {
   using namespace geometry;
+  using namespace level;
   // Vector2 offset = Remap();
   // // draw player arrow in center
   // const Vector2 playerPos = Vector2{player::pos.x * zoomLevel, player::pos.y * zoomLevel} + Remap();
@@ -46,11 +47,11 @@ void DrawMap() {
   // AddLineInDirectionWithArrow(static_cast<Vector2i>(playerPos), 8.0f * zoomLevel, player::rotRad + player::moveDirRad, BLUE_COLOR);
   // }
 
-  for (size_t i = 0; i < level::walls.size(); i++) {
-    const float x1 = level::walls[i].a;
-    const float y1 = level::walls[i].b;
-    const float x2 = level::walls[i].c;
-    const float y2 = level::walls[i].d;
+  for (size_t i = 0; i < currentLevel.walls.size(); i++) {
+    const float x1 = currentLevel.walls[i].a;
+    const float y1 = currentLevel.walls[i].b;
+    const float x2 = currentLevel.walls[i].c;
+    const float y2 = currentLevel.walls[i].d;
 
     Vector2 ab = {x1 * zoomLevel, y1 * zoomLevel};
     Vector2 cd = {x2 * zoomLevel, y2 * zoomLevel};
@@ -58,7 +59,7 @@ void DrawMap() {
     ab = ab + Remap();
     cd = cd + Remap();
 
-    const uint16_t texture = level::walls[i].texture;
+    const uint16_t texture = currentLevel.walls[i].texture;
     uint32_t color = WHITE_COLOR;
     if (texture == 1) {
       color = RED_COLOR;

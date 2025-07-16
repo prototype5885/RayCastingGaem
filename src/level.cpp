@@ -1,49 +1,47 @@
 #include "level.h"
-#include "filesystem.h"
-#include "texture.h"
 
 #include <cfloat>
 #include <fstream>
 #include <iostream>
-#include <set>
-#include <vector>
+#include <sstream>
 
 using namespace std;
 
 namespace level {
-vector<uint8_t> currentLevel;
+Level currentLevel;
 
-int LoadLevel(const char *name) {
-  printf("Loading level %s\n", name);
+void LoadLevel(const string &name) {
+  printf("Loading level %s\n", name.c_str());
 
-  char filePath[MAX_FILEPATH_LENGTH];
-  snprintf(filePath, MAX_FILEPATH_LENGTH, "assets/levels/%s.txt", name);
-
+  string filePath = "assets/levels/" + name + ".txt";
   ifstream file(filePath);
-  if (!file.good()) {
-    cerr << "Couldn't find level " << filePath << endl;
-    return 1;
+
+  if (!file.is_open()) {
+    throw(runtime_error("Could not open file " + filePath));
   }
 
-  currentLevel.clear();
+  currentLevel.walls.clear();
 
-  set<uint8_t> wallTypes;
-  uint8_t ch;
-  while (file >> ch) {
-    if (ch != '\n') {
-      auto wallType = static_cast<uint8_t>(ch - '0');
-      currentLevel.push_back(wallType);
-      if (wallType != 0) {
-        wallTypes.insert(wallType);
+  string line;
+  int counter = 1;
+  while (getline(file, line)) {
+    istringstream iss(line);
+
+    currentLevel.walls.push_back(Wall{});
+
+    if (iss >> currentLevel.walls.back().a >> currentLevel.walls.back().b >> currentLevel.walls.back().c >> currentLevel.walls.back().d >>
+        currentLevel.walls.back().texture) {
+      string remaining;
+      if (iss >> remaining) {
+        printf("There was extra data on line %d\n", counter);
       }
+    } else {
+      throw(runtime_error("Failed parsing map file " + filePath + ", error at line " + to_string(counter) + "\n"));
     }
+    counter++;
   }
 
-  printf("Loaded level %s, bytes: %zu\n", name, currentLevel.size());
-
-  texture::LoadTextures(wallTypes);
-
-  return 0;
+  printf("Successfully loaded %llu walls from level %s\n", currentLevel.walls.size(), name.c_str());
 }
 
 geometry::Vector2 GetMapDimension() {
@@ -54,11 +52,11 @@ geometry::Vector2 GetMapDimension() {
   float minY = FLT_MAX;
   float maxY = FLT_MIN;
 
-  for (size_t i = 0; i < walls.size(); i++) {
-    const float x1 = walls[i].a;
-    const float y1 = walls[i].b;
-    const float x2 = walls[i].c;
-    const float y2 = walls[i].d;
+  for (size_t i = 0; i < currentLevel.walls.size(); i++) {
+    const float x1 = currentLevel.walls[i].a;
+    const float y1 = currentLevel.walls[i].b;
+    const float x2 = currentLevel.walls[i].c;
+    const float y2 = currentLevel.walls[i].d;
 
     if (x1 < minX)
       minX = x1;

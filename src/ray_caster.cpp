@@ -52,6 +52,8 @@ float PointToLineDistance(const float px, const float py, const float x1, const 
 }
 
 RayHitPoint CastRay(const float rayAngle) {
+  using namespace level;
+
   float minEuclideanDistance = FLT_MAX;
   Vector2 closestHitPoint = {FLT_MAX, FLT_MAX};
   uint16_t hitWallTexture = 0;
@@ -61,11 +63,11 @@ RayHitPoint CastRay(const float rayAngle) {
 
   // 1. Find the CLOSEST wall by comparing TRUE distances
   // for (auto [x1, y1, x2, y2] : level::walls) {
-  for (size_t i = 0; i < level::walls.size(); i++) {
-    const float x1 = level::walls[i].a;
-    const float y1 = level::walls[i].b;
-    const float x2 = level::walls[i].c;
-    const float y2 = level::walls[i].d;
+  for (size_t i = 0; i < currentLevel.walls.size(); i++) {
+    const float x1 = currentLevel.walls[i].a;
+    const float y1 = currentLevel.walls[i].b;
+    const float x2 = currentLevel.walls[i].c;
+    const float y2 = currentLevel.walls[i].d;
 
     const Vector2 intersection =
         LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * 1000, player::pos.y + rayY * 1000, x1, y1, x2, y2);
@@ -78,7 +80,7 @@ RayHitPoint CastRay(const float rayAngle) {
       if (euclideanDist < minEuclideanDistance) {
         minEuclideanDistance = euclideanDist;
         closestHitPoint = intersection;
-        hitWallTexture = level::walls[i].texture;
+        hitWallTexture = currentLevel.walls[i].texture;
       }
     }
   }

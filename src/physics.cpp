@@ -12,7 +12,8 @@ bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
   Vector2 newPlayerPos = desiredPlayerPos;
   bool collisionOccurred = false;
 
-  for (const auto &wall : level::walls) {
+  for (size_t i = 0; i < level::currentLevel.walls.size(); i++) {
+    const level::Wall &wall = level::currentLevel.walls[i];
     // 1. Calculate the closest point on the wall segment to the player's *desired* position
     float closestX = wall.a;
     float closestY = wall.b;

@@ -46,12 +46,14 @@ void DrawMap() {
   // if (player::speed != 0) {
   // AddLineInDirectionWithArrow(static_cast<Vector2i>(playerPos), 8.0f * zoomLevel, player::rotRad + player::moveDirRad, BLUE_COLOR);
   // }
+  const vector<Wall> &walls = currentLevel.walls;
+  for (size_t i = 0; i < walls.size(); i++) {
+    const Wall &wall = walls[i];
 
-  for (size_t i = 0; i < currentLevel.walls.size(); i++) {
-    const float x1 = currentLevel.walls[i].a;
-    const float y1 = currentLevel.walls[i].b;
-    const float x2 = currentLevel.walls[i].c;
-    const float y2 = currentLevel.walls[i].d;
+    const float x1 = wall.a;
+    const float y1 = wall.b;
+    const float x2 = wall.c;
+    const float y2 = wall.d;
 
     Vector2 ab = {x1 * zoomLevel, y1 * zoomLevel};
     Vector2 cd = {x2 * zoomLevel, y2 * zoomLevel};
@@ -59,7 +61,7 @@ void DrawMap() {
     ab = ab + Remap();
     cd = cd + Remap();
 
-    const uint16_t texture = currentLevel.walls[i].texture;
+    const uint16_t texture = wall.texture;
     uint32_t color = WHITE_COLOR;
     if (texture == 1) {
       color = RED_COLOR;

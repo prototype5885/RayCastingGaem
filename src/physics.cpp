@@ -9,11 +9,13 @@
 // ai written
 bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
   using namespace geometry;
+  using namespace level;
   Vector2 newPlayerPos = desiredPlayerPos;
   bool collisionOccurred = false;
 
-  for (size_t i = 0; i < level::currentLevel.walls.size(); i++) {
-    const level::Wall &wall = level::currentLevel.walls[i];
+  const vector<Wall> &walls = currentLevel.walls;
+  for (size_t i = 0; i < walls.size(); i++) {
+    const Wall &wall = currentLevel.walls[i];
     // 1. Calculate the closest point on the wall segment to the player's *desired* position
     float closestX = wall.a;
     float closestY = wall.b;

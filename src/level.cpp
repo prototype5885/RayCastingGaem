@@ -52,11 +52,13 @@ geometry::Vector2 GetMapDimension() {
   float minY = FLT_MAX;
   float maxY = FLT_MIN;
 
-  for (size_t i = 0; i < currentLevel.walls.size(); i++) {
-    const float x1 = currentLevel.walls[i].a;
-    const float y1 = currentLevel.walls[i].b;
-    const float x2 = currentLevel.walls[i].c;
-    const float y2 = currentLevel.walls[i].d;
+  const vector<Wall> &walls = currentLevel.walls;
+  for (size_t i = 0; i < walls.size(); i++) {
+    const Wall &wall = walls[i];
+    const float x1 = wall.a;
+    const float y1 = wall.b;
+    const float x2 = wall.c;
+    const float y2 = wall.d;
 
     if (x1 < minX)
       minX = x1;

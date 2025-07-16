@@ -62,12 +62,13 @@ RayHitPoint CastRay(const float rayAngle) {
   const float rayY = sinf(rayAngle);
 
   // 1. Find the CLOSEST wall by comparing TRUE distances
-  // for (auto [x1, y1, x2, y2] : level::walls) {
+  const vector<Wall> &walls = currentLevel.walls;
   for (size_t i = 0; i < currentLevel.walls.size(); i++) {
-    const float x1 = currentLevel.walls[i].a;
-    const float y1 = currentLevel.walls[i].b;
-    const float x2 = currentLevel.walls[i].c;
-    const float y2 = currentLevel.walls[i].d;
+    const Wall &wall = walls[i];
+    const float x1 = wall.a;
+    const float y1 = wall.b;
+    const float x2 = wall.c;
+    const float y2 = wall.d;
 
     const Vector2 intersection =
         LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * 1000, player::pos.y + rayY * 1000, x1, y1, x2, y2);

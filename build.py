@@ -16,7 +16,7 @@ ASSETS_FOLDER = "assets"
 # user options end
 
 # compiler options
-DEFAULT_COMPILE_ARGS = "-Wall -Wextra -s -O3 -Iinclude"
+DEFAULT_COMPILE_ARGS = "-Wall -Wextra -s -O3 -Iinclude -std=c++20"
 DEFAULT_LINKING_ARGS = "-lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -flto"
 
 WINDOWS_COMPILE_ARGS = f"-mwindows {DEFAULT_COMPILE_ARGS}"
@@ -25,7 +25,7 @@ WINDOWS_LINKING_ARGS = f"-lmingw32 {DEFAULT_LINKING_ARGS}"
 LINUX_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS}"
 LINUX_LINKING_ARGS = f"{DEFAULT_LINKING_ARGS}"
 
-EMSCRIPTEN_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS} -std=c++20 -sNO_DISABLE_EXCEPTION_CATCHING"
+EMSCRIPTEN_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS} -sNO_DISABLE_EXCEPTION_CATCHING"
 EMSCRIPTEN_LINKING_ARGS = ""
 # compiler options end
 

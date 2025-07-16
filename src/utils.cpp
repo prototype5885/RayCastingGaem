@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "SDL2/sdl.h"
 
 #include <format>
 #include <thread>

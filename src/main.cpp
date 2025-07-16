@@ -12,7 +12,6 @@
 #include "config.h"
 #include "controls.h"
 #include "display.h"
-#include "level.h"
 #include "map_view.h"
 #include "player.h"
 #include "ray_caster.h"
@@ -20,7 +19,6 @@
 
 #include <cmath>
 #include <cstdint>
-#include <format>
 #include <iostream>
 #include <string>
 
@@ -37,6 +35,9 @@ bool limitSpeed = false;
 // needed for calculations inside the loop
 
 int64_t currentTime = utils::GetMicroTime();
+
+#define WINDOW_TITLE_LENGTH 32
+char windowTitle[WINDOW_TITLE_LENGTH];
 
 int InitSDL(const config::Config cfg) {
   int windowMode = SDL_WINDOW_SHOWN;
@@ -120,7 +121,7 @@ void HandleDrawing() {
     }
   } else {
     for (int i = 0; i < display::size; i++) {
-      const auto y = static_cast<float>(i / display::width);
+      const float y = static_cast<float>(i) / static_cast<float>(display::width);
 
       // add ceiling/floor color
       if (y > static_cast<float>(display::height) / 2.0f + player::rotVerticalRad) {
@@ -166,8 +167,8 @@ void HandleTimings(const int64_t startTime) {
 
   // 1 million microsecond
   if (elapsedTime >= 1000000) {
-    const string title = format("{}x{} - {} fps", display::width, display::height, avgFps);
-    SDL_SetWindowTitle(window, title.c_str());
+    snprintf(windowTitle, WINDOW_TITLE_LENGTH, "%dx%d - %d fps", display::width, display::height, avgFps);
+    SDL_SetWindowTitle(window, windowTitle);
     currentTime = GetMicroTime();
   }
 }
@@ -188,7 +189,7 @@ void GameLoop() {
 int main(int, char **) {
   const auto cfg = config::ReadConfigFile();
 
-  level::LoadLevel("level1");
+  // level::LoadLevel("level1");
 
   if (cfg.retroResolution) {
     display::resScale = 1.0f / (480.0f / static_cast<float>(cfg.height));
@@ -200,8 +201,6 @@ int main(int, char **) {
     display::height = static_cast<int>(round(static_cast<float>(cfg.height) / display::resScale));
   }
 
-  display::width = display::width;
-  display::height = display::height;
   display::size = display::width * display::height;
 
   cout << "Initializing SDL..." << endl;

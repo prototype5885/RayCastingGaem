@@ -16,7 +16,7 @@ ASSETS_FOLDER = "assets"
 # user options end
 
 # compiler options
-DEFAULT_COMPILE_ARGS = "-Wall -Wextra -s -O3 -Iinclude -std=c++20"
+DEFAULT_COMPILE_ARGS = "-Wall -Wextra -s -O3 -Iinclude"
 DEFAULT_LINKING_ARGS = "-lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -flto"
 
 WINDOWS_COMPILE_ARGS = f"-mwindows {DEFAULT_COMPILE_ARGS}"

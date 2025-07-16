@@ -5,7 +5,6 @@
 #include "level.h"
 #include "map_view.h"
 #include "player.h"
-#include "texture.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -22,10 +21,11 @@ typedef struct {
   Vector2 hitPoint;
 } RayHitPoint;
 
-Vector2 LineIntersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
+Vector2 LineIntersection(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4,
+                         const float y4) {
   const float den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
   if (den == 0)
-    return Vector2(FLT_MAX, FLT_MAX);
+    return {FLT_MAX, FLT_MAX};
   const float t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
   const float u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
   if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
@@ -33,7 +33,7 @@ Vector2 LineIntersection(float x1, float y1, float x2, float y2, float x3, float
     const float py = y1 + t * (y2 - y1);
     return {px, py};
   }
-  return Vector2(FLT_MAX, FLT_MAX);
+  return {FLT_MAX, FLT_MAX};
 }
 
 float PointToLineDistance(const float px, const float py, const float x1, const float y1, const float x2, const float y2) {
@@ -57,7 +57,13 @@ RayHitPoint CastRay(const float rayAngle) {
   const float rayY = sinf(rayAngle);
 
   // 1. Find the CLOSEST wall by comparing TRUE distances
-  for (auto [x1, y1, x2, y2] : level::walls) {
+  // for (auto [x1, y1, x2, y2] : level::walls) {
+  for (size_t i = 0; i < level::walls.size(); i++) {
+    const float x1 = level::walls[i].a;
+    const float y1 = level::walls[i].b;
+    const float x2 = level::walls[i].c;
+    const float y2 = level::walls[i].d;
+
     const Vector2 intersection =
         LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * 1000, player::pos.y + rayY * 1000, x1, y1, x2, y2);
 
@@ -142,7 +148,10 @@ void ray_caster::CastRays() {
   for (int ray = 0; ray < display::width; ray++) {
     const float currentAngle = startAngle + static_cast<float>(ray) * angleStep;
 
-    auto [distance, hitPoint] = CastRay(currentAngle);
+    const RayHitPoint rhp = CastRay(currentAngle);
+    const Vector2 hitPoint = rhp.hitPoint;
+    const float distance = rhp.minDistance;
+
     if (map_view::mapView) {
       map_view::DrawRay(hitPoint);
     } else if (hitPoint.x != FLT_MAX && hitPoint.y != FLT_MAX) {

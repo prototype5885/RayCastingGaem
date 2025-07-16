@@ -1,6 +1,5 @@
 #include "utils.h"
 
-#include <format>
 #include <thread>
 
 using namespace std;
@@ -13,7 +12,7 @@ bool running = true;
 //   return gen_rand_float(gen);
 // }
 
-uint32_t rand_uint32_t() { return gen_rand_uint32_t(gen); }
+// uint32_t rand_uint32_t() { return gen_rand_uint32_t(gen); }
 
 int64_t GetMicroTime() {
   auto const now = chrono::steady_clock::now();
@@ -30,7 +29,7 @@ int CalculateAverageFps(const int executionTime) {
   static int fpsHistory[8];
 
   for (int i = FPS_HISTORY_SIZE; i >= 0; i--) {
-    int nexti = i + 1;
+    const int nexti = i + 1;
     if (nexti <= FPS_HISTORY_SIZE - 1) {
       fpsHistory[nexti] = fpsHistory[i];
     }

@@ -45,7 +45,7 @@ void controls::HandleControls() {
       }
 
       player::rotVerticalRad -= geometry::deg2rad(static_cast<float>(event.motion.yrel)) * display::resScale * 96;
-      player::rotVerticalRad = clamp(player::rotVerticalRad, -500.0f, 500.0f);
+      player::rotVerticalRad = utils::clamp(player::rotVerticalRad, -500.0f, 500.0f);
 
       break;
     case SDL_MOUSEWHEEL:
@@ -78,7 +78,7 @@ void controls::HandleControls() {
 
   const auto speedMultiplier = static_cast<float>(0.0166 * static_cast<double>(player::speed) * utils::deltaTime);
 
-  player::moveDirRad = atan2f(sideways, forwards);
+  player::moveDirRad = static_cast<float>(atan2(sideways, forwards));
 
   const float futureX = player::pos.x + cosf(player::rotRad + player::moveDirRad) * speedMultiplier;
   const float futureY = player::pos.y + sinf(player::rotRad + player::moveDirRad) * speedMultiplier;

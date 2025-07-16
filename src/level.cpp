@@ -1,25 +1,24 @@
 #include "level.h"
+#include "filesystem.h"
 #include "texture.h"
 
 #include <cfloat>
-#include <filesystem>
-#include <format>
 #include <fstream>
 #include <iostream>
 #include <set>
-#include <string>
 #include <vector>
 
 using namespace std;
-using namespace filesystem;
 
 namespace level {
 vector<uint8_t> currentLevel;
 
-int LoadLevel(string name) {
-  cout << format("Loading level {}...\n", name);
+int LoadLevel(const char *name) {
+  printf("Loading level %s\n", name);
 
-  const path filePath = "assets/levels/" + name + ".txt";
+  char filePath[MAX_FILEPATH_LENGTH];
+  snprintf(filePath, MAX_FILEPATH_LENGTH, "assets/levels/%s.txt", name);
+
   ifstream file(filePath);
   if (!file.good()) {
     cerr << "Couldn't find level " << filePath << endl;
@@ -40,7 +39,8 @@ int LoadLevel(string name) {
     }
   }
 
-  cout << format("Loaded level {}, bytes: {}\n", name, currentLevel.size());
+  printf("Loaded level %s, bytes: %zu\n", name, currentLevel.size());
+
   texture::LoadTextures(wallTypes);
 
   return 0;
@@ -54,7 +54,12 @@ geometry::Vector2 GetMapDimension() {
   float minY = FLT_MAX;
   float maxY = FLT_MIN;
 
-  for (auto [x1, y1, x2, y2] : walls) {
+  for (size_t i = 0; i < walls.size(); i++) {
+    const float x1 = walls[i].a;
+    const float y1 = walls[i].b;
+    const float x2 = walls[i].c;
+    const float y2 = walls[i].d;
+
     if (x1 < minX)
       minX = x1;
     else if (x1 > maxX)
@@ -76,9 +81,9 @@ geometry::Vector2 GetMapDimension() {
       maxY = y2;
   }
 
-  Vector2 dimension = {maxX - minX, maxY - minY};
+  const Vector2 dimension = {maxX - minX, maxY - minY};
 
-  cout << format("{}x{}", dimension.x, dimension.y) << endl;
+  printf("%f%f\n", dimension.x, dimension.y);
 
   return dimension;
 }

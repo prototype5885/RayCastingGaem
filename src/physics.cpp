@@ -2,14 +2,13 @@
 #include "geometry.h"
 #include "level.h"
 #include "player.h"
+#include "utils.h"
 
-#include <algorithm>
 #include <cmath>
 
-using namespace geometry;
-
 // ai written
-bool physics::PlayerCollisionCheck(const Vector2 desiredPlayerPos) {
+bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
+  using namespace geometry;
   Vector2 newPlayerPos = desiredPlayerPos;
   bool collisionOccurred = false;
 
@@ -24,14 +23,14 @@ bool physics::PlayerCollisionCheck(const Vector2 desiredPlayerPos) {
 
     if (lengthSquared != 0) { // Avoid division by zero for point-like walls
       float t = ((newPlayerPos.x - wall.a) * dx + (newPlayerPos.y - wall.b) * dy) / lengthSquared;
-      t = std::clamp(t, 0.0f, 1.0f); // Clamp t to [0, 1] for segment
+      t = utils::clamp(t, 0.0f, 1.0f); // Clamp t to [0, 1] for segment
       closestX = wall.a + t * dx;
       closestY = wall.b + t * dy;
     }
 
     // 2. Calculate the distance from the desired player position to this closest point on the wall
-    Vector2 closestPointOnWall = {closestX, closestY};
-    float distToWall = CalculateRayDistance(newPlayerPos, closestPointOnWall);
+    const Vector2 closestPointOnWall = {closestX, closestY};
+    const float distToWall = CalculateRayDistance(newPlayerPos, closestPointOnWall);
 
     // 3. Check for collision: Is the distance less than the player's radius?
     if (distToWall < player::radius) {
@@ -39,7 +38,7 @@ bool physics::PlayerCollisionCheck(const Vector2 desiredPlayerPos) {
 
       // 4. Resolve the collision: Push the player out of the wall
       // Calculate the penetration depth
-      float penetrationDepth = player::radius - distToWall;
+      const float penetrationDepth = player::radius - distToWall;
 
       // Calculate the normal vector from the wall pointing towards the player
       // This is the direction to push the player
@@ -65,9 +64,9 @@ bool physics::PlayerCollisionCheck(const Vector2 desiredPlayerPos) {
           // A better solution would rely on the wall's true normal.
           // For a line segment, the normal can be derived from (dy, -dx) or (-dy, dx)
           // Let's assume (dy, -dx) is one normal, and normalize it.
-          float normal_dx = wall.d - wall.b;
-          float normal_dy = -(wall.c - wall.a);
-          float normal_len = std::sqrt(normal_dx * normal_dx + normal_dy * normal_dy);
+          const float normal_dx = wall.d - wall.b;
+          const float normal_dy = -(wall.c - wall.a);
+          const float normal_len = std::sqrt(normal_dx * normal_dx + normal_dy * normal_dy);
           if (normal_len > 0) {
             normal.x = normal_dx / normal_len;
             normal.y = normal_dy / normal_len;

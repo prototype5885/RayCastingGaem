@@ -4,9 +4,9 @@
 #include "level.h"
 #include "player.h"
 #include "shapes.h"
+#include "utils.h"
 
 #include <algorithm>
-#include <format>
 
 namespace map_view {
 bool mapView = false;
@@ -15,7 +15,7 @@ constexpr float minZoomLevel = 8.0f;
 constexpr float maxZoomLevel = 32.0f;
 constexpr float stepLevel = 2.0f;
 
-Vector2i GetCenter() { return Vector2i(display::width / 2, display::height / 2); }
+Vector2i GetCenter() { return {display::width / 2, display::height / 2}; }
 
 geometry::Vector2 Remap() {
   const float screenCenterX = static_cast<float>(display::width) / 2.0f;
@@ -29,7 +29,7 @@ geometry::Vector2 Remap() {
 
 void ZoomMap(const int zoomDirection) {
   zoomLevel += static_cast<float>(zoomDirection) * stepLevel;
-  zoomLevel = clamp(zoomLevel, minZoomLevel, maxZoomLevel);
+  zoomLevel = utils::clamp(zoomLevel, minZoomLevel, maxZoomLevel);
 }
 
 void DrawMap() {
@@ -46,7 +46,12 @@ void DrawMap() {
   // AddLineInDirectionWithArrow(static_cast<Vector2i>(playerPos), 8.0f * zoomLevel, player::rotRad + player::moveDirRad, BLUE_COLOR);
   // }
 
-  for (auto [x1, y1, x2, y2] : level::walls) {
+  for (size_t i = 0; i < level::walls.size(); i++) {
+    const float x1 = level::walls[i].a;
+    const float y1 = level::walls[i].b;
+    const float x2 = level::walls[i].c;
+    const float y2 = level::walls[i].d;
+
     Vector2 ab = {x1 * zoomLevel, y1 * zoomLevel};
     Vector2 cd = {x2 * zoomLevel, y2 * zoomLevel};
 

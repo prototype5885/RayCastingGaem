@@ -2,7 +2,6 @@
 
 #include <cfloat>
 #include <cmath>
-#include <format>
 #include <iostream>
 
 namespace geometry {
@@ -36,5 +35,5 @@ float CalculateRayDistance(const Vector2 from, const Vector2 to) {
   return sqrtf(dx * dx + dy * dy);
 }
 
-void PrintVector2(const Vector2 vec) { std::cout << std::format("({}, {})", vec.x, vec.y) << std::endl; }
+void PrintVector2(const Vector2 vec) { printf("(%f, %f)\n", vec.x, vec.y); }
 } // namespace geometry

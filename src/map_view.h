@@ -1,6 +1,8 @@
 #ifndef MAPVIEW_H
 #define MAPVIEW_H
 
+#include "geometry.h"
+
 namespace map_view {
 extern bool mapView;
 

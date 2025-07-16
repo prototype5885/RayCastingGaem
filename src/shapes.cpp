@@ -98,10 +98,9 @@ void AddLine(Vector2i const from, Vector2i const to, uint32_t const color) {
 }
 
 Vector2i CalculateLineEndpoint(Vector2i const from, float const length, float const angle) {
-  Vector2i arrowEndPoint{};
-  arrowEndPoint.x = static_cast<int>(static_cast<float>(from.x) + cosf(angle) * length);
-  arrowEndPoint.y = static_cast<int>(static_cast<float>(from.y) + sinf(angle) * length);
-  return arrowEndPoint;
+  int x = static_cast<int>(static_cast<float>(from.x) + cosf(angle) * length);
+  int y = static_cast<int>(static_cast<float>(from.y) + sinf(angle) * length);
+  return {x, y};
 }
 
 void AddLineWithArrow(Vector2i const from, Vector2i const to, float const rot, uint32_t const color) {

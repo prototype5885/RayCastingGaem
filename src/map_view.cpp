@@ -58,7 +58,17 @@ void DrawMap() {
     ab = ab + Remap();
     cd = cd + Remap();
 
-    AddLine(static_cast<Vector2i>(ab), static_cast<Vector2i>(cd), WHITE_COLOR);
+    const uint16_t texture = level::walls[i].texture;
+    uint32_t color = WHITE_COLOR;
+    if (texture == 1) {
+      color = RED_COLOR;
+    } else if (texture == 2) {
+      color = GREEN_COLOR;
+    } else if (texture == 3) {
+      color = BLUE_COLOR;
+    }
+
+    AddLine(static_cast<Vector2i>(ab), static_cast<Vector2i>(cd), color);
   }
 }
 

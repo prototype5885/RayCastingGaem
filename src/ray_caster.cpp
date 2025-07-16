@@ -19,6 +19,7 @@ using namespace geometry;
 typedef struct {
   float minDistance;
   Vector2 hitPoint;
+  uint16_t texture;
 } RayHitPoint;
 
 Vector2 LineIntersection(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4,
@@ -53,6 +54,8 @@ float PointToLineDistance(const float px, const float py, const float x1, const 
 RayHitPoint CastRay(const float rayAngle) {
   float minEuclideanDistance = FLT_MAX;
   Vector2 closestHitPoint = {FLT_MAX, FLT_MAX};
+  uint16_t hitWallTexture = 0;
+
   const float rayX = cosf(rayAngle);
   const float rayY = sinf(rayAngle);
 
@@ -75,6 +78,7 @@ RayHitPoint CastRay(const float rayAngle) {
       if (euclideanDist < minEuclideanDistance) {
         minEuclideanDistance = euclideanDist;
         closestHitPoint = intersection;
+        hitWallTexture = level::walls[i].texture;
       }
     }
   }
@@ -82,14 +86,14 @@ RayHitPoint CastRay(const float rayAngle) {
   // 2. If a wall was hit, apply fisheye correction ONCE to the final distance
   if (minEuclideanDistance != FLT_MAX) {
     const float correctedDistance = minEuclideanDistance * cosf(rayAngle - player::rotRad);
-    return {correctedDistance, closestHitPoint};
+    return {correctedDistance, closestHitPoint, hitWallTexture};
   }
 
   // 3. If no walls were hit, return the "no hit" value
-  return {FLT_MAX, {FLT_MAX, FLT_MAX}};
+  return {FLT_MAX, {FLT_MAX, FLT_MAX}, hitWallTexture};
 }
 
-void DrawWallSlice(const int x, const float distance) {
+void DrawWallSlice(const int x, const float distance, const uint16_t texture) {
   const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray
   const int middle = display::height / 2;
 
@@ -117,6 +121,16 @@ void DrawWallSlice(const int x, const float distance) {
   if (percentage < 0.25f)
     percentage = 0.25f;
 
+  uint32_t color = WHITE_COLOR;
+  if (texture == 1) {
+    color = RED_COLOR;
+  } else if (texture == 2) {
+    color = GREEN_COLOR;
+  } else if (texture == 3) {
+    color = BLUE_COLOR;
+  }
+  color = color::MultiplyRGB(color, percentage);
+
   for (int y = startPos; y < endPos; y++) {
     // float t = static_cast<float>(y - startPos) / endPos - startPos;
     // t = std::max(0.0f, std::min(1.0f, t));
@@ -130,9 +144,9 @@ void DrawWallSlice(const int x, const float distance) {
     // horizontalSegment += pixelColumnOnEachRay;
 
     // const uint8_t color = texture->colors.at(hpi);
-    uint32_t color = WHITE_COLOR;
+
     // uint32_t color = texture->colors.at(hpi);
-    color = color::MultiplyRGB(color, percentage);
+
     // color = color::MultiplyRGB(color, currentBrightness);
     // AddPixelToBufferUnsafe(ray, y, color);
     // AddPixelToBuffer(ray, y, color);
@@ -149,14 +163,12 @@ void ray_caster::CastRays() {
     const float currentAngle = startAngle + static_cast<float>(ray) * angleStep;
 
     const RayHitPoint rhp = CastRay(currentAngle);
-    const Vector2 hitPoint = rhp.hitPoint;
-    const float distance = rhp.minDistance;
 
-    if (hitPoint.x != FLT_MAX || hitPoint.y != FLT_MAX) {
+    if (rhp.hitPoint.x != FLT_MAX || rhp.hitPoint.y != FLT_MAX) {
       if (map_view::mapView) {
-        map_view::DrawRay(hitPoint);
+        map_view::DrawRay(rhp.hitPoint);
       } else {
-        DrawWallSlice(ray, distance);
+        DrawWallSlice(ray, rhp.minDistance, rhp.texture);
       }
     }
   }

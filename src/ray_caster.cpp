@@ -65,13 +65,9 @@ RayHitPoint CastRay(const float rayAngle) {
   const vector<Wall> &walls = currentLevel.walls;
   for (size_t i = 0; i < currentLevel.walls.size(); i++) {
     const Wall &wall = walls[i];
-    const float x1 = wall.a;
-    const float y1 = wall.b;
-    const float x2 = wall.c;
-    const float y2 = wall.d;
 
     const Vector2 intersection =
-        LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * 1000, player::pos.y + rayY * 1000, x1, y1, x2, y2);
+        LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * 1000, player::pos.y + rayY * 1000, wall.a, wall.b, wall.c, wall.d);
 
     if (intersection.x != FLT_MAX) {
       // Calculate the true, uncorrected distance

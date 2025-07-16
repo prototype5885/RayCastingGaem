@@ -50,17 +50,6 @@ void DrawMap() {
   for (size_t i = 0; i < walls.size(); i++) {
     const Wall &wall = walls[i];
 
-    const float x1 = wall.a;
-    const float y1 = wall.b;
-    const float x2 = wall.c;
-    const float y2 = wall.d;
-
-    Vector2 ab = {x1 * zoomLevel, y1 * zoomLevel};
-    Vector2 cd = {x2 * zoomLevel, y2 * zoomLevel};
-
-    ab = ab + Remap();
-    cd = cd + Remap();
-
     const uint16_t texture = wall.texture;
     uint32_t color = WHITE_COLOR;
     if (texture == 1) {
@@ -70,6 +59,9 @@ void DrawMap() {
     } else if (texture == 3) {
       color = BLUE_COLOR;
     }
+
+    const Vector2 ab = Vector2{wall.a * zoomLevel, wall.b * zoomLevel} + Remap();
+    const Vector2 cd = Vector2{wall.c * zoomLevel, wall.d * zoomLevel} + Remap();
 
     AddLine(static_cast<Vector2i>(ab), static_cast<Vector2i>(cd), color);
   }

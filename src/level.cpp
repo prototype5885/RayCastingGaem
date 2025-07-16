@@ -28,9 +28,9 @@ void LoadLevel(const string &name) {
     istringstream iss(line);
 
     currentLevel.walls.push_back(Wall{});
+    Wall &wall = currentLevel.walls.back();
 
-    if (iss >> currentLevel.walls.back().a >> currentLevel.walls.back().b >> currentLevel.walls.back().c >> currentLevel.walls.back().d >>
-        currentLevel.walls.back().texture) {
+    if (iss >> wall.a >> wall.b >> wall.c >> wall.d >> wall.texture) {
       string remaining;
       if (iss >> remaining) {
         printf("There was extra data on line %d\n", counter);
@@ -55,30 +55,26 @@ geometry::Vector2 GetMapDimension() {
   const vector<Wall> &walls = currentLevel.walls;
   for (size_t i = 0; i < walls.size(); i++) {
     const Wall &wall = walls[i];
-    const float x1 = wall.a;
-    const float y1 = wall.b;
-    const float x2 = wall.c;
-    const float y2 = wall.d;
 
-    if (x1 < minX)
-      minX = x1;
-    else if (x1 > maxX)
-      maxX = x1;
+    if (wall.a < minX)
+      minX = wall.a;
+    else if (wall.a > maxX)
+      maxX = wall.a;
 
-    if (y1 < minY)
-      minY = y1;
-    else if (y1 > maxY)
-      maxY = y1;
+    if (wall.b < minY)
+      minY = wall.b;
+    else if (wall.b > maxY)
+      maxY = wall.b;
 
-    if (x2 < minX)
-      minX = x2;
-    else if (x2 > maxX)
-      maxX = x2;
+    if (wall.c < minX)
+      minX = wall.c;
+    else if (wall.c > maxX)
+      maxX = wall.c;
 
-    if (y2 < minY)
-      minY = y2;
-    else if (y2 > maxY)
-      maxY = y2;
+    if (wall.d < minY)
+      minY = wall.d;
+    else if (wall.d > maxY)
+      maxY = wall.d;
   }
 
   const Vector2 dimension = {maxX - minX, maxY - minY};

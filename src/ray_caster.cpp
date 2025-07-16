@@ -152,10 +152,12 @@ void ray_caster::CastRays() {
     const Vector2 hitPoint = rhp.hitPoint;
     const float distance = rhp.minDistance;
 
-    if (map_view::mapView) {
-      map_view::DrawRay(hitPoint);
-    } else if (hitPoint.x != FLT_MAX && hitPoint.y != FLT_MAX) {
-      DrawWallSlice(ray, distance);
+    if (hitPoint.x != FLT_MAX || hitPoint.y != FLT_MAX) {
+      if (map_view::mapView) {
+        map_view::DrawRay(hitPoint);
+      } else {
+        DrawWallSlice(ray, distance);
+      }
     }
   }
 }

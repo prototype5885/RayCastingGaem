@@ -70,7 +70,7 @@ void controls::HandleControls() {
   const auto forwards = w - s;
   const auto vertical = up - down;
 
-  player::z += static_cast<float>(static_cast<double>(vertical) * utils::deltaTime);
+  player::z -= static_cast<float>(static_cast<double>(vertical) * 32.0f * utils::deltaTime);
 
   if (sideways != 0 || forwards != 0) {
     player::speed = player::playerSpeedDefault;

@@ -110,7 +110,7 @@ RayHitPoint CastRay(const float rayAngle) {
 
 void DrawWallSlice(const int wallX, const float distance, const float part, const string &wallTexture, const float wallLength) {
   const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray
-  const int middle = display::height / 2;
+  const int middle = static_cast<int>(static_cast<float>(display::height) / 2.0f - player::z / distance);
 
   int startPos = middle - wallHeight / 2; // wall starts at this height
   startPos = static_cast<int>(static_cast<float>(startPos) + player::rotVerticalRad);

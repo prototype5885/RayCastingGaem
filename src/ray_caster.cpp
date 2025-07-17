@@ -138,12 +138,7 @@ void DrawWallSlice(const int wallX, const float distance, const float part, cons
   if (percentage < 0.25f)
     percentage = 0.25f;
 
-  texture::Texture *texture;
-  try {
-    texture = &texture::textureList.at(wallTexture);
-  } catch (exception &e) {
-    texture = &texture::missingTexture;
-  }
+  const texture::Texture *texture = &texture::textureList.at(wallTexture);
 
   // const float textureDimension = fminf(texture->width, texture->height);
   int textureX = static_cast<int>(static_cast<float>(texture->width) * part * wallLength);

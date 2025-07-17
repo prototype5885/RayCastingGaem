@@ -92,5 +92,13 @@ void LoadTextures(const set<string> &wallTextures) {
     }
     closedir(dr);
   }
+
+  // this will check if a texture file wasn't loaded and then replace it with the fallback missing texture
+  for (auto name = wallTextures.begin(); name != wallTextures.end(); ++name) {
+    if (textureList.find(*name) == textureList.end()) {
+      printf("Couldn't load texture %s\n", name->c_str());
+      textureList[*name] = missingTexture;
+    }
+  }
 }
 } // namespace texture

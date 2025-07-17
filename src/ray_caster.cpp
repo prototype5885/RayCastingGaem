@@ -25,7 +25,7 @@ typedef struct {
   float minDistance;
   Vector2 hitPoint;
   float part;
-  uint16_t texture;
+  string texture;
   float wallLength;
 } RayHitPoint;
 
@@ -68,7 +68,7 @@ RayHitPoint CastRay(const float rayAngle) {
 
   float minEuclideanDistance = FLT_MAX;
   Vector2 closestHitPoint = {FLT_MAX, FLT_MAX};
-  uint16_t hitWallTexture = 0;
+  string hitWallTexture;
   float hitPart = 0.0f;
   float wallLength = 0.0f;
 
@@ -108,7 +108,7 @@ RayHitPoint CastRay(const float rayAngle) {
   return {FLT_MAX, {FLT_MAX, FLT_MAX}, hitPart, hitWallTexture, wallLength};
 }
 
-void DrawWallSlice(const int wallX, const float distance, const float part, const uint16_t wallTexture, const float wallLength) {
+void DrawWallSlice(const int wallX, const float distance, const float part, const string &wallTexture, const float wallLength) {
   const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray
   const int middle = display::height / 2;
 
@@ -138,15 +138,11 @@ void DrawWallSlice(const int wallX, const float distance, const float part, cons
   if (percentage < 0.25f)
     percentage = 0.25f;
 
-  const texture::Texture *texture = nullptr;
-  if (wallTexture == 1) {
-    texture = &texture::textureList["wall1"];
-  } else if (wallTexture == 2) {
-    texture = &texture::textureList["wall2"];
-  } else if (wallTexture == 3) {
-    texture = &texture::textureList["wall3"];
-  } else {
-    texture = &texture::textureList["missing"];
+  texture::Texture *texture;
+  try {
+    texture = &texture::textureList.at(wallTexture);
+  } catch (exception &e) {
+    texture = &texture::missingTexture;
   }
 
   // const float textureDimension = fminf(texture->width, texture->height);

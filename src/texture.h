@@ -16,9 +16,11 @@ struct Texture {
   vector<uint32_t> colors;
 };
 
+extern Texture missingTexture;
+
 extern std::map<std::string, Texture> textureList;
 
-void LoadTextures(const set<uint8_t> &texturesToLoad);
+void LoadTextures(const set<string> &wallTextures);
 } // namespace texture
 
 #endif

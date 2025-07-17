@@ -24,7 +24,7 @@ void LoadLevel(const string &name) {
 
   currentLevel.walls.clear();
 
-  set<uint8_t> wallTypes;
+  set<string> wallTextures;
 
   string line;
   int counter = 1;
@@ -45,12 +45,12 @@ void LoadLevel(const string &name) {
 
     wall.wallLength = geometry::EuclideanDistance({wall.a, wall.b}, {wall.c, wall.d});
 
-    wallTypes.insert(wall.texture);
+    wallTextures.insert(wall.texture);
 
     counter++;
   }
 
-  texture::LoadTextures(wallTypes);
+  texture::LoadTextures(wallTextures);
 
   printf("Successfully loaded %llu walls from level %s\n", currentLevel.walls.size(), name.c_str());
 }

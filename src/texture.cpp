@@ -4,6 +4,7 @@
 
 #include "texture.h"
 
+#include "colors.h"
 #include "filesystem.h"
 #include "utils.h"
 
@@ -18,18 +19,7 @@
 namespace texture {
 std::map<std::string, Texture> textureList;
 
-string GetTextureName(const uint8_t wallType) {
-  if (wallType == 1) {
-    return "wall1";
-  }
-  if (wallType == 2) {
-    return "wall2";
-  }
-  if (wallType == 3) {
-    return "wall3";
-  }
-  return "missing";
-}
+Texture missingTexture = {1, 1, {color::MergeRGB({255, 0, 255})}};
 
 bool CheckIfSupportedExtension(const char *ext) {
   if (ext == nullptr)
@@ -48,30 +38,11 @@ bool CheckIfSupportedExtension(const char *ext) {
   return false;
 }
 
-void LoadTextures(const set<uint8_t> &texturesToLoad) {
+void LoadTextures(const set<string> &wallTextures) {
   using namespace std;
   namespace fs = filesystem;
 
   textureList.clear();
-
-  // create a default texture as fallback
-  uint32_t fallbackRgb = 0;
-  fallbackRgb |= 0 << 24;
-  fallbackRgb |= 255 << 16;
-  fallbackRgb |= 0 << 8;
-  fallbackRgb |= 255;
-
-  // textureList["fallback"].colors.push_back(0x24);
-  textureList["fallback"].colors.push_back(fallbackRgb);
-
-  set<string> textureNames;
-
-  for (const uint8_t value : texturesToLoad) {
-    string textureName = GetTextureName(value);
-    if (textureName != "missing") {
-      textureNames.insert(GetTextureName(value));
-    }
-  }
 
   const char *folderPath = "assets/textures";
   DIR *dr = opendir(folderPath);
@@ -82,7 +53,7 @@ void LoadTextures(const set<uint8_t> &texturesToLoad) {
       if (!CheckIfSupportedExtension(file.extension)) {
         continue;
       }
-      if (!textureNames.count(file.name))
+      if (!wallTextures.count(file.name))
         continue;
 
       char filePath[MAX_FILEPATH_LENGTH];

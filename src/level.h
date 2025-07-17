@@ -3,18 +3,17 @@
 
 #include "geometry.h"
 
-#include <cstdint>
 #include <string>
 #include <vector>
 
 using namespace std;
 
 namespace level {
-struct Wall {
+typedef struct {
   float a, b, c, d;
   float wallLength;
-  uint16_t texture;
-};
+  string texture;
+} Wall;
 
 struct Level {
   string name;

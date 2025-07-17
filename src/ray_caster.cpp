@@ -5,36 +5,48 @@
 #include "level.h"
 #include "map_view.h"
 #include "player.h"
+#include "texture.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdint>
+#include <io.h>
 #include <iostream>
 #include <vector>
 
 using namespace std;
 using namespace geometry;
 
+#define MAX_RAY_DISTANCE 100
+
 typedef struct {
   float minDistance;
   Vector2 hitPoint;
+  float part;
   uint16_t texture;
+  float wallLength;
 } RayHitPoint;
 
-Vector2 LineIntersection(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4,
-                         const float y4) {
+typedef struct {
+  Vector2 point;
+  float part;
+} Intersection;
+
+Intersection LineIntersection(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4,
+                              const float y4) {
   const float den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
   if (den == 0)
-    return {FLT_MAX, FLT_MAX};
+    return {{FLT_MAX, FLT_MAX}, 0.0f};
   const float t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
   const float u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
   if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
     const float px = x1 + t * (x2 - x1);
     const float py = y1 + t * (y2 - y1);
-    return {px, py};
+    return {{px, py}, u};
   }
-  return {FLT_MAX, FLT_MAX};
+  return {{FLT_MAX, FLT_MAX}, 0.0f};
 }
 
 float PointToLineDistance(const float px, const float py, const float x1, const float y1, const float x2, const float y2) {
@@ -42,13 +54,13 @@ float PointToLineDistance(const float px, const float py, const float x1, const 
   const float dy = y2 - y1;
   const float lenSquared = powf(dx, 2) + powf(dy, 2);
   if (lenSquared == 0) {
-    return CalculateRayDistance({px, py}, {x1, y1});
+    return EuclideanDistance({px, py}, {x1, y1});
   }
   float t = ((px - x1) * dx + (py - y1) * dy) / lenSquared;
   t = max(0.0f, min(1.0f, t));
   const float projX = x1 + t * dx;
   const float projY = y1 + t * dy;
-  return CalculateRayDistance({px, py}, {projX, projY});
+  return EuclideanDistance({px, py}, {projX, projY});
 }
 
 RayHitPoint CastRay(const float rayAngle) {
@@ -57,6 +69,8 @@ RayHitPoint CastRay(const float rayAngle) {
   float minEuclideanDistance = FLT_MAX;
   Vector2 closestHitPoint = {FLT_MAX, FLT_MAX};
   uint16_t hitWallTexture = 0;
+  float hitPart = 0.0f;
+  float wallLength = 0.0f;
 
   const float rayX = cosf(rayAngle);
   const float rayY = sinf(rayAngle);
@@ -66,18 +80,20 @@ RayHitPoint CastRay(const float rayAngle) {
   for (size_t i = 0; i < currentLevel.walls.size(); i++) {
     const Wall &wall = walls[i];
 
-    const Vector2 intersection =
-        LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * 1000, player::pos.y + rayY * 1000, wall.a, wall.b, wall.c, wall.d);
+    const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * MAX_RAY_DISTANCE,
+                                                       player::pos.y + rayY * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
 
-    if (intersection.x != FLT_MAX) {
+    if (intersection.point.x != FLT_MAX) {
       // Calculate the true, uncorrected distance
-      const float euclideanDist = CalculateRayDistance(intersection, player::pos);
+      const float euclideanDist = EuclideanDistance(intersection.point, player::pos);
 
       // Compare true distances to find the actual closest wall
       if (euclideanDist < minEuclideanDistance) {
         minEuclideanDistance = euclideanDist;
-        closestHitPoint = intersection;
+        closestHitPoint = intersection.point;
         hitWallTexture = currentLevel.walls[i].texture;
+        hitPart = intersection.part;
+        wallLength = wall.wallLength;
       }
     }
   }
@@ -85,26 +101,28 @@ RayHitPoint CastRay(const float rayAngle) {
   // 2. If a wall was hit, apply fisheye correction ONCE to the final distance
   if (minEuclideanDistance != FLT_MAX) {
     const float correctedDistance = minEuclideanDistance * cosf(rayAngle - player::rotRad);
-    return {correctedDistance, closestHitPoint, hitWallTexture};
+    return {correctedDistance, closestHitPoint, hitPart, hitWallTexture, wallLength};
   }
 
   // 3. If no walls were hit, return the "no hit" value
-  return {FLT_MAX, {FLT_MAX, FLT_MAX}, hitWallTexture};
+  return {FLT_MAX, {FLT_MAX, FLT_MAX}, hitPart, hitWallTexture, wallLength};
 }
 
-void DrawWallSlice(const int x, const float distance, const uint16_t texture) {
+void DrawWallSlice(const int wallX, const float distance, const float part, const uint16_t wallTexture, const float wallLength) {
   const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray
   const int middle = display::height / 2;
 
   int startPos = middle - wallHeight / 2; // wall starts at this height
   startPos = static_cast<int>(static_cast<float>(startPos) + player::rotVerticalRad);
-  if (startPos < 0) // prevent it from starting from above the screen
-    startPos = 0;
+  // commented out as this is not needed because it won't render off screen anyway and this causes texture distortion
+  // if (startPos < 0) // prevent it from starting from above the screen
+  //   startPos = 0;
 
   int endPos = middle + wallHeight / 2; // wall ends here
   endPos = static_cast<int>(static_cast<float>(endPos) + player::rotVerticalRad);
-  if (endPos > display::height) // prevent it from starting from below the screen
-    endPos = display::height;
+  // commented out as this is not needed because it won't render off screen anyway and this causes texture distortion
+  // if (endPos > display::height) // prevent it from starting from below the screen
+  //   endPos = display::height;
 
   constexpr float minPercentage = 1.0f;
   constexpr float maxPercentage = 64.0f;
@@ -120,36 +138,32 @@ void DrawWallSlice(const int x, const float distance, const uint16_t texture) {
   if (percentage < 0.25f)
     percentage = 0.25f;
 
-  uint32_t color = WHITE_COLOR;
-  if (texture == 1) {
-    color = RED_COLOR;
-  } else if (texture == 2) {
-    color = GREEN_COLOR;
-  } else if (texture == 3) {
-    color = BLUE_COLOR;
+  const texture::Texture *texture = nullptr;
+  if (wallTexture == 1) {
+    texture = &texture::textureList["wall1"];
+  } else if (wallTexture == 2) {
+    texture = &texture::textureList["wall2"];
+  } else if (wallTexture == 3) {
+    texture = &texture::textureList["wall3"];
+  } else {
+    texture = &texture::textureList["missing"];
   }
-  color = color::MultiplyRGB(color, percentage);
 
-  for (int y = startPos; y < endPos; y++) {
-    // float t = static_cast<float>(y - startPos) / endPos - startPos;
-    // t = std::max(0.0f, std::min(1.0f, t));
-    // float currentBrightness = 0.2f + (1.0f - 0.2f) * t;
+  // const float textureDimension = fminf(texture->width, texture->height);
+  int textureX = static_cast<int>(static_cast<float>(texture->width) * part * wallLength);
+  textureX = textureX % texture->width;
+  textureX = utils::clamp(textureX, 0, texture->height - 1);
 
-    // const int verticalSegment = static_cast<int>(textureDimension * horizontalHitPoint);
+  const float textureYstep = static_cast<float>(texture->height) / static_cast<float>(wallHeight);
 
-    // int hpi = static_cast<int>(horizontalSegment) * texture->height + verticalSegment;
-    // hpi = clampi(hpi, 0, texture->width * texture->height - 1);
+  for (int wallY = startPos; wallY < endPos; wallY++) {
+    int textureY = static_cast<int>(static_cast<float>((wallY - startPos)) * textureYstep);
+    textureY = utils::clamp(textureY, 0, texture->height - 1);
 
-    // horizontalSegment += pixelColumnOnEachRay;
+    const int pos = textureY * texture->width + textureX;
+    const uint32_t color = texture->colors.at(pos);
 
-    // const uint8_t color = texture->colors.at(hpi);
-
-    // uint32_t color = texture->colors.at(hpi);
-
-    // color = color::MultiplyRGB(color, currentBrightness);
-    // AddPixelToBufferUnsafe(ray, y, color);
-    // AddPixelToBuffer(ray, y, color);
-    display::AddPixelToBuffer(x, y, color);
+    display::AddPixelToBuffer(wallX, wallY, color);
   }
 }
 
@@ -167,7 +181,7 @@ void ray_caster::CastRays() {
       if (map_view::mapView) {
         map_view::DrawRay(rhp.hitPoint);
       } else {
-        DrawWallSlice(ray, rhp.minDistance, rhp.texture);
+        DrawWallSlice(ray, rhp.minDistance, rhp.part, rhp.texture, rhp.wallLength);
       }
     }
   }

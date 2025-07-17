@@ -25,6 +25,9 @@ string GetTextureName(const uint8_t wallType) {
   if (wallType == 2) {
     return "wall2";
   }
+  if (wallType == 3) {
+    return "wall3";
+  }
   return "missing";
 }
 

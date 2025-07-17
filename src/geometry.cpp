@@ -29,7 +29,7 @@ float rad2deg(const float num) { return num * 57.29578f; }
 //   return Vector2(x, y);
 // }
 
-float CalculateRayDistance(const Vector2 from, const Vector2 to) {
+float EuclideanDistance(const Vector2 from, const Vector2 to) {
   const float dx = from.x - to.x;
   const float dy = from.y - to.y;
   return sqrtf(dx * dx + dy * dy);

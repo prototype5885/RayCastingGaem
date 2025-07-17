@@ -12,6 +12,7 @@ using namespace std;
 namespace level {
 struct Wall {
   float a, b, c, d;
+  float wallLength;
   uint16_t texture;
 };
 

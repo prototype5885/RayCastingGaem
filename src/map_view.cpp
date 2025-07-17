@@ -6,8 +6,6 @@
 #include "shapes.h"
 #include "utils.h"
 
-#include <algorithm>
-
 namespace map_view {
 bool mapView = false;
 float zoomLevel = 16.0f;
@@ -50,15 +48,7 @@ void DrawMap() {
   for (size_t i = 0; i < walls.size(); i++) {
     const Wall &wall = walls[i];
 
-    const uint16_t texture = wall.texture;
     uint32_t color = WHITE_COLOR;
-    if (texture == 1) {
-      color = RED_COLOR;
-    } else if (texture == 2) {
-      color = GREEN_COLOR;
-    } else if (texture == 3) {
-      color = BLUE_COLOR;
-    }
 
     const Vector2 ab = Vector2{wall.a * zoomLevel, wall.b * zoomLevel} + Remap();
     const Vector2 cd = Vector2{wall.c * zoomLevel, wall.d * zoomLevel} + Remap();

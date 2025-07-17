@@ -33,7 +33,7 @@ bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
 
     // 2. Calculate the distance from the desired player position to this closest point on the wall
     const Vector2 closestPointOnWall = {closestX, closestY};
-    const float distToWall = CalculateRayDistance(newPlayerPos, closestPointOnWall);
+    const float distToWall = EuclideanDistance(newPlayerPos, closestPointOnWall);
 
     // 3. Check for collision: Is the distance less than the player's radius?
     if (distToWall < player::radius) {

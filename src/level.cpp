@@ -1,5 +1,7 @@
 #include "level.h"
 
+#include "texture.h"
+
 #include <cfloat>
 #include <fstream>
 #include <iostream>
@@ -22,6 +24,8 @@ void LoadLevel(const string &name) {
 
   currentLevel.walls.clear();
 
+  set<uint8_t> wallTypes;
+
   string line;
   int counter = 1;
   while (getline(file, line)) {
@@ -38,8 +42,15 @@ void LoadLevel(const string &name) {
     } else {
       throw(runtime_error("Failed parsing map file " + filePath + ", error at line " + to_string(counter) + "\n"));
     }
+
+    wall.wallLength = geometry::EuclideanDistance({wall.a, wall.b}, {wall.c, wall.d});
+
+    wallTypes.insert(wall.texture);
+
     counter++;
   }
+
+  texture::LoadTextures(wallTypes);
 
   printf("Successfully loaded %llu walls from level %s\n", currentLevel.walls.size(), name.c_str());
 }

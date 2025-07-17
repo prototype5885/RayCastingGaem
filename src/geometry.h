@@ -45,7 +45,7 @@ float lerpf(float from, float to, float percentage);
 float deg2rad(float num);
 float rad2deg(float num);
 // Vector2 LinesIntersectionPoint(Vector2 a, Vector2 b, Vector2 c, Vector2 d);
-float CalculateRayDistance(Vector2 from, Vector2 to);
+float EuclideanDistance(Vector2 from, Vector2 to);
 void PrintVector2(Vector2 vec);
 } // namespace geometry
 

@@ -13,6 +13,8 @@
 #include <format>
 #include <iostream>
 
+#define VIEW_ANGLE_LIMIT 500.0f
+
 SDL_Event event;
 const uint8_t *keyStates = SDL_GetKeyboardState(nullptr);
 
@@ -45,7 +47,7 @@ void controls::HandleControls() {
       }
 
       player::rotVerticalRad -= geometry::deg2rad(static_cast<float>(event.motion.yrel)) * display::resScale * 96;
-      player::rotVerticalRad = utils::clamp(player::rotVerticalRad, -500.0f, 500.0f);
+      player::rotVerticalRad = utils::clamp(player::rotVerticalRad, -VIEW_ANGLE_LIMIT, VIEW_ANGLE_LIMIT);
 
       break;
     case SDL_MOUSEWHEEL:

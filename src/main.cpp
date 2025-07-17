@@ -164,6 +164,10 @@ void HandleTimings(const int64_t startTime) {
 
 #ifndef __EMSCRIPTEN__ // delta time just doesn't work in emscripten as expected
   deltaTime = static_cast<double>(GetMicroTime() - startTime) * 60.0 / 1000000.0;
+  // disable delta time if fps is too low to prevent clipping across walls
+  if (deltaTime > 2.5f) {
+    deltaTime = 1.0f;
+  }
 #endif
 
   // 1 million microsecond

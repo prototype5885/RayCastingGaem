@@ -125,7 +125,7 @@ void DrawWallSlice(const int wallX, const float distance, const float part, cons
   //   endPos = display::height;
 
   constexpr float minPercentage = 1.0f;
-  constexpr float maxPercentage = 64.0f;
+  constexpr float maxPercentage = 16.0f;
 
   float percentage = 1.0f - (distance - minPercentage) / (maxPercentage - minPercentage);
 
@@ -152,7 +152,8 @@ void DrawWallSlice(const int wallX, const float distance, const float part, cons
     textureY = utils::clamp(textureY, 0, texture->height - 1);
 
     const int pos = textureY * texture->width + textureX;
-    const uint32_t color = texture->colors.at(pos);
+    uint32_t color = texture->colors.at(pos);
+    color = color::MultiplyRGB(color, percentage);
 
     display::AddPixelToBuffer(wallX, wallY, color);
   }

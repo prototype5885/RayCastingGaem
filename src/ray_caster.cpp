@@ -11,7 +11,6 @@
 #include <cfloat>
 #include <cmath>
 #include <cstdint>
-#include <io.h>
 #include <iostream>
 #include <vector>
 

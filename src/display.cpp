@@ -1,6 +1,7 @@
 #include "display.h"
 
 #include <cstdint>
+#include <cstdio>
 
 namespace display {
 float resScale = 1.0f;
@@ -11,10 +12,11 @@ uint32_t *pixels;
 } // namespace display
 
 void display::AddPixelToBuffer(const int x, const int y, const uint32_t color) {
+  const int i = y * width + x;
   if (0 <= x && x < width && 0 <= y && y < height) {
-    pixels[y * width + x] = color;
+    pixels[i] = color;
   } else {
-    // cerr << "Tried to put pixel out of display bounds at index: " << i << endl;
+    // printf("Tried to put pixel out of display bounds at index: %d\n", i);
   }
 }
 

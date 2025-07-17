@@ -71,47 +71,42 @@ float PointToLineDistance(const float px, const float py, const float x1, const 
   return EuclideanDistance({px, py}, {projX, projY});
 }
 
-void DrawWallSlice(const int wallX, const float distance, const float part, const string &wallTexture, const float wallLength) {
-  const int wallHeight = static_cast<int>(static_cast<float>(display::height) / distance); // this is how tall the wall will be based on ray
-  const int middle = static_cast<int>(static_cast<float>(display::height) / 2.0f - player::z / distance);
+void DrawWallSlice(const int wallX, const float distance, const float part, const std::string &wallTexture, const float wallLength) {
+  // calculate wall position and dimension
+  const float wallHeight = static_cast<float>(display::height) / distance;
+  const float wallMiddle = static_cast<float>(display::height) / 2.0f - player::z / distance + player::rotVerticalRad;
 
-  int startPos = middle - wallHeight / 2; // wall starts at this height
-  startPos = static_cast<int>(static_cast<float>(startPos) + player::rotVerticalRad);
-  // commented out as this is not needed because it won't render off screen anyway and this causes texture distortion
-  // if (startPos < 0) // prevent it from starting from above the screen
-  //   startPos = 0;
+  const float wallStart = wallMiddle - wallHeight / 2.0f;
+  const float wallEnd = wallMiddle + wallHeight / 2.0f;
 
-  int endPos = middle + wallHeight / 2; // wall ends here
-  endPos = static_cast<int>(static_cast<float>(endPos) + player::rotVerticalRad);
-  // commented out as this is not needed because it won't render off screen anyway and this causes texture distortion
-  // if (endPos > display::height) // prevent it from starting from below the screen
-  //   endPos = display::height;
-
+  // fog like shading
   constexpr float minPercentage = 1.0f;
   constexpr float maxPercentage = 16.0f;
-
   float percentage = 1.0f - (distance - minPercentage) / (maxPercentage - minPercentage);
-
   if (distance < minPercentage) {
     percentage = 1.0f;
   } else if (distance > maxPercentage) {
     percentage = 0.0f;
   }
-
   if (percentage < 0.25f)
     percentage = 0.25f;
 
+  // calculate which pixel column is needed for this ray
   const texture::Texture *texture = &texture::textureList.at(wallTexture);
-
-  // const float textureDimension = fminf(texture->width, texture->height);
   int textureX = static_cast<int>(static_cast<float>(texture->width) * part * wallLength);
   textureX = textureX % texture->width;
   textureX = utils::clamp(textureX, 0, texture->height - 1);
 
-  const float textureYstep = static_cast<float>(texture->height) / static_cast<float>(wallHeight);
+  // clamp the wall so it stays between display only
+  const int realWallStart = utils::clamp(static_cast<int>(wallStart), 0, display::height);
+  const int realWallEnd = utils::clamp(static_cast<int>(wallEnd), 0, display::height);
 
-  for (int wallY = startPos; wallY < endPos; wallY++) {
-    int textureY = static_cast<int>(static_cast<float>((wallY - startPos)) * textureYstep);
+  for (int wallY = realWallStart; wallY < realWallEnd; wallY++) {
+    // calculate which pixel needs to be grabbed from the pixel column
+    const float normalizedTextureY = (static_cast<float>(wallY) - wallStart) / wallHeight;
+    int textureY = static_cast<int>(normalizedTextureY * static_cast<float>(texture->height));
+
+    // to prevent it from accessing +1 above limit, sometimes it happened
     textureY = utils::clamp(textureY, 0, texture->height - 1);
 
     const int pos = textureY * texture->width + textureX;

@@ -3,7 +3,6 @@
 #include "display.h"
 #include "geometry.h"
 #include "level.h"
-#include "map_view.h"
 #include "player.h"
 #include "texture.h"
 #include "utils.h"
@@ -34,6 +33,16 @@ typedef struct {
   float part;
 } Intersection;
 
+struct WallSlice {
+  int wallX;
+  float distance, part, wallLength;
+  const char *wallTexture;
+
+  bool operator<(const WallSlice &other) const { return distance > other.distance; }
+};
+
+bool CompareByDistance(const WallSlice &a, const WallSlice &b) { return a.distance < b.distance; }
+
 Intersection LineIntersection(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4,
                               const float y4) {
   const float den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
@@ -61,51 +70,6 @@ float PointToLineDistance(const float px, const float py, const float x1, const 
   const float projX = x1 + t * dx;
   const float projY = y1 + t * dy;
   return EuclideanDistance({px, py}, {projX, projY});
-}
-
-RayHitPoint CastRay(const float rayAngle) {
-  using namespace level;
-
-  float minEuclideanDistance = FLT_MAX;
-  Vector2 closestHitPoint = {FLT_MAX, FLT_MAX};
-  string hitWallTexture;
-  float hitPart = 0.0f;
-  float wallLength = 0.0f;
-
-  const float rayX = cosf(rayAngle);
-  const float rayY = sinf(rayAngle);
-
-  // 1. Find the CLOSEST wall by comparing TRUE distances
-  const vector<Wall> &walls = currentLevel.walls;
-  for (size_t i = 0; i < currentLevel.walls.size(); i++) {
-    const Wall &wall = walls[i];
-
-    const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * MAX_RAY_DISTANCE,
-                                                       player::pos.y + rayY * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
-
-    if (intersection.point.x != FLT_MAX) {
-      // Calculate the true, uncorrected distance
-      const float euclideanDist = EuclideanDistance(intersection.point, player::pos);
-
-      // Compare true distances to find the actual closest wall
-      if (euclideanDist < minEuclideanDistance) {
-        minEuclideanDistance = euclideanDist;
-        closestHitPoint = intersection.point;
-        hitWallTexture = currentLevel.walls[i].texture;
-        hitPart = intersection.part;
-        wallLength = wall.wallLength;
-      }
-    }
-  }
-
-  // 2. If a wall was hit, apply fisheye correction ONCE to the final distance
-  if (minEuclideanDistance != FLT_MAX) {
-    const float correctedDistance = minEuclideanDistance * cosf(rayAngle - player::rotRad);
-    return {correctedDistance, closestHitPoint, hitPart, hitWallTexture, wallLength};
-  }
-
-  // 3. If no walls were hit, return the "no hit" value
-  return {FLT_MAX, {FLT_MAX, FLT_MAX}, hitPart, hitWallTexture, wallLength};
 }
 
 void DrawWallSlice(const int wallX, const float distance, const float part, const string &wallTexture, const float wallLength) {
@@ -160,21 +124,52 @@ void DrawWallSlice(const int wallX, const float distance, const float part, cons
 }
 
 void ray_caster::CastRays() {
+  using namespace level;
+
   const float fov = static_cast<float>(display::width) / static_cast<float>(display::height);
   const float startAngle = player::rotRad - fov / 2.0f;
   const float angleStep = fov / static_cast<float>(display::width);
 
   for (int ray = 0; ray < display::width; ray++) {
-    const float currentAngle = startAngle + static_cast<float>(ray) * angleStep;
+    const float rayAngle = startAngle + static_cast<float>(ray) * angleStep;
 
-    const RayHitPoint rhp = CastRay(currentAngle);
+    const float rayX = cosf(rayAngle);
+    const float rayY = sinf(rayAngle);
 
-    if (rhp.hitPoint.x != FLT_MAX || rhp.hitPoint.y != FLT_MAX) {
-      if (map_view::mapView) {
-        map_view::DrawRay(rhp.hitPoint);
-      } else {
-        DrawWallSlice(ray, rhp.minDistance, rhp.part, rhp.texture, rhp.wallLength);
+    vector<WallSlice> intersectedWalls;
+
+    const vector<Wall> &walls = currentLevel.walls;
+    for (int i = 0; i < static_cast<int>(currentLevel.walls.size()); i++) {
+      const Wall &wall = walls[i];
+
+      const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * MAX_RAY_DISTANCE,
+                                                         player::pos.y + rayY * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
+
+      if (intersection.point.x != FLT_MAX) {
+        float distance = EuclideanDistance(intersection.point, player::pos);
+        distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
+
+        intersectedWalls.push_back({
+            ray,
+            distance,
+            intersection.part,
+            wall.wallLength,
+            currentLevel.walls[i].texture.c_str(),
+        });
+
+        // if (map_view::mapView) {
+        // map_view::DrawRay(intersection.point);
+        // } else {
+        // DrawWallSlice(ray, distance, intersection.part, currentLevel.walls[i].texture, wall.wallLength);
+        // }
       }
+    }
+
+    std::sort(intersectedWalls.begin(), intersectedWalls.end());
+
+    for (size_t i = 0; i < intersectedWalls.size(); i++) {
+      const WallSlice *w = &intersectedWalls[i];
+      DrawWallSlice(w->wallX, w->distance, w->part, w->wallTexture, w->wallLength);
     }
   }
 }

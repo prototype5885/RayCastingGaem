@@ -10,7 +10,6 @@
 
 #include <SDL2/SDL_events.h>
 #include <algorithm>
-#include <format>
 #include <iostream>
 
 #define VIEW_ANGLE_LIMIT 500.0f

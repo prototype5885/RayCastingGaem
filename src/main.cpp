@@ -6,8 +6,6 @@
 #include <emscripten.h>
 #endif
 
-#include <SDL2/SDL.h>
-
 #include "colors.h"
 #include "config.h"
 #include "controls.h"
@@ -16,6 +14,7 @@
 #include "map_view.h"
 #include "player.h"
 #include "ray_caster.h"
+#include "renderer/sdl.h"
 #include "utils.h"
 
 #include <cmath>
@@ -24,10 +23,6 @@
 #include <string>
 
 using namespace std;
-
-SDL_Window *window = nullptr;
-SDL_Renderer *renderer = nullptr;
-SDL_Texture *sdlTexture = nullptr;
 
 // extra debug stuff
 bool limitSpeed = false;
@@ -40,75 +35,9 @@ int64_t currentTime = utils::GetMicroTime();
 #define WINDOW_TITLE_LENGTH 32
 char windowTitle[WINDOW_TITLE_LENGTH];
 
-int InitSDL(const config::Config cfg) {
-  int windowMode = SDL_WINDOW_SHOWN;
-  if (cfg.fullscreen) {
-    windowMode = SDL_WINDOW_FULLSCREEN;
-  }
-
-  // initialize sdl
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    cerr << SDL_GetError();
-    return 1;
-  }
-  // create window
-  window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, cfg.width, cfg.height, windowMode);
-  if (window == nullptr) {
-    SDL_Quit();
-    cerr << SDL_GetError();
-    return 1;
-  }
-
-  // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
-
-  // create renderer
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  if (renderer == nullptr) {
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    cerr << SDL_GetError();
-    return 1;
-  }
-
-  // set resolution inside the window
-  SDL_RenderSetLogicalSize(renderer, display::width, display::height);
-  if (cfg.linearFiltering) {
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
-  }
-
-  // create the texture that will display content in the window
-  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, display::width, display::height);
-  if (sdlTexture == nullptr) {
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    cerr << SDL_GetError();
-    return 1;
-  }
-
-  SDL_SetRelativeMouseMode(SDL_TRUE);
-
-  return 0;
-}
-
-void Quit() {
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
-}
-
 void HandleDrawing() {
-  // lock the texture
-  uint32_t *pixels;
-  int pitch;
-  if (SDL_LockTexture(sdlTexture, nullptr, reinterpret_cast<void **>(&pixels), &pitch) != 0) {
-    SDL_DestroyTexture(sdlTexture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    printf("SDL_LockTexture Error: %s\n", SDL_GetError());
-    SDL_Quit();
-  }
-  display::pixels = pixels;
+
+  display::pixels = sdl::GetPixelBuffer();
 
   // if (noiseEnabled) {
   //   for (int p = 0; p < display::size; p++) {
@@ -118,7 +47,7 @@ void HandleDrawing() {
 
   if (map_view::mapView) {
     for (int i = 0; i < display::size; i++) {
-      pixels[i] = BLACK_COLOR;
+      display::pixels[i] = BLACK_COLOR;
     }
   } else {
     for (int i = 0; i < display::size; i++) {
@@ -127,10 +56,10 @@ void HandleDrawing() {
       // add ceiling/floor color
       if (y > static_cast<float>(display::height) / 2.0f + player::rotVerticalRad) {
         // pixels[i] = vga_palette[0x13];
-        pixels[i] = GREY_COLOR;
+        display::pixels[i] = GREY_COLOR;
       } else {
         // pixels[i] = vga_palette[0x12];
-        pixels[i] = DARKER_GREY_COLOR;
+        display::pixels[i] = DARKER_GREY_COLOR;
       }
     }
   }
@@ -140,10 +69,7 @@ void HandleDrawing() {
     map_view::DrawMap();
   }
 
-  // unlock the texture and render the scene
-  SDL_UnlockTexture(sdlTexture);
-  SDL_RenderCopy(renderer, sdlTexture, nullptr, nullptr);
-  SDL_RenderPresent(renderer);
+  sdl::Draw();
 }
 
 void HandleTimings(const int64_t startTime) {
@@ -173,14 +99,14 @@ void HandleTimings(const int64_t startTime) {
   // 1 million microsecond
   if (elapsedTime >= 1000000) {
     snprintf(windowTitle, WINDOW_TITLE_LENGTH, "%dx%d - %d fps", display::width, display::height, avgFps);
-    SDL_SetWindowTitle(window, windowTitle);
+    sdl::SetWindowTitle(windowTitle);
     currentTime = GetMicroTime();
   }
 }
 
 void GameLoop() {
   if (!utils::running) {
-    Quit();
+    sdl::Quit();
   }
 
   // start time is used to calculate delta time
@@ -208,8 +134,7 @@ int main(int, char **) {
 
   display::size = display::width * display::height;
 
-  cout << "Initializing SDL..." << endl;
-  const int result = InitSDL(cfg);
+  const int result = sdl::InitSDL(cfg.fullscreen, cfg.width, cfg.height, cfg.linearFiltering);
   if (result != 0) {
     return 1;
   }

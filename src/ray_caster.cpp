@@ -91,7 +91,7 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
 
     const int pos = textureY * texture->width + textureX;
     uint32_t color = texture->colors.at(pos);
-    color = color::MultiplyRGB(color, percentage);
+    color = color::DarkenColor(color, percentage);
 
     display::AddPixelToBuffer(wallSlice.wallX, wallY, color);
   }

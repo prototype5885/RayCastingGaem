@@ -62,13 +62,26 @@ inline uint32_t MergeRGB(const RGB rgb) {
 
 inline uint8_t GetAlpha(const uint32_t color) { return color >> 24 & 0xFF; }
 
-inline uint32_t MultiplyRGB(const uint32_t color, const float multiplier) {
+inline uint32_t DarkenColor(const uint32_t color, const float multiplier) {
   const RGB c = SplitRGB(color);
   const uint8_t r = static_cast<uint8_t>(static_cast<float>(c.r) * multiplier);
   const uint8_t g = static_cast<uint8_t>(static_cast<float>(c.g) * multiplier);
   const uint8_t b = static_cast<uint8_t>(static_cast<float>(c.b) * multiplier);
 
   return MergeRGB({c.a, r, g, b});
+}
+
+inline uint32_t ColorBlending(const uint32_t oriCol, const uint32_t col) {
+  RGB a = SplitRGB(oriCol);
+  const RGB b = SplitRGB(col);
+
+  // a.a = static_cast<uint8_t>(static_cast<float>(a.a) / 255.0f * ((static_cast<float>(b.a) / 255.0f) * (static_cast<float>(b.a) / 255.0f)) *
+  // 255.0f);
+  a.r = static_cast<uint8_t>(static_cast<float>(a.r) / 255.0f * ((static_cast<float>(b.r) / 255.0f) * (static_cast<float>(b.r) / 255.0f)) * 255.0f);
+  a.g = static_cast<uint8_t>(static_cast<float>(a.g) / 255.0f * ((static_cast<float>(b.g) / 255.0f) * (static_cast<float>(b.g) / 255.0f)) * 255.0f);
+  a.b = static_cast<uint8_t>(static_cast<float>(a.b) / 255.0f * ((static_cast<float>(b.b) / 255.0f) * (static_cast<float>(b.b) / 255.0f)) * 255.0f);
+
+  return MergeRGB(a);
 }
 
 inline uint16_t ColorDifference(const uint32_t color1, const uint32_t color2) {

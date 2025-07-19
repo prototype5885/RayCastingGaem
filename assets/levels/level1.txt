@@ -2,7 +2,7 @@
 25 0 25 25 wall1
 25 25 0 25 wall1
 0 25 0 0 wall1
-5 5 5 6 wall3
+5 5 5 6 wall3_window2
 5 6 4.2929 6.7071 wall3_window
 10 5 10 15 wall2
 15 5 15 15 wall2

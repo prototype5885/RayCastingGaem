@@ -47,7 +47,7 @@ int InitSDL(const bool fullscreen, const int windowWidth, const int windowHeight
   }
 
   // create the texture that will display content in the window
-  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, display::width, display::height);
+  sdlTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, display::width, display::height);
   if (sdlTexture == nullptr) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

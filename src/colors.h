@@ -27,21 +27,22 @@ namespace color {
 //     0x000000, 0x000000, 0x000000, 0x000000,
 // };
 
-#define WHITE_COLOR ((0 << 24) | (255 << 16) | (255 << 8) | 255)
-#define GREY_COLOR ((0 << 24) | (50 << 16) | (50 << 8) | 50)
-#define DARKER_GREY_COLOR ((0 << 24) | (30 << 16) | (30 << 8) | 30)
-#define BLACK_COLOR ((0 << 24) | (0 << 16) | (0 << 8) | 0)
-#define RED_COLOR ((0 << 24) | (255 << 16) | (0 << 8) | 0)
-#define GREEN_COLOR ((0 << 24) | (0 << 16) | (255 << 8) | 0)
-#define BLUE_COLOR ((0 << 24) | (0 << 16) | (0 << 8) | 255)
-#define YELLOW_COLOR ((0 << 24) | (255 << 16) | (255 << 8) | 0)
+#define WHITE_COLOR ((255 << 24) | (255 << 16) | (255 << 8) | 255)
+#define GREY_COLOR ((255 << 24) | (50 << 16) | (50 << 8) | 50)
+#define DARKER_GREY_COLOR ((255 << 24) | (30 << 16) | (30 << 8) | 30)
+#define BLACK_COLOR ((255 << 24) | (0 << 16) | (0 << 8) | 0)
+#define RED_COLOR ((255 << 24) | (255 << 16) | (0 << 8) | 0)
+#define GREEN_COLOR ((255 << 24) | (0 << 16) | (255 << 8) | 0)
+#define BLUE_COLOR ((255 << 24) | (0 << 16) | (0 << 8) | 255)
+#define YELLOW_COLOR ((255 << 24) | (255 << 16) | (255 << 8) | 0)
 
 typedef struct {
-  uint8_t r, g, b;
+  uint8_t a, r, g, b;
 } RGB;
 
 inline RGB SplitRGB(const uint32_t color) {
   RGB rgb;
+  rgb.a = color >> 24 & 0xFF;
   rgb.r = color >> 16 & 0xFF;
   rgb.g = color >> 8 & 0xFF;
   rgb.b = color & 0xFF;
@@ -51,7 +52,7 @@ inline RGB SplitRGB(const uint32_t color) {
 
 inline uint32_t MergeRGB(const RGB rgb) {
   uint32_t color = 0;
-  color |= 0 << 24;
+  color |= rgb.a << 24;
   color |= rgb.r << 16;
   color |= rgb.g << 8;
   color |= rgb.b;
@@ -59,13 +60,15 @@ inline uint32_t MergeRGB(const RGB rgb) {
   return color;
 }
 
+inline uint8_t GetAlpha(const uint32_t color) { return color >> 24 & 0xFF; }
+
 inline uint32_t MultiplyRGB(const uint32_t color, const float multiplier) {
   const RGB c = SplitRGB(color);
   const uint8_t r = static_cast<uint8_t>(static_cast<float>(c.r) * multiplier);
   const uint8_t g = static_cast<uint8_t>(static_cast<float>(c.g) * multiplier);
   const uint8_t b = static_cast<uint8_t>(static_cast<float>(c.b) * multiplier);
 
-  return MergeRGB({r, g, b});
+  return MergeRGB({c.a, r, g, b});
 }
 
 inline uint16_t ColorDifference(const uint32_t color1, const uint32_t color2) {

@@ -19,7 +19,7 @@
 namespace texture {
 std::map<std::string, Texture> textureList;
 
-Texture missingTexture = {1, 1, {color::MergeRGB({255, 0, 255})}};
+Texture missingTexture = {1, 1, {color::MergeRGB({255, 255, 0, 255})}};
 
 bool CheckIfSupportedExtension(const char *ext) {
   if (ext == nullptr)
@@ -77,15 +77,16 @@ void LoadTextures(const set<string> &wallTextures) {
 
         const int index = (y * width + x) * n;
 
-        uint32_t rgb = 0;
-        rgb |= 0 << 24;
-        rgb |= data[index + 0] << 16;
-        rgb |= data[index + 1] << 8;
-        rgb |= data[index + 2];
+        const uint8_t a = n == 4 ? data[index + 3] : 255;
+        const uint8_t r = data[index + 0];
+        const uint8_t g = data[index + 1];
+        const uint8_t b = data[index + 2];
+
+        const uint32_t color = color::MergeRGB({a, r, g, b});
 
         // uint8_t vgaColor = ColorToVGA(rgb);
         // textureList[fileName].colors.push_back(vgaColor);
-        textureList[file.name].colors.push_back(rgb);
+        textureList[file.name].colors.push_back(color);
       }
       printf("Loaded %s, bytes: %zu\n", filePath, textureList[file.name].colors.size());
       stbi_image_free(data);

@@ -1,4 +1,5 @@
 #include "display.h"
+#include "colors.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -14,7 +15,9 @@ uint32_t *pixels;
 void display::AddPixelToBuffer(const int x, const int y, const uint32_t color) {
   const int i = y * width + x;
   if (0 <= x && x < width && 0 <= y && y < height) {
-    pixels[i] = color;
+    if (color::GetAlpha(color) == UINT8_MAX) {
+      pixels[i] = color;
+    }
   } else {
     // printf("Tried to put pixel out of display bounds at index: %d\n", i);
   }

@@ -34,8 +34,8 @@ typedef struct {
 
 struct WallSlice {
   int wallX;
-  float distance, part, wallLength;
-  const char *wallTexture;
+  float distance, part;
+  const level::Wall *wall;
 
   bool operator<(const WallSlice &other) const { return distance > other.distance; }
 };
@@ -71,10 +71,10 @@ float PointToLineDistance(const float px, const float py, const float x1, const 
   return EuclideanDistance({px, py}, {projX, projY});
 }
 
-void DrawWallSlice(const int wallX, const float distance, const float part, const std::string &wallTexture, const float wallLength) {
+inline void DrawWallSlice(const WallSlice &wallSlice) {
   // calculate wall position and dimension
-  const float wallHeight = static_cast<float>(display::height) / distance;
-  const float wallMiddle = static_cast<float>(display::height) / 2.0f - player::z / distance + player::rotVerticalRad;
+  const float wallHeight = static_cast<float>(display::height) / wallSlice.distance;
+  const float wallMiddle = static_cast<float>(display::height) / 2.0f - player::z / wallSlice.distance + player::rotVerticalRad;
 
   const float wallStart = wallMiddle - wallHeight / 2.0f;
   const float wallEnd = wallMiddle + wallHeight / 2.0f;
@@ -82,18 +82,18 @@ void DrawWallSlice(const int wallX, const float distance, const float part, cons
   // fog like shading
   constexpr float minPercentage = 1.0f;
   constexpr float maxPercentage = 16.0f;
-  float percentage = 1.0f - (distance - minPercentage) / (maxPercentage - minPercentage);
-  if (distance < minPercentage) {
+  float percentage = 1.0f - (wallSlice.distance - minPercentage) / (maxPercentage - minPercentage);
+  if (wallSlice.distance < minPercentage) {
     percentage = 1.0f;
-  } else if (distance > maxPercentage) {
+  } else if (wallSlice.distance > maxPercentage) {
     percentage = 0.0f;
   }
   if (percentage < 0.25f)
     percentage = 0.25f;
 
   // calculate which pixel column is needed for this ray
-  const texture::Texture *texture = &texture::textureList.at(wallTexture);
-  int textureX = static_cast<int>(static_cast<float>(texture->width) * part * wallLength);
+  const texture::Texture *texture = &texture::textureList.at(wallSlice.wall->texture);
+  int textureX = static_cast<int>(static_cast<float>(texture->width) * wallSlice.part * wallSlice.wall->wallLength);
   textureX = textureX % texture->width;
   textureX = utils::clamp(textureX, 0, texture->height - 1);
 
@@ -113,7 +113,7 @@ void DrawWallSlice(const int wallX, const float distance, const float part, cons
     uint32_t color = texture->colors.at(pos);
     color = color::MultiplyRGB(color, percentage);
 
-    display::AddPixelToBuffer(wallX, wallY, color);
+    display::AddPixelToBuffer(wallSlice.wallX, wallY, color);
   }
 }
 
@@ -143,13 +143,7 @@ void ray_caster::CastRays() {
         float distance = EuclideanDistance(intersection.point, player::pos);
         distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
 
-        intersectedWalls.push_back({
-            ray,
-            distance,
-            intersection.part,
-            wall.wallLength,
-            currentLevel.walls[i].texture.c_str(),
-        });
+        intersectedWalls.push_back({ray, distance, intersection.part, &wall});
 
         // if (map_view::mapView) {
         // map_view::DrawRay(intersection.point);
@@ -162,8 +156,8 @@ void ray_caster::CastRays() {
     std::sort(intersectedWalls.begin(), intersectedWalls.end());
 
     for (size_t i = 0; i < intersectedWalls.size(); i++) {
-      const WallSlice *w = &intersectedWalls[i];
-      DrawWallSlice(w->wallX, w->distance, w->part, w->wallTexture, w->wallLength);
+      const WallSlice *wallSlice = &intersectedWalls[i];
+      DrawWallSlice(*wallSlice);
     }
   }
 }

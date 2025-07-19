@@ -52,7 +52,7 @@ void LoadLevel(const string &name) {
 
   texture::LoadTextures(wallTextures);
 
-  printf("Successfully loaded %llu walls from level %s\n", currentLevel.walls.size(), name.c_str());
+  printf("Successfully loaded %zu walls from level %s\n", currentLevel.walls.size(), name.c_str());
 }
 
 geometry::Vector2 GetMapDimension() {

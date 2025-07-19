@@ -97,7 +97,11 @@ def build_emscripten(files, OUTPUT, BUILD_DIR, ASSETS_FOLDER):
 
 
 def main():
-    files = " ".join([f"/app/{f}" for f in [os.path.join("src/", f) for f in os.listdir("src/") if f.endswith(".cpp")]])
+    files = " ".join([
+        os.path.join("/app", root, file).replace("\\", "/")
+        for root, _, files in os.walk("src/")
+        for file in files if file.endswith(".cpp")
+    ])
 
     print("Which target you want to build for?")
     print("1. Windows, 2. Linux, 3. Browser")

@@ -22,54 +22,34 @@ using namespace geometry;
 typedef struct {
   float minDistance;
   Vector2 hitPoint;
-  float part;
+  float where;
   string texture;
   float wallLength;
 } RayHitPoint;
 
-typedef struct {
-  Vector2 point;
-  float part;
-} Intersection;
-
 struct WallSlice {
   int wallX;
-  float distance, part;
+  float distance, where;
   const level::Wall *wall;
 
   bool operator<(const WallSlice &other) const { return distance > other.distance; }
 };
 
-bool CompareByDistance(const WallSlice &a, const WallSlice &b) { return a.distance < b.distance; }
+// bool CompareByDistance(const WallSlice &a, const WallSlice &b) { return a.distance < b.distance; }
 
-Intersection LineIntersection(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4,
-                              const float y4) {
-  const float den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-  if (den == 0)
-    return {{FLT_MAX, FLT_MAX}, 0.0f};
-  const float t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
-  const float u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
-  if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
-    const float px = x1 + t * (x2 - x1);
-    const float py = y1 + t * (y2 - y1);
-    return {{px, py}, u};
-  }
-  return {{FLT_MAX, FLT_MAX}, 0.0f};
-}
-
-float PointToLineDistance(const float px, const float py, const float x1, const float y1, const float x2, const float y2) {
-  const float dx = x2 - x1;
-  const float dy = y2 - y1;
-  const float lenSquared = powf(dx, 2) + powf(dy, 2);
-  if (lenSquared == 0) {
-    return EuclideanDistance({px, py}, {x1, y1});
-  }
-  float t = ((px - x1) * dx + (py - y1) * dy) / lenSquared;
-  t = max(0.0f, min(1.0f, t));
-  const float projX = x1 + t * dx;
-  const float projY = y1 + t * dy;
-  return EuclideanDistance({px, py}, {projX, projY});
-}
+// float PointToLineDistance(const float px, const float py, const float x1, const float y1, const float x2, const float y2) {
+//   const float dx = x2 - x1;
+//   const float dy = y2 - y1;
+//   const float lenSquared = powf(dx, 2) + powf(dy, 2);
+//   if (lenSquared == 0) {
+//     return EuclideanDistance({px, py}, {x1, y1});
+//   }
+//   float t = ((px - x1) * dx + (py - y1) * dy) / lenSquared;
+//   t = max(0.0f, min(1.0f, t));
+//   const float projX = x1 + t * dx;
+//   const float projY = y1 + t * dy;
+//   return EuclideanDistance({px, py}, {projX, projY});
+// }
 
 inline void DrawWallSlice(const WallSlice &wallSlice) {
   // calculate wall position and dimension
@@ -93,7 +73,7 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
 
   // calculate which pixel column is needed for this ray
   const texture::Texture *texture = &texture::textureList.at(wallSlice.wall->texture);
-  int textureX = static_cast<int>(static_cast<float>(texture->width) * wallSlice.part * wallSlice.wall->wallLength);
+  int textureX = static_cast<int>(static_cast<float>(texture->width) * wallSlice.where * wallSlice.wall->wallLength);
   textureX = textureX % texture->width;
   textureX = utils::clamp(textureX, 0, texture->height - 1);
 
@@ -143,12 +123,12 @@ void ray_caster::CastRays() {
         float distance = EuclideanDistance(intersection.point, player::pos);
         distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
 
-        intersectedWalls.push_back({ray, distance, intersection.part, &wall});
+        intersectedWalls.push_back({ray, distance, intersection.where, &wall});
 
         // if (map_view::mapView) {
         // map_view::DrawRay(intersection.point);
         // } else {
-        // DrawWallSlice(ray, distance, intersection.part, currentLevel.walls[i].texture, wall.wallLength);
+        // DrawWallSlice(ray, distance, intersection.where, currentLevel.walls[i].texture, wall.wallLength);
         // }
       }
     }

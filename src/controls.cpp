@@ -57,6 +57,8 @@ void controls::HandleControls() {
     }
   }
 
+  player::forwardVector = geometry::GetForwardVector(player::rotRad);
+
   const int8_t w = keyStates[SDL_SCANCODE_W] ? 1 : 0;
   const int8_t a = keyStates[SDL_SCANCODE_A] ? 1 : 0;
   const int8_t s = keyStates[SDL_SCANCODE_S] ? 1 : 0;
@@ -85,4 +87,6 @@ void controls::HandleControls() {
   const float futureY = player::pos.y + sinf(player::rotRad + player::moveDirRad) * speedMultiplier;
 
   physics::PlayerCollisionCheck({futureX, futureY});
+
+  // bool facing = geometry::IsFacingTarget(player::pos, player::forwardVector, {0.0f, 0.0f}, 0.9f);
 }

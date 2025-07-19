@@ -11,6 +11,7 @@ extern float speed;
 extern geometry::Vector2 pos;
 extern float z;
 extern float rotRad;
+extern geometry::Vector2 forwardVector;
 extern float rotVerticalRad;
 extern float fov;
 extern float radius;

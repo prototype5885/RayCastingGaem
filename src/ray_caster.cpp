@@ -105,35 +105,23 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
 void CastRay(const int ray, const float startAngle, const float angleStep) {
   using namespace level;
   const float rayAngle = startAngle + static_cast<float>(ray) * angleStep;
-
-  const float rayX = cosf(rayAngle);
-  const float rayY = sinf(rayAngle);
+  const Vector2 dirVector = GetForwardVector(rayAngle);
 
   vector<WallSlice> intersectedWalls;
-
   const vector<Wall> &walls = currentLevel.walls;
   for (int i = 0; i < static_cast<int>(currentLevel.walls.size()); i++) {
     const Wall &wall = walls[i];
 
-    const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * MAX_RAY_DISTANCE,
-                                                       player::pos.y + rayY * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
-
+    const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + dirVector.x * MAX_RAY_DISTANCE,
+                                                       player::pos.y + dirVector.y * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
     if (intersection.point.x != FLT_MAX) {
       float distance = EuclideanDistance(intersection.point, player::pos);
       distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
 
       intersectedWalls.push_back({ray, distance, intersection.where, &wall});
-
-      // if (map_view::mapView) {
-      // map_view::DrawRay(intersection.point);
-      // } else {
-      // DrawWallSlice(ray, distance, intersection.where, currentLevel.walls[i].texture, wall.wallLength);
-      // }
     }
   }
-
   sort(intersectedWalls.begin(), intersectedWalls.end());
-
   for (size_t i = 0; i < intersectedWalls.size(); i++) {
     const WallSlice *wallSlice = &intersectedWalls[i];
     DrawWallSlice(*wallSlice);

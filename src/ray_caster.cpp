@@ -12,10 +12,15 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <thread>
 #include <vector>
 
 using namespace std;
 using namespace geometry;
+
+namespace ray_caster {
+bool multiThreaded = true;
+}
 
 #define MAX_RAY_DISTANCE 100
 
@@ -97,47 +102,72 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
   }
 }
 
-void ray_caster::CastRays() {
+void CastRay(const int ray, const float startAngle, const float angleStep) {
   using namespace level;
+  const float rayAngle = startAngle + static_cast<float>(ray) * angleStep;
+
+  const float rayX = cosf(rayAngle);
+  const float rayY = sinf(rayAngle);
+
+  vector<WallSlice> intersectedWalls;
+
+  const vector<Wall> &walls = currentLevel.walls;
+  for (int i = 0; i < static_cast<int>(currentLevel.walls.size()); i++) {
+    const Wall &wall = walls[i];
+
+    const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * MAX_RAY_DISTANCE,
+                                                       player::pos.y + rayY * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
+
+    if (intersection.point.x != FLT_MAX) {
+      float distance = EuclideanDistance(intersection.point, player::pos);
+      distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
+
+      intersectedWalls.push_back({ray, distance, intersection.where, &wall});
+
+      // if (map_view::mapView) {
+      // map_view::DrawRay(intersection.point);
+      // } else {
+      // DrawWallSlice(ray, distance, intersection.where, currentLevel.walls[i].texture, wall.wallLength);
+      // }
+    }
+  }
+
+  sort(intersectedWalls.begin(), intersectedWalls.end());
+
+  for (size_t i = 0; i < intersectedWalls.size(); i++) {
+    const WallSlice *wallSlice = &intersectedWalls[i];
+    DrawWallSlice(*wallSlice);
+  }
+}
+
+void ray_caster::CastRays() {
 
   const float fov = static_cast<float>(display::width) / static_cast<float>(display::height);
   const float startAngle = player::rotRad - fov / 2.0f;
   const float angleStep = fov / static_cast<float>(display::width);
 
-  for (int ray = 0; ray < display::width; ray++) {
-    const float rayAngle = startAngle + static_cast<float>(ray) * angleStep;
+  if (multiThreaded) {
+    const int threadCount = static_cast<int>(thread::hardware_concurrency());
+    vector<thread> threads;
+    const int segmentSize = display::width / threadCount;
 
-    const float rayX = cosf(rayAngle);
-    const float rayY = sinf(rayAngle);
+    for (int t = 0; t < threadCount; t++) {
+      const int start = t * segmentSize;
+      const int end = start + segmentSize;
 
-    vector<WallSlice> intersectedWalls;
-
-    const vector<Wall> &walls = currentLevel.walls;
-    for (int i = 0; i < static_cast<int>(currentLevel.walls.size()); i++) {
-      const Wall &wall = walls[i];
-
-      const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + rayX * MAX_RAY_DISTANCE,
-                                                         player::pos.y + rayY * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
-
-      if (intersection.point.x != FLT_MAX) {
-        float distance = EuclideanDistance(intersection.point, player::pos);
-        distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
-
-        intersectedWalls.push_back({ray, distance, intersection.where, &wall});
-
-        // if (map_view::mapView) {
-        // map_view::DrawRay(intersection.point);
-        // } else {
-        // DrawWallSlice(ray, distance, intersection.where, currentLevel.walls[i].texture, wall.wallLength);
-        // }
-      }
+      threads.emplace_back([=] {
+        for (int ray = start; ray < end; ray++) {
+          CastRay(ray, startAngle, angleStep);
+        }
+      });
     }
 
-    std::sort(intersectedWalls.begin(), intersectedWalls.end());
-
-    for (size_t i = 0; i < intersectedWalls.size(); i++) {
-      const WallSlice *wallSlice = &intersectedWalls[i];
-      DrawWallSlice(*wallSlice);
+    for (auto &t : threads) {
+      t.join();
+    }
+  } else {
+    for (int ray = 0; ray < display::width; ray++) {
+      CastRay(ray, startAngle, angleStep);
     }
   }
 }

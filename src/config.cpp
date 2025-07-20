@@ -15,6 +15,7 @@ Config ReadConfigFile() {
   cfg.height = 1080;
   cfg.resolutionPercentage = 100;
   cfg.linearFiltering = false;
+  cfg.multiThreaded = true;
 
 #ifndef __EMSCRIPTEN__
   try {
@@ -33,6 +34,7 @@ Config ReadConfigFile() {
         fileWrite << "retroResolution=false\n";
         fileWrite << "resolutionPercentage=100\n";
         fileWrite << "linearFiltering=false\n";
+        fileWrite << "multiThreaded=true\n";
       }
     }
     {
@@ -62,6 +64,8 @@ Config ReadConfigFile() {
             cfg.resolutionPercentage = stof(value);
           } else if (key == "linearFiltering") {
             cfg.linearFiltering = value == "true";
+          } else if (key == "multiThreaded") {
+            cfg.multiThreaded = value == "true";
           }
         }
       }

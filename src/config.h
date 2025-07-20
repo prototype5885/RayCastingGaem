@@ -3,7 +3,7 @@
 
 namespace config {
 typedef struct {
-  bool fullscreen, linearFiltering, retroResolution;
+  bool fullscreen, linearFiltering, retroResolution, multiThreaded;
   int width, height;
   float resolutionPercentage;
 } Config;

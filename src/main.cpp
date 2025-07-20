@@ -139,7 +139,10 @@ int main(int, char **) {
     return 1;
   }
 
+  ray_caster::multiThreaded = cfg.multiThreaded;
+
 #ifdef __EMSCRIPTEN__
+  ray_caster::multiThreaded = false; // it doesn't work in emscripten yet
   cout << "Starting emscripten main loop..." << endl;
   emscripten_set_main_loop(GameLoop, 0, 1);
 #else

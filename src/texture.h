@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#define NO_TEXTURE "n"
+
 using namespace std;
 
 namespace texture {

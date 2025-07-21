@@ -12,7 +12,7 @@ namespace level {
 typedef struct {
   float a, b, c, d;
   float wallLength;
-  string texture;
+  string textureBottom, textureMid, textureTop;
 } Wall;
 
 typedef struct {

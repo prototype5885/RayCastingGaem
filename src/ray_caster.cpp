@@ -77,7 +77,7 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
     percentage = 0.25f;
 
   // calculate which pixel column is needed for this ray
-  const texture::Texture *texture = &texture::textureList.at(wallSlice.wall->texture);
+  const texture::Texture *texture = &texture::textureList.at(wallSlice.wall->textureMid);
   int textureX = static_cast<int>(static_cast<float>(texture->width) * wallSlice.where * wallSlice.wall->wallLength);
   textureX = textureX % texture->width;
   textureX = utils::clamp(textureX, 0, texture->height - 1);
@@ -126,6 +126,8 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
   sort(intersectedWalls.begin(), intersectedWalls.end());
   for (size_t i = 0; i < intersectedWalls.size(); i++) {
     const WallSlice *wallSlice = &intersectedWalls[i];
+    if (wallSlice->wall->textureMid == NO_TEXTURE)
+      continue;
     DrawWallSlice(*wallSlice);
   }
 }

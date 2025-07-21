@@ -1,20 +1,20 @@
 # s = sector
 # w = wall
 # sector format: "bottom top"
-# wall format: "a.X a.Y b.X b.Y texture"
+# wall format: "a.X a.Y b.X b.Y textureBottom textureMid textureTop"
 
 s 0 8
-w 0 0 12 0 wall1
-w 12 0 13 0 wall2
-w 13 0 25 0 wall1
-w 25 0 25 25 wall1
-w 25 25 0 25 wall1
-w 0 25 0 0 wall1
+w 0 0 12 0 n wall1 n
+w 12 0 13 0 n n n
+w 13 0 25 0 n wall1 n
+w 25 0 25 25 n wall1 n
+w 25 25 0 25 n wall1 n
+w 0 25 0 0 n wall1 n
 
 #s 0 6
-#w 0 -1 12 -1 wall1
-#w 12 -1 12 0 wall2
-#w 13 -1 13 0 wall2
+#w 0 -1 12 -1 n wall1 n
+#w 12 -1 12 0 n wall2 n
+#w 13 -1 13 0 n wall2 n
 
 
 #s 1 10

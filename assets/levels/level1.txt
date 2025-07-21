@@ -24,4 +24,4 @@ e
 #w 5 6 4.2929 6.7071 n wall3_window n 1
 #w 10 5 10 15 n wall2 n 1
 #w 15 5 15 15 n wall2 n 1
-e
+#e

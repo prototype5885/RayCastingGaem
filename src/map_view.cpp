@@ -44,9 +44,9 @@ void DrawMap() {
   // if (player::speed != 0) {
   // AddLineInDirectionWithArrow(static_cast<Vector2i>(playerPos), 8.0f * zoomLevel, player::rotRad + player::moveDirRad, BLUE_COLOR);
   // }
-  for (size_t s = 0; s < currentLevel.sectors.size(); s++) {
-    const vector<Wall> &walls = currentLevel.sectors[s].walls;
-    for (size_t i = 0; i < walls.size(); i++) {
+  for (size_t s = 0; s < currentLevel.sectorCount; s++) {
+    const Wall *walls = currentLevel.sectors[s].walls;
+    for (size_t i = 0; i < currentLevel.sectors[s].wallCount; i++) {
       const Wall &wall = walls[i];
 
       if (!wall.collision)

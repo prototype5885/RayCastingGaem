@@ -6,6 +6,7 @@
 #define FILESYSTEM_H
 
 #define MAX_FILEPATH_LENGTH 260
+#define MAX_FILENAME_LENGTH 16
 
 namespace filesystem {
 

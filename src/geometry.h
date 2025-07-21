@@ -84,16 +84,15 @@ inline bool IsFacingTarget(const Vector2 &fromPos, const Vector2 &forwardVector,
   return false;
 }
 
-inline Intersection LineIntersection(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4,
-                                     const float y4) {
-  const float den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+inline Intersection LineIntersection(const Vector2 f1, const Vector2 t1, const Vector2 f2, const Vector2 t2) {
+  const float den = (f1.x - t1.x) * (f2.y - t2.y) - (f1.y - t1.y) * (f2.x - t2.x);
   if (den == 0)
     return {{FLT_MAX, FLT_MAX}, 0.0f};
-  const float t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
-  const float u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+  const float t = ((f1.x - f2.x) * (f2.y - t2.y) - (f1.y - f2.y) * (f2.x - t2.x)) / den;
+  const float u = -((f1.x - t1.x) * (f1.y - f2.y) - (f1.y - t1.y) * (f1.x - f2.x)) / den;
   if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
-    const float px = x1 + t * (x2 - x1);
-    const float py = y1 + t * (y2 - y1);
+    const float px = f1.x + t * (t1.x - f1.x);
+    const float py = f1.y + t * (t1.y - f1.y);
     return {{px, py}, u};
   }
   return {{FLT_MAX, FLT_MAX}, 0.0f};

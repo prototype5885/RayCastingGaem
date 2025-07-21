@@ -113,9 +113,8 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
     for (size_t i = 0; i < walls.size(); i++) {
       const Wall &wall = walls[i];
 
-      const Intersection intersection =
-          LineIntersection(player::pos.x, player::pos.y, player::pos.x + dirVector.x * MAX_RAY_DISTANCE,
-                           player::pos.y + dirVector.y * MAX_RAY_DISTANCE, wall.from.x, wall.from.y, wall.to.x, wall.to.y);
+      const Vector2 toDirection = {player::pos.x + dirVector.x * MAX_RAY_DISTANCE, player::pos.y + dirVector.y * MAX_RAY_DISTANCE};
+      const Intersection intersection = LineIntersection(player::pos, toDirection, wall.from, wall.to);
       if (intersection.point.x != FLT_MAX) {
         float distance = EuclideanDistance(intersection.point, player::pos);
         distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction

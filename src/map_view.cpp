@@ -49,6 +49,9 @@ void DrawMap() {
     for (size_t i = 0; i < walls.size(); i++) {
       const Wall &wall = walls[i];
 
+      if (!wall.collision)
+        continue;
+
       constexpr uint32_t color = WHITE_COLOR;
 
       const Vector2 ab = Vector2{wall.a * zoomLevel, wall.b * zoomLevel} + Remap();

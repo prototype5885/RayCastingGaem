@@ -13,6 +13,7 @@ typedef struct {
   float a, b, c, d;
   float wallLength;
   string textureBottom, textureMid, textureTop;
+  bool collision;
 } Wall;
 
 typedef struct {

@@ -49,7 +49,7 @@ void LoadLevel(const string &name) {
       currentLevel.sectors.back().walls.push_back(Wall{});
       Wall &wall = currentLevel.sectors.back().walls.back();
 
-      if (iss >> wall.a >> wall.b >> wall.c >> wall.d >> wall.textureBottom >> wall.textureMid >> wall.textureTop) {
+      if (iss >> wall.a >> wall.b >> wall.c >> wall.d >> wall.textureBottom >> wall.textureMid >> wall.textureTop >> wall.collision) {
       } else {
         throw(runtime_error("Failed parsing map file " + filePath + ", error at line " + to_string(lineCounter) + "\n"));
       }

@@ -33,6 +33,7 @@ struct Vector2 {
   bool operator!=(const Vector2 &other) const { return !(*this == other); }
   constexpr float Length() const { return x * x + y * y; }
   constexpr float LengthSquared() const { return std::sqrt(Length()); }
+  bool IsInfinite() const { return Vector2{x, y} == Vector2{FLT_MAX, FLT_MAX}; }
 };
 
 typedef struct {

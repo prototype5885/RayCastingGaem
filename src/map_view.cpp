@@ -54,8 +54,8 @@ void DrawMap() {
 
       constexpr uint32_t color = WHITE_COLOR;
 
-      const Vector2 ab = Vector2{wall.a * zoomLevel, wall.b * zoomLevel} + Remap();
-      const Vector2 cd = Vector2{wall.c * zoomLevel, wall.d * zoomLevel} + Remap();
+      const Vector2 ab = Vector2{wall.from.x * zoomLevel, wall.from.y * zoomLevel} + Remap();
+      const Vector2 cd = Vector2{wall.to.x * zoomLevel, wall.to.y * zoomLevel} + Remap();
 
       AddLine(static_cast<Vector2i>(ab), static_cast<Vector2i>(cd), color);
     }

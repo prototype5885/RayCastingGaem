@@ -22,18 +22,18 @@ bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
         continue;
 
       // 1. Calculate the closest point on the wall segment to the player's *desired* position
-      float closestX = wall.a;
-      float closestY = wall.b;
+      float closestX = wall.from.x;
+      float closestY = wall.from.y;
 
-      const float dx = wall.c - wall.a;
-      const float dy = wall.d - wall.b;
+      const float dx = wall.to.x - wall.from.x;
+      const float dy = wall.to.y - wall.from.y;
       const float lengthSquared = dx * dx + dy * dy;
 
       if (lengthSquared != 0) { // Avoid division by zero for point-like walls
-        float t = ((newPlayerPos.x - wall.a) * dx + (newPlayerPos.y - wall.b) * dy) / lengthSquared;
+        float t = ((newPlayerPos.x - wall.from.x) * dx + (newPlayerPos.y - wall.from.y) * dy) / lengthSquared;
         t = utils::clamp(t, 0.0f, 1.0f); // Clamp t to [0, 1] for segment
-        closestX = wall.a + t * dx;
-        closestY = wall.b + t * dy;
+        closestX = wall.from.x + t * dx;
+        closestY = wall.from.y + t * dy;
       }
 
       // 2. Calculate the distance from the desired player position to this closest point on the wall
@@ -63,7 +63,7 @@ bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
           // any non-zero direction works to get it moving.
           // For simplicity, let's just make sure it's not a zero vector.
           // For example, if playerPos is exactly wall.p1:
-          if (wall.a == newPlayerPos.x && wall.b == newPlayerPos.y) {
+          if (wall.from.x == newPlayerPos.x && wall.from.y == newPlayerPos.y) {
             // Push along an arbitrary direction or based on movement intent
             normal = {1.0f, 0.0f}; // Or some other default
           } else {
@@ -72,8 +72,8 @@ bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
             // A better solution would rely on the wall's true normal.
             // For a line segment, the normal can be derived from (dy, -dx) or (-dy, dx)
             // Let's assume (dy, -dx) is one normal, and normalize it.
-            const float normal_dx = wall.d - wall.b;
-            const float normal_dy = -(wall.c - wall.a);
+            const float normal_dx = wall.to.y - wall.from.y;
+            const float normal_dy = -(wall.to.x - wall.from.x);
             const float normal_len = std::sqrt(normal_dx * normal_dx + normal_dy * normal_dy);
             if (normal_len > 0) {
               normal.x = normal_dx / normal_len;

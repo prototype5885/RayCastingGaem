@@ -10,7 +10,7 @@ using namespace std;
 
 namespace level {
 typedef struct {
-  float a, b, c, d;
+  geometry::Vector2 from, to;
   float wallLength;
   string textureBottom, textureMid, textureTop;
   bool collision;

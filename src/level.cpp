@@ -49,22 +49,22 @@ void LoadLevel(const string &name) {
       currentLevel.sectors.back().walls.push_back(Wall{});
       Wall &wall = currentLevel.sectors.back().walls.back();
 
-      if (iss >> wall.a >> wall.b >> wall.c >> wall.d >> wall.textureBottom >> wall.textureMid >> wall.textureTop >> wall.collision) {
+      if (iss >> wall.from.x >> wall.from.y >> wall.to.x >> wall.to.y >> wall.textureBottom >> wall.textureMid >> wall.textureTop >> wall.collision) {
       } else {
         throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter) + "\n");
       }
 
-      wall.wallLength = geometry::EuclideanDistance({wall.a, wall.b}, {wall.c, wall.d});
+      wall.wallLength = geometry::EuclideanDistance({wall.from.x, wall.from.y}, {wall.to.x, wall.to.y});
 
       wallTextures.insert(wall.textureBottom);
       wallTextures.insert(wall.textureMid);
       wallTextures.insert(wall.textureTop);
     } else if (typeIdentifier == 'e') {
       vector<Wall> &walls = currentLevel.sectors.back().walls;
-      if (walls.front().a != walls.back().c || walls.front().b != walls.back().d) {
+      if (walls.front().from.x != walls.back().to.x || walls.front().from.y != walls.back().to.y) {
         char errorMessage[128];
-        snprintf(errorMessage, sizeof(errorMessage), "Sector is not enclosed, starts at (%f, %f), ends at (%f, %f)\n", walls.front().a,
-                 walls.front().b, walls.back().c, walls.back().d);
+        snprintf(errorMessage, sizeof(errorMessage), "Sector is not enclosed, starts at (%f, %f), ends at (%f, %f)\n", walls.front().from.x,
+                 walls.front().from.y, walls.back().to.x, walls.back().to.y);
         throw runtime_error(errorMessage);
       }
     }

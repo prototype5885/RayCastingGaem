@@ -42,16 +42,27 @@ void LoadLevel(const string &name) {
       currentLevel.sectors.push_back(Sector{});
       Sector &sector = currentLevel.sectors.back();
       if (iss >> sector.bottom >> sector.top) {
-      } else {
-        throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter) + "\n");
-      }
-    } else if (typeIdentifier == 'w') {
+    if (typeIdentifier == 's') { // if sector
+      Sector sector;
       Wall wall;
 
-      if (iss >> wall.from.x >> wall.from.y >> wall.to.x >> wall.to.y >> wall.textureBottom >> wall.textureMid >> wall.textureTop >> wall.collision) {
+      if (iss >> wall.from.x >> wall.from.y >> sector.bottom >> sector.top) {
       } else {
         throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter) + "\n");
       }
+      currentLevel.sectors.push_back(sector);
+      currentLevel.sectors.back().walls.push_back(wall);
+    } else if (typeIdentifier == 'w') { // if wall
+      Wall wall;
+
+      if (iss >> wall.to.x >> wall.to.y >> wall.textureBottom >> wall.textureMid >> wall.textureTop >> wall.collision) {
+      } else {
+        throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter) + "\n");
+      }
+
+      // grab the end point from the previous wall to use as the new wall's starting point
+      wall.from.x = currentLevel.sectors.back().walls.back().to.x;
+      wall.from.y = currentLevel.sectors.back().walls.back().to.y;
 
       // check if the wall's starting point matches the previous point's end point
       if (!currentLevel.sectors.back().walls.empty()) {
@@ -71,7 +82,7 @@ void LoadLevel(const string &name) {
       wallTextures.insert(wall.textureBottom);
       wallTextures.insert(wall.textureMid);
       wallTextures.insert(wall.textureTop);
-    } else if (typeIdentifier == 'e') {
+    } else if (typeIdentifier == 'e') { // if sector end
       vector<Wall> &walls = currentLevel.sectors.back().walls;
       if (walls.front().from != walls.back().to) {
         char errorMessage[128];

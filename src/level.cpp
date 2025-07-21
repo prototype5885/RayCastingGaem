@@ -38,10 +38,6 @@ void LoadLevel(const string &name) {
     char typeIdentifier;
     iss >> typeIdentifier;
 
-    if (typeIdentifier == 's') {
-      currentLevel.sectors.push_back(Sector{});
-      Sector &sector = currentLevel.sectors.back();
-      if (iss >> sector.bottom >> sector.top) {
     if (typeIdentifier == 's') { // if sector
       Sector sector;
       Wall wall;

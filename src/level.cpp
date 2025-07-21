@@ -46,15 +46,27 @@ void LoadLevel(const string &name) {
         throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter) + "\n");
       }
     } else if (typeIdentifier == 'w') {
-      currentLevel.sectors.back().walls.push_back(Wall{});
-      Wall &wall = currentLevel.sectors.back().walls.back();
+      Wall wall;
 
       if (iss >> wall.from.x >> wall.from.y >> wall.to.x >> wall.to.y >> wall.textureBottom >> wall.textureMid >> wall.textureTop >> wall.collision) {
       } else {
         throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter) + "\n");
       }
 
+      // check if the wall's starting point matches the previous point's end point
+      if (!currentLevel.sectors.back().walls.empty()) {
+        Wall &previousWall = currentLevel.sectors.back().walls.back();
+        if (wall.from != previousWall.to) {
+          char errorMessage[128];
+          snprintf(errorMessage, sizeof(errorMessage), "Start point (%f, %f) at line %d doesn't match with the previous wall's endpoint (%f, %f)\n",
+                   wall.from.x, wall.from.y, lineCounter, previousWall.to.x, previousWall.to.y);
+          throw runtime_error(errorMessage);
+        }
+      }
+
       wall.wallLength = geometry::EuclideanDistance({wall.from.x, wall.from.y}, {wall.to.x, wall.to.y});
+
+      currentLevel.sectors.back().walls.push_back(wall);
 
       wallTextures.insert(wall.textureBottom);
       wallTextures.insert(wall.textureMid);

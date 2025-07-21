@@ -19,7 +19,7 @@ void LoadLevel(const string &name) {
   ifstream file(filePath);
 
   if (!file.is_open()) {
-    throw(runtime_error("Could not open file " + filePath));
+    throw runtime_error("Could not open level file " + filePath);
   }
 
   currentLevel.sectors.clear();
@@ -43,7 +43,7 @@ void LoadLevel(const string &name) {
       Sector &sector = currentLevel.sectors.back();
       if (iss >> sector.bottom >> sector.top) {
       } else {
-        throw(runtime_error("Failed parsing map file " + filePath + ", error at line " + to_string(lineCounter) + "\n"));
+        throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter) + "\n");
       }
     } else if (typeIdentifier == 'w') {
       currentLevel.sectors.back().walls.push_back(Wall{});
@@ -51,7 +51,7 @@ void LoadLevel(const string &name) {
 
       if (iss >> wall.a >> wall.b >> wall.c >> wall.d >> wall.textureBottom >> wall.textureMid >> wall.textureTop >> wall.collision) {
       } else {
-        throw(runtime_error("Failed parsing map file " + filePath + ", error at line " + to_string(lineCounter) + "\n"));
+        throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter) + "\n");
       }
 
       wall.wallLength = geometry::EuclideanDistance({wall.a, wall.b}, {wall.c, wall.d});
@@ -59,6 +59,14 @@ void LoadLevel(const string &name) {
       wallTextures.insert(wall.textureBottom);
       wallTextures.insert(wall.textureMid);
       wallTextures.insert(wall.textureTop);
+    } else if (typeIdentifier == 'e') {
+      vector<Wall> &walls = currentLevel.sectors.back().walls;
+      if (walls.front().a != walls.back().c || walls.front().b != walls.back().d) {
+        char errorMessage[128];
+        snprintf(errorMessage, sizeof(errorMessage), "Sector is not enclosed, starts at (%f, %f), ends at (%f, %f)\n", walls.front().a,
+                 walls.front().b, walls.back().c, walls.back().d);
+        throw runtime_error(errorMessage);
+      }
     }
 
     lineCounter++;

@@ -29,6 +29,8 @@ struct Vector2 {
 
   Vector2 operator+(const Vector2 &other) const { return {x + other.x, y + other.y}; }
   Vector2 operator-(const Vector2 &other) const { return {x - other.x, y - other.y}; }
+  bool operator==(const Vector2 &other) const { return x == other.x && y == other.y; }
+  bool operator!=(const Vector2 &other) const { return !(*this == other); }
   constexpr float Length() const { return x * x + y * y; }
   constexpr float LengthSquared() const { return std::sqrt(Length()); }
 };

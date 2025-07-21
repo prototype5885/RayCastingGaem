@@ -61,7 +61,7 @@ void LoadLevel(const string &name) {
       wallTextures.insert(wall.textureTop);
     } else if (typeIdentifier == 'e') {
       vector<Wall> &walls = currentLevel.sectors.back().walls;
-      if (walls.front().from.x != walls.back().to.x || walls.front().from.y != walls.back().to.y) {
+      if (walls.front().from != walls.back().to) {
         char errorMessage[128];
         snprintf(errorMessage, sizeof(errorMessage), "Sector is not enclosed, starts at (%f, %f), ends at (%f, %f)\n", walls.front().from.x,
                  walls.front().from.y, walls.back().to.x, walls.back().to.y);

@@ -15,14 +15,19 @@ typedef struct {
   string texture;
 } Wall;
 
-struct Level {
-  string name;
+typedef struct {
+  float bottom, top;
   vector<Wall> walls;
-};
+} Sector;
+
+typedef struct {
+  string name;
+  vector<Sector> sectors;
+} Level;
 
 extern Level currentLevel;
 void LoadLevel(const string &name);
-geometry::Vector2 GetMapDimension();
+// geometry::Vector2 GetMapDimension();
 } // namespace level
 
 #endif

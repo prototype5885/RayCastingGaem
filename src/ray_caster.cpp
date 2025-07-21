@@ -108,17 +108,19 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
   const Vector2 dirVector = GetForwardVector(rayAngle);
 
   vector<WallSlice> intersectedWalls;
-  const vector<Wall> &walls = currentLevel.walls;
-  for (int i = 0; i < static_cast<int>(currentLevel.walls.size()); i++) {
-    const Wall &wall = walls[i];
+  for (size_t s = 0; s < currentLevel.sectors.size(); s++) {
+    const vector<Wall> &walls = currentLevel.sectors[s].walls;
+    for (size_t i = 0; i < walls.size(); i++) {
+      const Wall &wall = walls[i];
 
-    const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + dirVector.x * MAX_RAY_DISTANCE,
-                                                       player::pos.y + dirVector.y * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
-    if (intersection.point.x != FLT_MAX) {
-      float distance = EuclideanDistance(intersection.point, player::pos);
-      distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
+      const Intersection intersection = LineIntersection(player::pos.x, player::pos.y, player::pos.x + dirVector.x * MAX_RAY_DISTANCE,
+                                                         player::pos.y + dirVector.y * MAX_RAY_DISTANCE, wall.a, wall.b, wall.c, wall.d);
+      if (intersection.point.x != FLT_MAX) {
+        float distance = EuclideanDistance(intersection.point, player::pos);
+        distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
 
-      intersectedWalls.push_back({ray, distance, intersection.where, &wall});
+        intersectedWalls.push_back({ray, distance, intersection.where, &wall});
+      }
     }
   }
   sort(intersectedWalls.begin(), intersectedWalls.end());
@@ -129,7 +131,6 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
 }
 
 void ray_caster::CastRays() {
-
   const float fov = static_cast<float>(display::width) / static_cast<float>(display::height);
   const float startAngle = player::rotRad - fov / 2.0f;
   const float angleStep = fov / static_cast<float>(display::width);

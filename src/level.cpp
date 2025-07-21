@@ -22,76 +22,88 @@ void LoadLevel(const string &name) {
     throw(runtime_error("Could not open file " + filePath));
   }
 
-  currentLevel.walls.clear();
+  currentLevel.sectors.clear();
 
   set<string> wallTextures;
 
   string line;
-  int counter = 1;
+  int lineCounter = 0;
   while (getline(file, line)) {
     istringstream iss(line);
 
-    currentLevel.walls.push_back(Wall{});
-    Wall &wall = currentLevel.walls.back();
-
-    if (iss >> wall.a >> wall.b >> wall.c >> wall.d >> wall.texture) {
-      string remaining;
-      if (iss >> remaining) {
-        printf("There was extra data on line %d\n", counter);
-      }
-    } else {
-      throw(runtime_error("Failed parsing map file " + filePath + ", error at line " + to_string(counter) + "\n"));
+    if (line.empty() || line.at(0) == '#') {
+      continue;
     }
 
-    wall.wallLength = geometry::EuclideanDistance({wall.a, wall.b}, {wall.c, wall.d});
+    char typeIdentifier;
+    iss >> typeIdentifier;
 
-    wallTextures.insert(wall.texture);
+    if (typeIdentifier == 's') {
+      currentLevel.sectors.push_back(Sector{});
+      Sector &sector = currentLevel.sectors.back();
+      if (iss >> sector.bottom >> sector.top) {
+      } else {
+        throw(runtime_error("Failed parsing map file " + filePath + ", error at line " + to_string(lineCounter) + "\n"));
+      }
+    } else if (typeIdentifier == 'w') {
+      currentLevel.sectors.back().walls.push_back(Wall{});
+      Wall &wall = currentLevel.sectors.back().walls.back();
 
-    counter++;
+      if (iss >> wall.a >> wall.b >> wall.c >> wall.d >> wall.texture) {
+      } else {
+        throw(runtime_error("Failed parsing map file " + filePath + ", error at line " + to_string(lineCounter) + "\n"));
+      }
+
+      wall.wallLength = geometry::EuclideanDistance({wall.a, wall.b}, {wall.c, wall.d});
+
+      wallTextures.insert(wall.texture);
+    }
+
+    lineCounter++;
   }
-
+  currentLevel.name = name;
   texture::LoadTextures(wallTextures);
 
-  printf("Successfully loaded %zu walls from level %s\n", currentLevel.walls.size(), name.c_str());
+  printf("Successfully loaded %zu sectors from level %s\n", currentLevel.sectors.size(), name.c_str());
 }
 
-geometry::Vector2 GetMapDimension() {
-  using namespace geometry;
-
-  float minX = FLT_MAX;
-  float maxX = FLT_MIN;
-  float minY = FLT_MAX;
-  float maxY = FLT_MIN;
-
-  const vector<Wall> &walls = currentLevel.walls;
-  for (size_t i = 0; i < walls.size(); i++) {
-    const Wall &wall = walls[i];
-
-    if (wall.a < minX)
-      minX = wall.a;
-    else if (wall.a > maxX)
-      maxX = wall.a;
-
-    if (wall.b < minY)
-      minY = wall.b;
-    else if (wall.b > maxY)
-      maxY = wall.b;
-
-    if (wall.c < minX)
-      minX = wall.c;
-    else if (wall.c > maxX)
-      maxX = wall.c;
-
-    if (wall.d < minY)
-      minY = wall.d;
-    else if (wall.d > maxY)
-      maxY = wall.d;
-  }
-
-  const Vector2 dimension = {maxX - minX, maxY - minY};
-
-  printf("%f%f\n", dimension.x, dimension.y);
-
-  return dimension;
-}
+// geometry::Vector2 GetMapDibmension() {
+//   using namespace geometry;
+//
+//   float minX = FLT_MAX;
+//   float maxX = FLT_MIN;
+//   float minY = FLT_MAX;
+//   float maxY = FLT_MIN;
+//
+//   const vector<Wall> &walls = currentLevel.walls;
+//   for (size_t i = 0; i < walls.size(); i++) {
+//     const Wall &wall = walls[i];
+//
+//     if (wall.a < minX)
+//       minX = wall.a;
+//     else if (wall.a > maxX)
+//       maxX = wall.a;
+//
+//     if (wall.b < minY)
+//       minY = wall.b;
+//     else if (wall.b > maxY)
+//       maxY = wall.b;
+//
+//     if (wall.c < minX)
+//       minX = wall.c;
+//     else if (wall.c > maxX)
+//       maxX = wall.c;
+//
+//     if (wall.d < minY)
+//       minY = wall.d;
+//     else if (wall.d > maxY)
+//       maxY = wall.d;
+//   }
+//
+//   const Vector2 dimension = {maxX - minX, maxY - minY};
+//
+//   printf("%f%f\n", dimension.x, dimension.y);
+//
+//   return dimension;
+// }
 } // namespace level

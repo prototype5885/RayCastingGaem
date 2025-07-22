@@ -109,9 +109,10 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
   const Vector2 dirVector = GetForwardVector(rayAngle);
 
   vector<WallSlice> intersectedWalls;
-  for (size_t s = 0; s < currentLevel.sectorCount; s++) {
-    const Wall *walls = currentLevel.sectors[s].walls;
-    for (size_t i = 0; i < currentLevel.sectors[s].wallCount; i++) {
+  const vector<Sector> &sectors = currentLevel.sectors;
+  for (size_t s = 0; s < sectors.size(); s++) {
+    const vector<Wall> &walls = sectors.at(s).walls;
+    for (size_t i = 0; i < walls.size(); i++) {
       const Wall &wall = walls[i];
 
       const Vector2 toDirection = {player::pos.x + dirVector.x * MAX_RAY_DISTANCE, player::pos.y + dirVector.y * MAX_RAY_DISTANCE};
@@ -127,7 +128,7 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
   sort(intersectedWalls.begin(), intersectedWalls.end());
   for (size_t i = 0; i < intersectedWalls.size(); i++) {
     const WallSlice *wallSlice = &intersectedWalls[i];
-    if (strcmp(wallSlice->wall->textureMid, NO_TEXTURE) == 0)
+    if (wallSlice->wall->textureMid == NO_TEXTURE)
       continue;
     DrawWallSlice(*wallSlice);
   }

@@ -1,41 +1,39 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
-#include "filesystem.h"
 #include "geometry.h"
 
-#define MAX_WALLS_IN_SECTOR 64
-#define MAX_SECTORS_ON_LEVEL 1024
+#include <string>
+#include <vector>
 
 using namespace std;
 
 namespace level {
-struct Wall {
+class Wall {
+public:
   geometry::Vector2 from, to;
   float wallLength;
-  char textureBottom[MAX_FILENAME_LENGTH], textureMid[MAX_FILENAME_LENGTH], textureTop[MAX_FILENAME_LENGTH];
+  string textureBottom, textureMid, textureTop;
   bool collision;
 
   bool operator==(const Wall &wall) const { return from == wall.from && to == wall.to; }
   bool operator!=(const Wall &wall) const { return !(from == wall.from && to == wall.to); }
 };
 
-typedef struct {
+class Sector {
+public:
   float bottom, top;
-  Wall walls[MAX_WALLS_IN_SECTOR];
-  uint8_t wallCount;
-  // vector<Wall> walls;
-} Sector;
+  vector<Wall> walls;
+};
 
-typedef struct {
-  char name[MAX_FILENAME_LENGTH];
-  Sector sectors[MAX_SECTORS_ON_LEVEL];
-  uint8_t sectorCount;
-  // vector<Sector> sectors;
-} Level;
+class Level {
+public:
+  string name;
+  vector<Sector> sectors;
+};
 
 extern Level currentLevel;
-void LoadLevel(const char *name);
+void LoadLevel(const string &name);
 // geometry::Vector2 GetMapDimension();
 } // namespace level
 

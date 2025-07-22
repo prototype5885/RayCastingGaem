@@ -1,5 +1,4 @@
 #include "level.h"
-#include "filesystem.h"
 #include "texture.h"
 
 #include <cfloat>
@@ -14,25 +13,18 @@ using namespace std;
 namespace level {
 Level currentLevel{};
 
-void LoadLevel(const char *name) {
-  printf("Loading level %s\n", name);
+void LoadLevel(const string &name) {
+  cout << "Loading level " << name << endl;
 
-  char filePath[MAX_FILEPATH_LENGTH];
-  snprintf(filePath, sizeof(filePath), "assets/levels/%s.txt", name);
+  string filePath = "assets/levels/" + name + ".txt";
 
-  // string filePath = "assets/levels/" + name + ".txt";
   ifstream file(filePath);
 
   if (!file.is_open()) {
-    char errorText[64];
-    snprintf(errorText, sizeof(errorText), "Could not open file %s", filePath);
-    throw runtime_error(errorText);
+    throw runtime_error("Could not open file " + filePath);
   }
 
-  // currentLevel.sectors.clear();
-  currentLevel.sectorCount = 0;
-  uint8_t &sectorIndex = currentLevel.sectorCount;
-  uint8_t wallIndex = 0;
+  currentLevel.sectors.clear();
   uint16_t totalWalls = 0;
 
   set<string> wallTextures;
@@ -50,36 +42,33 @@ void LoadLevel(const char *name) {
     iss >> typeIdentifier;
 
     if (typeIdentifier == 's') { // if sector
-      wallIndex = 0;
-
-      Sector &sector = currentLevel.sectors[sectorIndex];
-      Wall &wall = sector.walls[wallIndex];
+      Sector sector;
+      Wall wall{};
 
       // sets the starting point for the first wall
       if (iss >> wall.from.x >> wall.from.y >> sector.bottom >> sector.top) {
       } else {
-        char errorMessage[128];
-        snprintf(errorMessage, sizeof(errorMessage), "Failed parsing level file %s, error at line %u\n", filePath, lineCounter);
-        throw runtime_error(errorMessage);
+        throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter));
       }
 
+      sector.walls.push_back(wall);
+      currentLevel.sectors.push_back(sector);
+
     } else if (typeIdentifier == 'w') { // if wall
-      Sector &sector = currentLevel.sectors[sectorIndex];
-      Wall &wall = sector.walls[wallIndex];
+      Sector &sector = currentLevel.sectors.back();
+      Wall &wall = sector.walls.back();
+
+      // don't run this if first wall because starting point has been already set in first 's'
+      if (sector.walls.size() > 1) {
+        // grab the end point from the previous wall to use as the new wall's starting point
+        wall.from.x = sector.walls.at(sector.walls.size() - 1).to.x;
+        wall.from.y = sector.walls.at(sector.walls.size() - 1).to.y;
+      }
 
       // sets the target point for the current wall
       if (iss >> wall.to.x >> wall.to.y >> wall.textureBottom >> wall.textureMid >> wall.textureTop >> wall.collision) {
       } else {
-        char errorMessage[128];
-        snprintf(errorMessage, sizeof(errorMessage), "Failed parsing level file %s, error at line %u\n", filePath, lineCounter);
-        throw runtime_error(errorMessage);
-      }
-
-      // don't need to run this if first wall because it has been already set in first 's'
-      if (wallIndex != 0) {
-        // grab the end point from the previous wall to use as the new wall's starting point
-        wall.from.x = currentLevel.sectors[sectorIndex].walls[wallIndex - 1].to.x;
-        wall.from.y = currentLevel.sectors[sectorIndex].walls[wallIndex - 1].to.y;
+        throw runtime_error("Failed parsing level file " + filePath + ", error at line " + to_string(lineCounter));
       }
 
       // check if the wall intersects with any other walls
@@ -103,35 +92,29 @@ void LoadLevel(const char *name) {
 
       wall.wallLength = geometry::EuclideanDistance({wall.from.x, wall.from.y}, {wall.to.x, wall.to.y});
 
-      // currentLevel.sectors.back().walls.push_back(wall);
-
       wallTextures.insert(wall.textureBottom);
       wallTextures.insert(wall.textureMid);
       wallTextures.insert(wall.textureTop);
 
-      wallIndex++;
-      sector.wallCount++;
+      sector.walls.push_back(wall);
+
       totalWalls++;
+
     } else if (typeIdentifier == 'e') { // if sector end
-      // check if the first
-      const Wall *walls = currentLevel.sectors[sectorIndex].walls;
-      // needs to have -1 because wallIndex was incremented in the previous line expecting a new wall
-      if (walls[0].from != walls[wallIndex - 1].to) {
+      // check if the first sector is enclosed, first and last point must match
+      const vector<Wall> walls = currentLevel.sectors.back().walls;
+      if (walls[0].from != walls.back().to) {
         char errorMessage[128];
         snprintf(errorMessage, sizeof(errorMessage), "Sector is not enclosed, starts at (%f, %f), ends at (%f, %f)\n", walls[0].from.x,
-                 walls[0].from.y, walls[wallIndex - 1].to.x, walls[wallIndex - 1].to.y);
+                 walls[0].from.y, walls.back().to.x, walls.back().to.y);
         throw runtime_error(errorMessage);
       }
-      sectorIndex++;
-      wallIndex = 0;
     }
-
     lineCounter++;
   }
-  snprintf(currentLevel.name, 16, name);
+  currentLevel.name = name;
   texture::LoadTextures(wallTextures);
-
-  printf("Successfully loaded %u/%u sectors with %u walls from level %s\n", currentLevel.sectorCount, MAX_SECTORS_ON_LEVEL, totalWalls, name);
+  std::cout << "Successfully loaded " << currentLevel.sectors.size() << " sectors with " << totalWalls << " walls from level " << name << std::endl;
 }
 
 // geometry::Vector2 GetMapDibmension() {

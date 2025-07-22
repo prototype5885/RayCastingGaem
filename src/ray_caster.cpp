@@ -16,8 +16,7 @@
 #include <thread>
 #include <vector>
 
-using namespace std;
-using namespace geometry;
+namespace geo = geometry;
 
 namespace ray_caster {
 bool multiThreaded = true;
@@ -25,15 +24,17 @@ bool multiThreaded = true;
 
 #define MAX_RAY_DISTANCE 100
 
-typedef struct {
+class RayHitPoint {
+public:
   float minDistance;
-  Vector2 hitPoint;
+  geo::Vector2 hitPoint;
   float where;
-  string texture;
+  std::string texture;
   float wallLength;
-} RayHitPoint;
+};
 
-struct WallSlice {
+class WallSlice {
+public:
   int wallX;
   float distance, where;
   const level::Wall *wall;
@@ -104,7 +105,10 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
 }
 
 void CastRay(const int ray, const float startAngle, const float angleStep) {
+  using namespace std;
+  using namespace geo;
   using namespace level;
+
   const float rayAngle = startAngle + static_cast<float>(ray) * angleStep;
   const Vector2 dirVector = GetForwardVector(rayAngle);
 
@@ -113,7 +117,7 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
   for (size_t s = 0; s < sectors.size(); s++) {
     const vector<Wall> &walls = sectors.at(s).walls;
     for (size_t i = 0; i < walls.size(); i++) {
-      const Wall &wall = walls[i];
+      const Wall &wall = walls.at(i);
 
       const Vector2 toDirection = {player::pos.x + dirVector.x * MAX_RAY_DISTANCE, player::pos.y + dirVector.y * MAX_RAY_DISTANCE};
       const Intersection intersection = LineIntersection(player::pos, toDirection, wall.from, wall.to);
@@ -127,7 +131,7 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
   }
   sort(intersectedWalls.begin(), intersectedWalls.end());
   for (size_t i = 0; i < intersectedWalls.size(); i++) {
-    const WallSlice *wallSlice = &intersectedWalls[i];
+    const WallSlice *wallSlice = &intersectedWalls.at(i);
     if (wallSlice->wall->textureMid == NO_TEXTURE)
       continue;
     DrawWallSlice(*wallSlice);
@@ -135,6 +139,8 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
 }
 
 void ray_caster::CastRays() {
+  using namespace std;
+
   const float fov = static_cast<float>(display::width) / static_cast<float>(display::height);
   const float startAngle = player::rotRad - fov / 2.0f;
   const float angleStep = fov / static_cast<float>(display::width);

@@ -9,7 +9,7 @@ namespace config {
 Config ReadConfigFile() {
   using namespace std;
 
-  Config cfg;
+  Config cfg{};
   cfg.fullscreen = false;
   cfg.width = 1920;
   cfg.height = 1080;
@@ -71,8 +71,7 @@ Config ReadConfigFile() {
       }
     }
   } catch (const runtime_error &e) {
-    cout << e.what() << endl;
-    exit(1);
+    throw runtime_error(e.what());
   }
 #endif
 

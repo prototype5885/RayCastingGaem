@@ -6,14 +6,12 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 namespace level {
 class Wall {
 public:
   geometry::Vector2 from, to;
   float wallLength;
-  string textureBottom, textureMid, textureTop;
+  std::string textureBottom, textureMid, textureTop;
   bool collision;
 
   bool operator==(const Wall &wall) const { return from == wall.from && to == wall.to; }
@@ -23,17 +21,17 @@ public:
 class Sector {
 public:
   float bottom, top;
-  vector<Wall> walls;
+  std::vector<Wall> walls;
 };
 
 class Level {
 public:
-  string name;
-  vector<Sector> sectors;
+  std::string name;
+  std::vector<Sector> sectors;
 };
 
 extern Level currentLevel;
-void LoadLevel(const string &name);
+void LoadLevel(const std::string &name);
 // geometry::Vector2 GetMapDimension();
 } // namespace level
 

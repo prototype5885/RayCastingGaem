@@ -2,14 +2,12 @@
 
 #include "display.h"
 #include "geometry.h"
-#include "level.h"
 #include "map_view.h"
 #include "physics.h"
 #include "player.h"
 #include "utils.h"
 
 #include <SDL2/SDL_events.h>
-#include <algorithm>
 #include <iostream>
 
 #define VIEW_ANGLE_LIMIT 500.0f

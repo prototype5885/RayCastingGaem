@@ -3,7 +3,7 @@
 #include <cstdint>
 
 namespace sdl {
-int InitSDL(bool fullscreen, int windowWidth, int windowHeight, bool linearFiltering);
+void InitSDL(bool fullscreen, int windowWidth, int windowHeight, bool linearFiltering);
 uint32_t *GetPixelBuffer();
 void Draw();
 void SetWindowTitle(const char *title);

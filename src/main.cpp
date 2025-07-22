@@ -22,21 +22,14 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
 // extra debug stuff
 bool limitSpeed = false;
 // bool noiseEnabled = false;
 
 // needed for calculations inside the loop
-
 int64_t currentTime = utils::GetMicroTime();
 
-#define WINDOW_TITLE_LENGTH 32
-char windowTitle[WINDOW_TITLE_LENGTH];
-
 void HandleDrawing() {
-
   display::pixels = sdl::GetPixelBuffer();
 
   // if (noiseEnabled) {
@@ -86,7 +79,7 @@ void HandleTimings(const int64_t startTime) {
   const int elapsedTime = static_cast<int>(GetMicroTime() - currentTime);
   const int executionTimeWithSleep = static_cast<int>(GetMicroTime() - startTime);
 
-  int const avgFps = CalculateAverageFps(executionTimeWithSleep);
+  const int avgFps = CalculateAverageFps(executionTimeWithSleep);
 
 #ifndef __EMSCRIPTEN__ // delta time just doesn't work in emscripten as expected
   deltaTime = static_cast<double>(GetMicroTime() - startTime) * 60.0 / 1000000.0;
@@ -97,8 +90,9 @@ void HandleTimings(const int64_t startTime) {
 #endif
 
   // 1 million microsecond
-  if (elapsedTime >= 1000000) {
-    snprintf(windowTitle, WINDOW_TITLE_LENGTH, "%dx%d - %d fps", display::width, display::height, avgFps);
+  if (elapsedTime >= 1'000'000) {
+    static char windowTitle[32];
+    snprintf(windowTitle, sizeof(windowTitle), "%dx%d - %d fps", display::width, display::height, avgFps);
     sdl::SetWindowTitle(windowTitle);
     currentTime = GetMicroTime();
   }
@@ -118,6 +112,7 @@ void GameLoop() {
 }
 
 int main(int, char **) {
+  using namespace std;
   const auto cfg = config::ReadConfigFile();
 
   level::LoadLevel("level1");
@@ -134,10 +129,7 @@ int main(int, char **) {
 
   display::size = display::width * display::height;
 
-  const int result = sdl::InitSDL(cfg.fullscreen, cfg.width, cfg.height, cfg.linearFiltering);
-  if (result != 0) {
-    return 1;
-  }
+  sdl::InitSDL(cfg.fullscreen, cfg.width, cfg.height, cfg.linearFiltering);
 
   ray_caster::multiThreaded = cfg.multiThreaded;
 

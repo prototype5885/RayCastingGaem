@@ -5,11 +5,14 @@
 #include "utils.h"
 
 #include <cmath>
+#include <vector>
 
 // ai written
 bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
   using namespace geometry;
   using namespace level;
+  using namespace std;
+
   Vector2 newPlayerPos = desiredPlayerPos;
   bool collisionOccurred = false;
 
@@ -17,7 +20,7 @@ bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
   for (size_t s = 0; s < sectors.size(); s++) {
     const vector<Wall> &walls = sectors.at(s).walls;
     for (size_t i = 0; i < walls.size(); i++) {
-      const Wall &wall = walls[i];
+      const Wall &wall = walls.at(i);
 
       if (!wall.collision)
         continue;

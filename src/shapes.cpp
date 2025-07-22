@@ -4,8 +4,8 @@
 #include <cmath>
 #include <cstdint>
 
-using namespace geometry;
 using display::AddPixelToBuffer;
+using geometry::Vector2i;
 
 void AddCircle(float const radius, Vector2i const circlePos, uint32_t const color) {
   int x = static_cast<int>(radius);
@@ -106,7 +106,7 @@ Vector2i CalculateLineEndpoint(Vector2i const from, float const length, float co
 void AddLineWithArrow(Vector2i const from, Vector2i const to, float const rot, uint32_t const color) {
   AddLine(from, to, color);
 
-  float arrowHeadAngle = deg2rad(135);
+  float arrowHeadAngle = geometry::deg2rad(135);
   for (int i = 0; i < 2; i++) {
     const Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0f, rot - arrowHeadAngle);
     AddLine(to, arrowheadEndPoint, color);

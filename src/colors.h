@@ -36,12 +36,13 @@ namespace color {
 #define BLUE_COLOR ((255 << 24) | (0 << 16) | (0 << 8) | 255)
 #define YELLOW_COLOR ((255 << 24) | (255 << 16) | (255 << 8) | 0)
 
-typedef struct {
+class RGB {
+public:
   uint8_t a, r, g, b;
-} RGB;
+};
 
 inline RGB SplitRGB(const uint32_t color) {
-  RGB rgb;
+  RGB rgb{};
   rgb.a = color >> 24 & 0xFF;
   rgb.r = color >> 16 & 0xFF;
   rgb.g = color >> 8 & 0xFF;

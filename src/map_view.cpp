@@ -33,6 +33,7 @@ void ZoomMap(const int zoomDirection) {
 void DrawMap() {
   using namespace geometry;
   using namespace level;
+  using namespace std;
   // Vector2 offset = Remap();
   // // draw player arrow in center
   // const Vector2 playerPos = Vector2{player::pos.x * zoomLevel, player::pos.y * zoomLevel} + Remap();
@@ -48,7 +49,7 @@ void DrawMap() {
   for (size_t s = 0; s < sectors.size(); s++) {
     const vector<Wall> &walls = sectors.at(s).walls;
     for (size_t i = 0; i < walls.size(); i++) {
-      const Wall &wall = walls[i];
+      const Wall &wall = walls.at(i);
 
       if (!wall.collision)
         continue;

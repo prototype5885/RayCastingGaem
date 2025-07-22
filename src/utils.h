@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <random>
 
-using namespace std;
-
 // inline random_device rd;
 // inline mt19937 gen(rd());
 // inline uniform_int_distribution<uint32_t> gen_rand_uint32_t(0, UINT32_MAX);

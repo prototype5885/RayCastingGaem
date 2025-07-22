@@ -5,7 +5,8 @@
 #include <cstdint>
 
 namespace geometry {
-struct Vector2i {
+class Vector2i {
+public:
   int x, y;
 
   Vector2i() = default;
@@ -15,7 +16,8 @@ struct Vector2i {
   Vector2i operator-(const Vector2i &other) const { return {x - other.x, y - other.y}; }
 };
 
-struct Vector2 {
+class Vector2 {
+public:
   float x, y;
 
   Vector2() = default;
@@ -36,21 +38,24 @@ struct Vector2 {
   bool IsInfinite() const { return Vector2{x, y} == Vector2{FLT_MAX, FLT_MAX}; }
 };
 
-typedef struct {
+class Vector2i8 {
+public:
   int8_t x, y;
-} Vector2i8;
+};
 
-typedef struct {
+class Line2D {
+public:
   float a;
   float b;
   float c;
   float d;
-} Line2D;
+};
 
-typedef struct {
+class Intersection {
+public:
   Vector2 point;
   float where;
-} Intersection;
+};
 
 constexpr float lerpf(const float from, const float to, const float percentage) { return from + (to - from) * percentage; }
 

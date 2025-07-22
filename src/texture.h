@@ -9,20 +9,19 @@
 
 #define NO_TEXTURE "n"
 
-using namespace std;
-
 namespace texture {
-struct Texture {
+class Texture {
+public:
   uint16_t width;
   uint16_t height;
-  vector<uint32_t> colors;
+  std::vector<uint32_t> colors;
 };
 
 extern Texture missingTexture;
 
 extern std::map<std::string, Texture> textureList;
 
-void LoadTextures(const set<string> &wallTextures);
+void LoadTextures(const std::set<std::string> &wallTextures);
 } // namespace texture
 
 #endif

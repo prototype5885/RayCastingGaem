@@ -1,19 +1,15 @@
 #include "level.h"
 #include "texture.h"
 
-#include <cfloat>
-#include <cstdint>
-#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-using namespace std;
-
 namespace level {
 Level currentLevel{};
 
-void LoadLevel(const string &name) {
+void LoadLevel(const std::string &name) {
+  using namespace std;
   cout << "Loading level " << name << endl;
 
   string filePath = "assets/levels/" + name + ".txt";
@@ -103,10 +99,10 @@ void LoadLevel(const string &name) {
     } else if (typeIdentifier == 'e') { // if sector end
       // check if the first sector is enclosed, first and last point must match
       const vector<Wall> walls = currentLevel.sectors.back().walls;
-      if (walls[0].from != walls.back().to) {
+      if (walls.front().from != walls.back().to) {
         char errorMessage[128];
-        snprintf(errorMessage, sizeof(errorMessage), "Sector is not enclosed, starts at (%f, %f), ends at (%f, %f)\n", walls[0].from.x,
-                 walls[0].from.y, walls.back().to.x, walls.back().to.y);
+        snprintf(errorMessage, sizeof(errorMessage), "Sector is not enclosed, starts at (%f, %f), ends at (%f, %f)\n", walls.front().from.x,
+                 walls.front().from.y, walls.back().to.x, walls.back().to.y);
         throw runtime_error(errorMessage);
       }
     }
@@ -114,7 +110,7 @@ void LoadLevel(const string &name) {
   }
   currentLevel.name = name;
   texture::LoadTextures(wallTextures);
-  std::cout << "Successfully loaded " << currentLevel.sectors.size() << " sectors with " << totalWalls << " walls from level " << name << std::endl;
+  std::cout << "Successfully loaded " << currentLevel.sectors.size() << " sectors with " << totalWalls << " walls from " << name << std::endl;
 }
 
 // geometry::Vector2 GetMapDibmension() {

@@ -2,11 +2,12 @@
 #define CONFIG_H
 
 namespace config {
-typedef struct {
+class Config {
+public:
   bool fullscreen, linearFiltering, retroResolution, multiThreaded;
   int width, height;
   float resolutionPercentage;
-} Config;
+};
 
 Config ReadConfigFile();
 } // namespace config

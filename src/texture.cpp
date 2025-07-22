@@ -5,12 +5,10 @@
 #include "texture.h"
 
 #include "colors.h"
-#include "filesystem.h"
 #include "utils.h"
 
-#include <dirent.h>
-
 #include <cstdint>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <set>
@@ -21,83 +19,79 @@ std::map<std::string, Texture> textureList;
 
 Texture missingTexture = {1, 1, {color::MergeRGB({255, 255, 0, 255})}};
 
-bool CheckIfSupportedExtension(const char *ext) {
-  if (ext == nullptr)
+bool CheckIfSupportedExtension(const std::string &ext) {
+  if (ext.empty())
     return false;
-  if (strcmp(ext, "jpg") == 0)
+  if (ext == ".jpg")
     return true;
-  if (strcmp(ext, "jpeg") == 0)
+  if (ext == ".jpeg")
     return true;
-  if (strcmp(ext, "png") == 0)
+  if (ext == ".png")
     return true;
-  if (strcmp(ext, "bmp") == 0)
+  if (ext == ".bmp")
     return true;
-  if (strcmp(ext, "tga") == 0)
+  if (ext == ".tga")
     return true;
 
   return false;
 }
 
-void LoadTextures(const set<string> &wallTextures) {
+void LoadTextures(const std::set<std::string> &wallTextures) {
   using namespace std;
   namespace fs = filesystem;
 
   textureList.clear();
 
-  const char *folderPath = "assets/textures";
-  DIR *dr = opendir(folderPath);
-  if (dr) {
-    dirent *en;
-    while ((en = readdir(dr)) != nullptr) {
-      const fs::File file = fs::SplitFileNameExtension(en->d_name);
-      if (!CheckIfSupportedExtension(file.extension)) {
-        continue;
-      }
-      if (!wallTextures.count(file.name))
-        continue;
+  const fs::path folderPath = "assets/textures";
+  for (const auto &file : fs::directory_iterator(folderPath)) {
+    const string path = file.path().string();
+    const string name = file.path().stem().string();
+    const string extension = file.path().extension().string();
 
-      char filePath[MAX_FILEPATH_LENGTH];
-      snprintf(filePath, MAX_FILEPATH_LENGTH, "%s/%s.%s", folderPath, file.name, file.extension);
+    // check if texture needs to be loaded
+    if (!wallTextures.count(name))
+      continue;
 
-      printf("Loading texture %s...\n", filePath);
+    // check if it's supported picture format
+    if (!CheckIfSupportedExtension(extension))
+      continue;
 
-      int width, height, n;
-      uint8_t *data = stbi_load(filePath, &width, &height, &n, 0);
-      if (data == nullptr) {
-        cerr << "Failed to load: " << filePath << endl;
-        exit(1);
-      }
+    cout << "Loading texture " << path << "..." << endl;
 
-      textureList[file.name].width = width;
-      textureList[file.name].height = height;
-
-      for (int p = 0; p < width * height; p++) {
-        const int x = p % width;
-        const int y = p / width;
-
-        const int index = (y * width + x) * n;
-
-        const uint8_t a = n == 4 ? data[index + 3] : 255;
-        const uint8_t r = data[index + 0];
-        const uint8_t g = data[index + 1];
-        const uint8_t b = data[index + 2];
-
-        const uint32_t color = color::MergeRGB({a, r, g, b});
-
-        // uint8_t vgaColor = ColorToVGA(rgb);
-        // textureList[fileName].colors.push_back(vgaColor);
-        textureList[file.name].colors.push_back(color);
-      }
-      printf("Loaded %s, bytes: %zu\n", filePath, textureList[file.name].colors.size());
-      stbi_image_free(data);
+    int width, height, n;
+    uint8_t *data = stbi_load(path.c_str(), &width, &height, &n, 0);
+    if (data == nullptr) {
+      throw runtime_error("Failed to load texture " + file.path().string());
     }
-    closedir(dr);
+
+    textureList[name].width = width;
+    textureList[name].height = height;
+
+    for (int p = 0; p < width * height; p++) {
+      const int x = p % width;
+      const int y = p / width;
+
+      const int index = (y * width + x) * n;
+
+      const uint8_t a = n == 4 ? data[index + 3] : 255;
+      const uint8_t r = data[index + 0];
+      const uint8_t g = data[index + 1];
+      const uint8_t b = data[index + 2];
+
+      const uint32_t color = color::MergeRGB({a, r, g, b});
+
+      // uint8_t vgaColor = ColorToVGA(rgb);
+      // textureList[fileName].colors.push_back(vgaColor);
+      textureList[name].colors.push_back(color);
+    }
+    cout << "Loaded " << path << ", bytes:" << textureList[name].colors.size() << endl;
+    stbi_image_free(data);
   }
 
   // this will check if a texture file wasn't loaded and then replace it with the fallback missing texture
   for (auto name = wallTextures.begin(); name != wallTextures.end(); ++name) {
     if (textureList.find(*name) == textureList.end()) {
-      printf("Couldn't load texture %s\n", name->c_str());
+      cout << "Couldn't load texture " << *name << endl;
       textureList[*name] = missingTexture;
     }
   }

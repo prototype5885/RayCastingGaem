@@ -51,7 +51,7 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE -static SDL2::SDL2-static)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-        ${glm_SOURCE_DIR}
+        ${glm_SOURCE_DIR}/glm
         ${stb_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/include
 )

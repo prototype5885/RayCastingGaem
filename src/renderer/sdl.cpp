@@ -1,6 +1,6 @@
 #include "sdl.h"
-
 #include "../display.h"
+
 #include <SDL.h>
 #include <iostream>
 

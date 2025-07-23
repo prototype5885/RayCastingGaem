@@ -3,11 +3,11 @@
 #endif
 
 #include "display.h"
-#include "glm/trigonometric.hpp"
-#include "glm/vec2.hpp"
 
 #include <cmath>
 #include <cstdint>
+#include <trigonometric.hpp>
+#include <vec2.hpp>
 
 using display::AddPixelToBuffer;
 using glm::ivec2;

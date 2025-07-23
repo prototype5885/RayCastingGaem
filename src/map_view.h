@@ -1,7 +1,7 @@
 #ifndef MAPVIEW_H
 #define MAPVIEW_H
 
-#include "glm/vec2.hpp"
+#include <vec2.hpp>
 
 namespace map_view {
 extern bool mapView;

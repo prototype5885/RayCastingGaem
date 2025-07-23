@@ -2,7 +2,6 @@
 #include "colors.h"
 #include "display.h"
 #include "geometry.h"
-#include "glm/geometric.hpp"
 #include "level.h"
 #include "player.h"
 #include "texture.h"
@@ -12,6 +11,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <geometric.hpp>
 #include <iostream>
 #include <thread>
 #include <vector>

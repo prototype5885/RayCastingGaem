@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "glm/vec2.hpp"
+#include <vec2.hpp>
 
 namespace player {
 constexpr float playerSpeedDefault = 4.0f;

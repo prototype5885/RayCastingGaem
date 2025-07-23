@@ -1,9 +1,8 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
-#include "glm/vec2.hpp"
-#include <glm/geometric.hpp>
-
 #include <cfloat>
+#include <geometric.hpp>
+#include <vec2.hpp>
 
 namespace geometry {
 class Intersection {

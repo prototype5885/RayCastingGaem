@@ -1,9 +1,8 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
-#include "glm/vec2.hpp"
-
 #include <string>
+#include <vec2.hpp>
 #include <vector>
 
 namespace level {

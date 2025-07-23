@@ -1,7 +1,7 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
-#include "glm/vec2.hpp"
+#include <vec2.hpp>
 
 namespace physics {
 bool PlayerCollisionCheck(glm::vec2 desiredPlayerPos);

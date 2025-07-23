@@ -17,13 +17,13 @@ ASSETS_FOLDER = "assets"
 # user options end
 
 # compiler options
-DEFAULT_COMPILE_ARGS = "-Wall -Wextra -s -O3 -Iinclude"
+DEFAULT_COMPILE_ARGS = "-Wall -Wextra -s -O3"
 DEFAULT_LINKING_ARGS = "-lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -flto"
 
-WINDOWS_COMPILE_ARGS = f"-mwindows {DEFAULT_COMPILE_ARGS}"
+WINDOWS_COMPILE_ARGS = f"-mwindows {DEFAULT_COMPILE_ARGS} -I/usr/x86_64-w64-mingw32/include/SDL2 -I/usr/include/glm -I/usr/include"
 WINDOWS_LINKING_ARGS = f"-lmingw32 {DEFAULT_LINKING_ARGS}"
 
-LINUX_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS}"
+LINUX_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS} -I/usr/include/glm -I/usr/include/SDL2"
 LINUX_LINKING_ARGS = f"{DEFAULT_LINKING_ARGS}"
 
 EMSCRIPTEN_COMPILE_ARGS = f"{DEFAULT_COMPILE_ARGS} -sNO_DISABLE_EXCEPTION_CATCHING"
@@ -52,11 +52,6 @@ def make_docker_file(IMAGE, COMMAND, SDL2_VERSION, OS):
             RUN unzip SDL2-devel-{SDL2_VERSION}-mingw.zip
             RUN cp -r SDL2-{SDL2_VERSION}/x86_64-w64-mingw32 /usr
             RUN rm -rf SDL2-devel-{SDL2_VERSION}-mingw.zip SDL2-{SDL2_VERSION}
-            
-            RUN wget -q https://github.com/g-truc/glm/releases/download/{GLM_VERSION}/glm-{GLM_VERSION}-light.zip
-            RUN unzip glm-{GLM_VERSION}-light.zip
-            RUN cp -r glm /usr/x86_64-w64-mingw32/include
-            RUN rm -rf glm-{GLM_VERSION}-light.zip glm
 
             WORKDIR /app
         """)
@@ -139,14 +134,14 @@ def main():
         error("Incorrect target selection")
 
     print("What you want your Docker image to be?")
-    print("1. Alpine, 2. Arch")
+    print("1. Alpine")
     print(DEFAULT_TEXT)
     chosen_docker = input() or "1"
 
     if chosen_docker == "1":
         IMAGE = f"alpine:{ALPINE_VERSION}"
 
-        COMMAND = "apk update && apk upgrade && apk add --no-cache wget unzip glm-dev "
+        COMMAND = "apk update && apk upgrade && apk add --no-cache wget unzip glm-dev stb "
         if chosen_os == "1":
             COMMAND += "mingw-w64-gcc"
             DOCKER_NAME = "alpine_builder_windows"
@@ -154,17 +149,17 @@ def main():
             COMMAND += "build-base sdl2-dev"
             DOCKER_NAME = "alpine_builder_linux"
 
-    elif chosen_docker == "2":
-        IMAGE = "archlinux:latest"
-
-        COMMAND = "pacman-key --init && pacman -Syu --noconfirm && pacman -S --noconfirm wget unzip "
-        if chosen_os == "1":
-            COMMAND += "mingw-w64-gcc"
-            DOCKER_NAME = "arch_builder_windows"
-        elif chosen_os == "2":
-            COMMAND += "gcc sdl2-compat"
-            DOCKER_NAME = "arch_builder_linux"
-        COMMAND += " && pacman -Scc"
+    # elif chosen_docker == "2":
+    #     IMAGE = "archlinux:latest"
+    #
+    #     COMMAND = "pacman-key --init && pacman -Syu --noconfirm && pacman -S --noconfirm wget unzip glm stb "
+    #     if chosen_os == "1":
+    #         COMMAND += "mingw-w64-gcc"
+    #         DOCKER_NAME = "arch_builder_windows"
+    #     elif chosen_os == "2":
+    #         COMMAND += "gcc sdl2-compat"
+    #         DOCKER_NAME = "arch_builder_linux"
+    #     COMMAND += " && pacman -Scc"
 
     # elif chosen_docker == "3":
     #     IMAGE = "debian:stable"

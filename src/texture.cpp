@@ -1,12 +1,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 
+#include "texture.h"
+#include "colors.h"
 #include "stb_image.h"
 
-#include "texture.h"
-
-#include "colors.h"
-
-#include <cstdint>
 #include <filesystem>
 #include <iostream>
 #include <map>

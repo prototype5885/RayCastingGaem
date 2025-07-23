@@ -1,10 +1,10 @@
 #include "colors.h"
 #include "display.h"
-
-#include "glm/common.hpp"
 #include "level.h"
 #include "player.h"
 #include "shapes.h"
+
+#include <common.hpp>
 
 using glm::ivec2;
 using glm::vec2;

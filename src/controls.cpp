@@ -1,8 +1,6 @@
 #include "controls.h"
-
 #include "display.h"
 #include "geometry.h"
-#include "glm/trigonometric.hpp"
 #include "map_view.h"
 #include "physics.h"
 #include "player.h"
@@ -10,6 +8,7 @@
 
 #include <SDL_events.h>
 #include <iostream>
+#include <trigonometric.hpp>
 
 #define VIEW_ANGLE_LIMIT 500.0f
 

@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <numeric>
 #include <thread>
 #include <vector>
 

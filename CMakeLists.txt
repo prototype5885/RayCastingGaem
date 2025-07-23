@@ -1,52 +1,57 @@
 cmake_minimum_required(VERSION 3.14)
+
 project(RayCastingGaem)
+set(EXECUTABLE_NAME ${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(EXECUTABLE_NAME RayCastingGaem)
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(CMAKE_CXX_FLAGS "-Wall -O3")
+    set(CMAKE_CXX_FLAGS_RELEASE "-s")
+    #    if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    #        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    #    endif ()
+    #    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
+    #    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(CMAKE_CXX_FLAGS "/O2")
 endif ()
 
-if (WIN32)
-    # set(CMAKE_CXX_FLAGS_RELEASE "-mwindows")
-elseif (UNIX)
-    # set(CMAKE_CXX_FLAGS_RELEASE "")
-endif ()
+
+set(SDL2_STATIC ON)
 
 include(FetchContent)
+FetchContent_Declare(
+        sdl
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG release-2.32.8
+)
 FetchContent_Declare(
         glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
         GIT_TAG 1.0.1
 )
-FetchContent_MakeAvailable(glm)
+FetchContent_Declare(
+        stb
+        GIT_REPOSITORY https://github.com/nothings/stb.git
+        GIT_TAG master
+)
+FetchContent_MakeAvailable(sdl glm stb)
 
-include_directories(include ${glm_SOURCE_DIR})
-
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif ()
-#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
-#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 file(GLOB_RECURSE SRC_FILES
         "src/*.c"
         "src/*.cpp"
 )
 
-add_executable(${EXECUTABLE_NAME} ${SRC_FILES})
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-if (WIN32)
-    #    target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)
-    target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lmingw32 -lSDL2main -lSDL2)
-elseif (UNIX)
-    #    target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lSDL2main -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread)
-    target_link_libraries(${EXECUTABLE_NAME} PRIVATE -lSDL2main -lSDL2)
-endif ()
+target_link_libraries(${PROJECT_NAME} PRIVATE -static SDL2::SDL2-static)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+        ${glm_SOURCE_DIR}
+        ${stb_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/include
+)

@@ -1,7 +1,7 @@
 #include "sdl.h"
 
 #include "../display.h"
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <iostream>
 
 SDL_Window *window = nullptr;

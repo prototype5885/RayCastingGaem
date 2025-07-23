@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES // NOLINT(*-reserved-identifier)
+#endif
+
 #include "display.h"
 #include "glm/trigonometric.hpp"
 #include "glm/vec2.hpp"

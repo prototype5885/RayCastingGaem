@@ -2,6 +2,7 @@
 
 #include "display.h"
 #include "geometry.h"
+#include "glm/trigonometric.hpp"
 #include "map_view.h"
 #include "physics.h"
 #include "player.h"
@@ -35,7 +36,7 @@ void controls::HandleControls() {
 
       break;
     case SDL_MOUSEMOTION:
-      player::rotRad += geometry::deg2rad(static_cast<float>(event.motion.xrel)) * display::resScale / 8;
+      player::rotRad += glm::radians(static_cast<float>(event.motion.xrel)) * display::resScale / 8;
 
       if (player::rotRad < -M_PI) {
         player::rotRad += 2 * M_PI;
@@ -43,8 +44,8 @@ void controls::HandleControls() {
         player::rotRad -= 2 * M_PI;
       }
 
-      player::rotVerticalRad -= geometry::deg2rad(static_cast<float>(event.motion.yrel)) * display::resScale * 96;
-      player::rotVerticalRad = utils::clamp(player::rotVerticalRad, -VIEW_ANGLE_LIMIT, VIEW_ANGLE_LIMIT);
+      player::rotVerticalRad -= glm::radians(static_cast<float>(event.motion.yrel)) * display::resScale * 96;
+      player::rotVerticalRad = glm::clamp(player::rotVerticalRad, -VIEW_ANGLE_LIMIT, VIEW_ANGLE_LIMIT);
 
       break;
     case SDL_MOUSEWHEEL:
@@ -86,5 +87,6 @@ void controls::HandleControls() {
 
   physics::PlayerCollisionCheck({futureX, futureY});
 
-  // bool facing = geometry::IsFacingTarget(player::pos, player::forwardVector, {0.0f, 0.0f}, 0.9f);
+  // const float result = geometry::IsFacingTarget(player::pos, player::forwardVector, {0.0f, 0.0f});
+  // std::cout << result << std::endl;
 }

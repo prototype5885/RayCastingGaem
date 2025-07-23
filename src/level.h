@@ -1,7 +1,7 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
-#include "geometry.h"
+#include "glm/vec2.hpp"
 
 #include <string>
 #include <vector>
@@ -9,7 +9,7 @@
 namespace level {
 class Wall {
 public:
-  geometry::Vector2 from, to;
+  glm::vec2 from, to;
   float wallLength;
   std::string textureBottom, textureMid, textureTop;
   bool collision;

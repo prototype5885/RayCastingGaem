@@ -1,9 +1,10 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
-#include "geometry.h"
+
+#include "glm/vec2.hpp"
 
 namespace physics {
-bool PlayerCollisionCheck(geometry::Vector2 desiredPlayerPos);
+bool PlayerCollisionCheck(glm::vec2 desiredPlayerPos);
 }
 
 #endif // PHYSICS_H

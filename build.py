@@ -12,6 +12,7 @@ ALPINE_VERSION = "3.22"
 EMSCRIPTEN_VERSION = "4.0.10"
 
 SDL2_VERSION = "2.32.8"
+GLM_VERSION = "1.0.1"
 ASSETS_FOLDER = "assets"
 # user options end
 
@@ -46,10 +47,16 @@ def make_docker_file(IMAGE, COMMAND, SDL2_VERSION, OS):
             FROM {IMAGE}
 
             RUN {COMMAND}
+            
             RUN wget -q https://github.com/libsdl-org/SDL/releases/download/release-{SDL2_VERSION}/SDL2-devel-{SDL2_VERSION}-mingw.zip 
             RUN unzip SDL2-devel-{SDL2_VERSION}-mingw.zip
             RUN cp -r SDL2-{SDL2_VERSION}/x86_64-w64-mingw32 /usr
             RUN rm -rf SDL2-devel-{SDL2_VERSION}-mingw.zip SDL2-{SDL2_VERSION}
+            
+            RUN wget -q https://github.com/g-truc/glm/releases/download/{GLM_VERSION}/glm-{GLM_VERSION}-light.zip
+            RUN unzip glm-{GLM_VERSION}-light.zip
+            RUN cp -r glm /usr/x86_64-w64-mingw32/include
+            RUN rm -rf glm-{GLM_VERSION}-light.zip glm
 
             WORKDIR /app
         """)
@@ -139,7 +146,7 @@ def main():
     if chosen_docker == "1":
         IMAGE = f"alpine:{ALPINE_VERSION}"
 
-        COMMAND = "apk update && apk upgrade && apk add --no-cache wget unzip "
+        COMMAND = "apk update && apk upgrade && apk add --no-cache wget unzip glm-dev "
         if chosen_os == "1":
             COMMAND += "mingw-w64-gcc"
             DOCKER_NAME = "alpine_builder_windows"

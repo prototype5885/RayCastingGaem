@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(RayCastingGaem)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -16,7 +16,15 @@ elseif (UNIX)
     # set(CMAKE_CXX_FLAGS_RELEASE "")
 endif ()
 
-include_directories(include)
+include(FetchContent)
+FetchContent_Declare(
+        glm
+        GIT_REPOSITORY https://github.com/g-truc/glm.git
+        GIT_TAG 1.0.1
+)
+FetchContent_MakeAvailable(glm)
+
+include_directories(include ${glm_SOURCE_DIR})
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")

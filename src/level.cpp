@@ -1,4 +1,5 @@
 #include "level.h"
+#include "glm/geometric.hpp"
 #include "texture.h"
 
 #include <fstream>
@@ -86,7 +87,7 @@ void LoadLevel(const std::string &name) {
       //   }
       // }
 
-      wall.wallLength = geometry::EuclideanDistance({wall.from.x, wall.from.y}, {wall.to.x, wall.to.y});
+      wall.wallLength = glm::distance(glm::vec2{wall.from.x, wall.from.y}, glm::vec2{wall.to.x, wall.to.y});
 
       wallTextures.insert(wall.textureBottom);
       wallTextures.insert(wall.textureMid);

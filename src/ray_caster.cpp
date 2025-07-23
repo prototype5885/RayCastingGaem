@@ -2,10 +2,10 @@
 #include "colors.h"
 #include "display.h"
 #include "geometry.h"
+#include "glm/geometric.hpp"
 #include "level.h"
 #include "player.h"
 #include "texture.h"
-#include "utils.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -16,8 +16,6 @@
 #include <thread>
 #include <vector>
 
-namespace geo = geometry;
-
 namespace ray_caster {
 bool multiThreaded = true;
 }
@@ -27,7 +25,7 @@ bool multiThreaded = true;
 class RayHitPoint {
 public:
   float minDistance;
-  geo::Vector2 hitPoint;
+  glm::vec2 hitPoint;
   float where;
   std::string texture;
   float wallLength;
@@ -82,11 +80,11 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
   const texture::Texture *texture = &texture::textureList.at(wallSlice.wall->textureMid);
   int textureX = static_cast<int>(static_cast<float>(texture->width) * wallSlice.where * wallSlice.wall->wallLength);
   textureX = textureX % texture->width;
-  textureX = utils::clamp(textureX, 0, texture->height - 1);
+  textureX = glm::clamp(textureX, 0, texture->height - 1);
 
   // clamp the wall so it stays between display only
-  const int realWallStart = utils::clamp(static_cast<int>(wallStart), 0, display::height);
-  const int realWallEnd = utils::clamp(static_cast<int>(wallEnd), 0, display::height);
+  const int realWallStart = glm::clamp(static_cast<int>(wallStart), 0, display::height);
+  const int realWallEnd = glm::clamp(static_cast<int>(wallEnd), 0, display::height);
 
   for (int wallY = realWallStart; wallY < realWallEnd; wallY++) {
     // calculate which pixel needs to be grabbed from the pixel column
@@ -94,7 +92,7 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
     int textureY = static_cast<int>(normalizedTextureY * static_cast<float>(texture->height));
 
     // to prevent it from accessing +1 above limit, sometimes it happened
-    textureY = utils::clamp(textureY, 0, texture->height - 1);
+    textureY = glm::clamp(textureY, 0, texture->height - 1);
 
     const int pos = textureY * texture->width + textureX;
     uint32_t color = texture->colors.at(pos);
@@ -105,12 +103,12 @@ inline void DrawWallSlice(const WallSlice &wallSlice) {
 }
 
 void CastRay(const int ray, const float startAngle, const float angleStep) {
-  using namespace std;
-  using namespace geo;
+  using std::vector;
+  using namespace geometry;
   using namespace level;
 
   const float rayAngle = startAngle + static_cast<float>(ray) * angleStep;
-  const Vector2 dirVector = GetForwardVector(rayAngle);
+  const glm::vec2 dirVector = GetForwardVector(rayAngle);
 
   vector<WallSlice> intersectedWalls;
   const vector<Sector> &sectors = currentLevel.sectors;
@@ -119,10 +117,10 @@ void CastRay(const int ray, const float startAngle, const float angleStep) {
     for (size_t i = 0; i < walls.size(); i++) {
       const Wall &wall = walls.at(i);
 
-      const Vector2 toDirection = {player::pos.x + dirVector.x * MAX_RAY_DISTANCE, player::pos.y + dirVector.y * MAX_RAY_DISTANCE};
+      const glm::vec2 toDirection = {player::pos.x + dirVector.x * MAX_RAY_DISTANCE, player::pos.y + dirVector.y * MAX_RAY_DISTANCE};
       const Intersection intersection = LineIntersection(player::pos, toDirection, wall.from, wall.to);
-      if (!intersection.point.IsInfinite()) {
-        float distance = EuclideanDistance(intersection.point, player::pos);
+      if (intersection.point != glm::vec2{FLT_MAX, FLT_MAX}) {
+        float distance = glm::distance(intersection.point, player::pos);
         distance = distance * cosf(rayAngle - player::rotRad); // fisheye correction
 
         intersectedWalls.push_back({ray, distance, intersection.where, &wall});

@@ -1,10 +1,13 @@
 #include "colors.h"
 #include "display.h"
-#include "geometry.h"
+
+#include "glm/common.hpp"
 #include "level.h"
 #include "player.h"
 #include "shapes.h"
-#include "utils.h"
+
+using glm::ivec2;
+using glm::vec2;
 
 namespace map_view {
 bool mapView = false;
@@ -13,25 +16,24 @@ constexpr float minZoomLevel = 8.0f;
 constexpr float maxZoomLevel = 32.0f;
 constexpr float stepLevel = 2.0f;
 
-Vector2i GetCenter() { return {display::width / 2, display::height / 2}; }
+ivec2 GetCenter() { return {display::width / 2, display::height / 2}; }
 
-geometry::Vector2 Remap() {
+vec2 Remap() {
   const float screenCenterX = static_cast<float>(display::width) / 2.0f;
   const float screenCenterY = static_cast<float>(display::height) / 2.0f;
 
   const float playerScaledX = player::pos.x * zoomLevel;
   const float playerScaledY = player::pos.y * zoomLevel;
 
-  return geometry::Vector2{screenCenterX - playerScaledX, screenCenterY - playerScaledY};
+  return vec2{screenCenterX - playerScaledX, screenCenterY - playerScaledY};
 }
 
 void ZoomMap(const int zoomDirection) {
   zoomLevel += static_cast<float>(zoomDirection) * stepLevel;
-  zoomLevel = utils::clamp(zoomLevel, minZoomLevel, maxZoomLevel);
+  zoomLevel = glm::clamp(zoomLevel, minZoomLevel, maxZoomLevel);
 }
 
 void DrawMap() {
-  using namespace geometry;
   using namespace level;
   using namespace std;
   // Vector2 offset = Remap();
@@ -56,18 +58,18 @@ void DrawMap() {
 
       constexpr uint32_t color = WHITE_COLOR;
 
-      const Vector2 ab = Vector2{wall.from.x * zoomLevel, wall.from.y * zoomLevel} + Remap();
-      const Vector2 cd = Vector2{wall.to.x * zoomLevel, wall.to.y * zoomLevel} + Remap();
+      const vec2 ab = vec2{wall.from.x * zoomLevel, wall.from.y * zoomLevel} + Remap();
+      const vec2 cd = vec2{wall.to.x * zoomLevel, wall.to.y * zoomLevel} + Remap();
 
-      AddLine(static_cast<Vector2i>(ab), static_cast<Vector2i>(cd), color);
+      AddLine(ab, cd, color);
     }
   }
 }
 
-void DrawRay(geometry::Vector2 to) {
+void DrawRay(vec2 to) {
   to.x *= zoomLevel;
   to.y *= zoomLevel;
-  AddLine(GetCenter(), static_cast<Vector2i>(to + Remap()), YELLOW_COLOR);
+  AddLine(GetCenter(), to + Remap(), YELLOW_COLOR);
 }
 
 void ToggleMap() { mapView = !mapView; }

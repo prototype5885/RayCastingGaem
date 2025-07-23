@@ -1,13 +1,14 @@
 #include "display.h"
-#include "geometry.h"
+#include "glm/trigonometric.hpp"
+#include "glm/vec2.hpp"
 
 #include <cmath>
 #include <cstdint>
 
 using display::AddPixelToBuffer;
-using geometry::Vector2i;
+using glm::ivec2;
 
-void AddCircle(float const radius, Vector2i const circlePos, uint32_t const color) {
+void AddCircle(float const radius, ivec2 const circlePos, uint32_t const color) {
   int x = static_cast<int>(radius);
   int y = 0;
 
@@ -30,7 +31,7 @@ void AddCircle(float const radius, Vector2i const circlePos, uint32_t const colo
   }
 }
 
-void PlotLineLow(const Vector2i from, const Vector2i to, const uint32_t color) {
+void PlotLineLow(const ivec2 from, const ivec2 to, const uint32_t color) {
   const int dx = to.x - from.x;
   int dy = to.y - from.y;
 
@@ -55,7 +56,7 @@ void PlotLineLow(const Vector2i from, const Vector2i to, const uint32_t color) {
   }
 }
 
-void PlotLineHigh(const Vector2i from, const Vector2i to, const uint32_t color) {
+void PlotLineHigh(const ivec2 from, const ivec2 to, const uint32_t color) {
   int dx = to.x - from.x;
   const int dy = to.y - from.y;
 
@@ -80,7 +81,7 @@ void PlotLineHigh(const Vector2i from, const Vector2i to, const uint32_t color) 
   }
 }
 
-void AddLine(Vector2i const from, Vector2i const to, uint32_t const color) {
+void AddLine(ivec2 const from, ivec2 const to, uint32_t const color) {
   if (abs(to.y - from.y) < abs(to.x - from.x)) {
     if (from.x > to.x)
       PlotLineLow(to, from, color);
@@ -97,29 +98,29 @@ void AddLine(Vector2i const from, Vector2i const to, uint32_t const color) {
   AddPixelToBuffer(to.x, to.y, color);
 }
 
-Vector2i CalculateLineEndpoint(Vector2i const from, float const length, float const angle) {
+ivec2 CalculateLineEndpoint(ivec2 const from, float const length, float const angle) {
   int x = static_cast<int>(static_cast<float>(from.x) + cosf(angle) * length);
   int y = static_cast<int>(static_cast<float>(from.y) + sinf(angle) * length);
   return {x, y};
 }
 
-void AddLineWithArrow(Vector2i const from, Vector2i const to, float const rot, uint32_t const color) {
+void AddLineWithArrow(ivec2 const from, ivec2 const to, float const rot, uint32_t const color) {
   AddLine(from, to, color);
 
-  float arrowHeadAngle = geometry::deg2rad(135);
+  float arrowHeadAngle = glm::radians(135.0f);
   for (int i = 0; i < 2; i++) {
-    const Vector2i arrowheadEndPoint = CalculateLineEndpoint(to, 6.0f, rot - arrowHeadAngle);
+    const ivec2 arrowheadEndPoint = CalculateLineEndpoint(to, 6.0f, rot - arrowHeadAngle);
     AddLine(to, arrowheadEndPoint, color);
     arrowHeadAngle += M_PI_2;
   }
 }
 
-void AddLineInDirectionWithArrow(Vector2i const from, float const length, float const rot, uint32_t const color) {
-  const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
+void AddLineInDirectionWithArrow(ivec2 const from, float const length, float const rot, uint32_t const color) {
+  const ivec2 lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLineWithArrow(from, lineEndpoint, rot, color);
 }
 
-void AddLineInDirection(Vector2i const from, float const length, float const rot, uint32_t const color) {
-  const Vector2i lineEndpoint = CalculateLineEndpoint(from, length, rot);
+void AddLineInDirection(ivec2 const from, float const length, float const rot, uint32_t const color) {
+  const ivec2 lineEndpoint = CalculateLineEndpoint(from, length, rot);
   AddLine(from, lineEndpoint, color);
 }

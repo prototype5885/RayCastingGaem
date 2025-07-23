@@ -1,19 +1,18 @@
 #include "physics.h"
-#include "geometry.h"
+#include "glm/geometric.hpp"
 #include "level.h"
 #include "player.h"
-#include "utils.h"
 
 #include <cmath>
 #include <vector>
 
 // ai written
-bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
-  using namespace geometry;
+bool physics::PlayerCollisionCheck(const glm::vec2 desiredPlayerPos) {
+  using namespace glm;
   using namespace level;
   using namespace std;
 
-  Vector2 newPlayerPos = desiredPlayerPos;
+  vec2 newPlayerPos = desiredPlayerPos;
   bool collisionOccurred = false;
 
   const vector<Sector> &sectors = currentLevel.sectors;
@@ -35,14 +34,14 @@ bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
 
       if (lengthSquared != 0) { // Avoid division by zero for point-like walls
         float t = ((newPlayerPos.x - wall.from.x) * dx + (newPlayerPos.y - wall.from.y) * dy) / lengthSquared;
-        t = utils::clamp(t, 0.0f, 1.0f); // Clamp t to [0, 1] for segment
+        t = clamp(t, 0.0f, 1.0f); // Clamp t to [0, 1] for segment
         closestX = wall.from.x + t * dx;
         closestY = wall.from.y + t * dy;
       }
 
       // 2. Calculate the distance from the desired player position to this closest point on the wall
-      const Vector2 closestPointOnWall = {closestX, closestY};
-      const float distToWall = EuclideanDistance(newPlayerPos, closestPointOnWall);
+      const vec2 closestPointOnWall = {closestX, closestY};
+      const float distToWall = glm::distance(newPlayerPos, closestPointOnWall);
 
       // 3. Check for collision: Is the distance less than the player's radius?
       if (distToWall < player::radius) {
@@ -54,7 +53,7 @@ bool physics::PlayerCollisionCheck(const geometry::Vector2 desiredPlayerPos) {
 
         // Calculate the normal vector from the wall pointing towards the player
         // This is the direction to push the player
-        Vector2 normal = {0, 0};
+        vec2 normal = {0, 0};
         if (distToWall > 0) { // Avoid division by zero if player is exactly on the point
           normal.x = (newPlayerPos.x - closestPointOnWall.x) / distToWall;
           normal.y = (newPlayerPos.y - closestPointOnWall.y) / distToWall;

@@ -1,19 +1,15 @@
 #ifndef SHAPES_H
 #define SHAPES_H
 
-#include "geometry.h"
-
 #include <cstdint>
 
-using geometry::Vector2i;
-
-void AddCircle(float radius, Vector2i circlePos, uint32_t color);
-void PlotLineLow(Vector2i from, Vector2i to, uint32_t color);
-void PlotLineHigh(Vector2i from, Vector2i to, uint32_t color);
-void AddLine(Vector2i from, Vector2i to, uint32_t color);
-Vector2i CalculateLineEndpoint(Vector2i from, float length, float angle);
-void AddLineWithArrow(Vector2i from, Vector2i to, float rot, uint32_t color);
-void AddLineInDirectionWithArrow(Vector2i from, float length, float rot, uint32_t color);
-void AddLineInDirection(Vector2i from, float length, float rot, uint32_t color);
+void AddCircle(float radius, glm::ivec2 circlePos, uint32_t color);
+void PlotLineLow(glm::ivec2 from, glm::ivec2 to, uint32_t color);
+void PlotLineHigh(glm::ivec2 from, glm::ivec2 to, uint32_t color);
+void AddLine(glm::ivec2 from, glm::ivec2 to, uint32_t color);
+glm::ivec2 CalculateLineEndpoint(glm::ivec2 from, float length, float angle);
+void AddLineWithArrow(glm::ivec2 from, glm::ivec2 to, float rot, uint32_t color);
+void AddLineInDirectionWithArrow(glm::ivec2 from, float length, float rot, uint32_t color);
+void AddLineInDirection(glm::ivec2 from, float length, float rot, uint32_t color);
 
 #endif

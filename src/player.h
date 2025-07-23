@@ -1,17 +1,17 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "geometry.h"
+#include "glm/vec2.hpp"
 
 namespace player {
 constexpr float playerSpeedDefault = 4.0f;
 
 extern float moveDirRad;
 extern float speed;
-extern geometry::Vector2 pos;
+extern glm::vec2 pos;
 extern float z;
 extern float rotRad;
-extern geometry::Vector2 forwardVector;
+extern glm::vec2 forwardVector;
 extern float rotVerticalRad;
 extern float fov;
 extern float radius;

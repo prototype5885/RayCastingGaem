@@ -1,96 +1,28 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
+#include "glm/vec2.hpp"
+#include <glm/geometric.hpp>
+
 #include <cfloat>
-#include <cmath>
-#include <cstdint>
 
 namespace geometry {
-class Vector2i {
-public:
-  int x, y;
-
-  Vector2i() = default;
-  Vector2i(const int x, const int y) : x(x), y(y) {}
-
-  Vector2i operator+(const Vector2i &other) const { return {x + other.x, y + other.y}; }
-  Vector2i operator-(const Vector2i &other) const { return {x - other.x, y - other.y}; }
-};
-
-class Vector2 {
-public:
-  float x, y;
-
-  Vector2() = default;
-  Vector2(const float x, const float y) : x(x), y(y) {}
-
-  explicit operator Vector2i() const {
-    const int rounded_x = static_cast<int>(x);
-    const int rounded_y = static_cast<int>(y);
-    return {rounded_x, rounded_y};
-  }
-
-  Vector2 operator+(const Vector2 &other) const { return {x + other.x, y + other.y}; }
-  Vector2 operator-(const Vector2 &other) const { return {x - other.x, y - other.y}; }
-  bool operator==(const Vector2 &other) const { return x == other.x && y == other.y; }
-  bool operator!=(const Vector2 &other) const { return !(*this == other); }
-  constexpr float Length() const { return x * x + y * y; }
-  constexpr float LengthSquared() const { return std::sqrt(Length()); }
-  bool IsInfinite() const { return Vector2{x, y} == Vector2{FLT_MAX, FLT_MAX}; }
-};
-
-class Vector2i8 {
-public:
-  int8_t x, y;
-};
-
-class Line2D {
-public:
-  float a;
-  float b;
-  float c;
-  float d;
-};
-
 class Intersection {
 public:
-  Vector2 point;
+  glm::vec2 point;
   float where;
 };
 
 constexpr float lerpf(const float from, const float to, const float percentage) { return from + (to - from) * percentage; }
 
-constexpr float deg2rad(const float num) { return num * (static_cast<float>(M_PI) / 180.0f); }
+inline glm::vec2 GetForwardVector(const float rotRad) { return glm::vec2{cosf(rotRad), sinf(rotRad)}; }
 
-constexpr float rad2deg(const float num) { return num * 57.29578f; }
-
-inline Vector2 Normalize(const Vector2 &v) {
-  const float length = v.LengthSquared();
-  if (length == 0.0f) {
-    return {0.0f, 0.0f}; // so won't divide by zero
-  }
-  return {v.x / length, v.y / length};
+inline float IsFacingTarget(const glm::vec2 fromPos, const glm::vec2 forwardVector, const glm::vec2 targetPos) {
+  const glm::vec2 toPoint = targetPos - fromPos;
+  const glm::vec2 toPointDir = glm::normalize(toPoint);
+  return glm::dot(forwardVector, toPointDir);
 }
 
-inline float EuclideanDistance(const Vector2 &from, const Vector2 &to) {
-  const Vector2 dir = to - from;
-  return dir.LengthSquared();
-}
-
-constexpr float DotProduct(const Vector2 &a, const Vector2 &b) { return a.x * b.x + a.y * b.y; }
-
-inline Vector2 GetForwardVector(const float rotRad) { return {cosf(rotRad), sinf(rotRad)}; }
-
-inline bool IsFacingTarget(const Vector2 &fromPos, const Vector2 &forwardVector, const Vector2 &targetPos, const float limit) {
-  const float dotProduct = DotProduct(forwardVector, Normalize(targetPos - fromPos));
-
-  if (dotProduct > limit) {
-    return true;
-  }
-
-  return false;
-}
-
-inline Intersection LineIntersection(const Vector2 f1, const Vector2 t1, const Vector2 f2, const Vector2 t2) {
+inline Intersection LineIntersection(const glm::vec2 f1, const glm::vec2 t1, const glm::vec2 f2, const glm::vec2 t2) {
   const float den = (f1.x - t1.x) * (f2.y - t2.y) - (f1.y - t1.y) * (f2.x - t2.x);
   if (den == 0)
     return {{FLT_MAX, FLT_MAX}, 0.0f};

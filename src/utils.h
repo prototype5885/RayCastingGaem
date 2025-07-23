@@ -13,8 +13,6 @@ namespace utils {
 extern double deltaTime;
 extern bool running;
 
-template <typename T> T clamp(const T &n, const T &lower, const T &upper) { return std::max(lower, std::min(n, upper)); }
-
 // uint32_t rand_uint32_t();
 // float rand_float();
 int64_t GetMicroTime();

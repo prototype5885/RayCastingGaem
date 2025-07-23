@@ -5,7 +5,6 @@
 #include "texture.h"
 
 #include "colors.h"
-#include "utils.h"
 
 #include <cstdint>
 #include <filesystem>

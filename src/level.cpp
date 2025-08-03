@@ -58,8 +58,7 @@ void LoadLevel(const std::string &name) {
       // don't run this if first wall because starting point has been already set in first 's'
       if (sector.walls.size() > 1) {
         // grab the end point from the previous wall to use as the new wall's starting point
-        wall.from.x = sector.walls.at(sector.walls.size() - 1).to.x;
-        wall.from.y = sector.walls.at(sector.walls.size() - 1).to.y;
+        wall.from = sector.walls.back().to;
       }
 
       // sets the target point for the current wall
@@ -87,7 +86,7 @@ void LoadLevel(const std::string &name) {
       //   }
       // }
 
-      wall.wallLength = glm::distance(glm::vec2{wall.from.x, wall.from.y}, glm::vec2{wall.to.x, wall.to.y});
+      wall.wallLength = glm::distance(wall.from, wall.to);
 
       wallTextures.insert(wall.textureBottom);
       wallTextures.insert(wall.textureMid);

@@ -57,13 +57,13 @@ void controls::HandleControls() {
 
   player::forwardVector = geometry::GetForwardVector(player::rotRad);
 
-  const int8_t w = keyStates[SDL_SCANCODE_W] ? 1 : 0;
-  const int8_t a = keyStates[SDL_SCANCODE_A] ? 1 : 0;
-  const int8_t s = keyStates[SDL_SCANCODE_S] ? 1 : 0;
-  const int8_t d = keyStates[SDL_SCANCODE_D] ? 1 : 0;
+  const auto w = keyStates[SDL_SCANCODE_W];
+  const auto a = keyStates[SDL_SCANCODE_A];
+  const auto s = keyStates[SDL_SCANCODE_S];
+  const auto d = keyStates[SDL_SCANCODE_D];
 
-  const uint8_t up = keyStates[SDL_SCANCODE_SPACE] ? 1 : 0;
-  const uint8_t down = keyStates[SDL_SCANCODE_LCTRL] ? 1 : 0;
+  const auto up = keyStates[SDL_SCANCODE_SPACE];
+  const auto down = keyStates[SDL_SCANCODE_LCTRL];
 
   const auto sideways = d - a;
   const auto forwards = w - s;

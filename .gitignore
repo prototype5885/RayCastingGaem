@@ -64,5 +64,8 @@ CmakeSettings.json
 /build_local
 config.txt
 
-/textureconverter/*.bin
 build_local.bat
+/cmake-build-debug_gnu/
+/cmake-build-debug_msvc/
+/cmake-build-release_gnu/
+/cmake-build-release_msvc/
